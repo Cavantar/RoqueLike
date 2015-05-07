@@ -11,13 +11,19 @@ typedef std::list<EventOperator*> EventBroadcasterList;
 
 class EventManager{
 public:
-  void registerListenerEvents(EventOperator* eventListener, EventNameList eventNameList);
+  void registerListener(EventOperator* eventListener);
   void collectEvents();
   void dispatchEvents();
   
   void queueEvent(std::string eventName, const EventArgumentDataMap& eventArgumentDataMap);
+  void reset();
 private:
   EventMapList eventQueue;
   EventListenerList eventListenerList;
   EventBroadcasterList eventBroadcasterList;
+  
+  bool isSpecialEvent(std::string eventName) const ;
+  void removeListener(EventOperator* eventListener);
+  void handleSpecialEvent(const std::string& eventName, const EventArgumentMapList& eventArgumentMapList);
+  
 };

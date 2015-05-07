@@ -24,10 +24,15 @@ LevelPtr LevelGenerator::create(int seed)
   
   Player* player = new Player(EntityPosition(WorldPosition(), Vector2f(2.0f,2.0f)));
   EntityPtr playerPtr = EntityPtr(player);
-  level->addEntity(playerPtr);
+  addEntity(playerPtr);
   level->player = player;
   
   return level;
+}
+
+void LevelGenerator::addEntity(EntityPtr entity)
+{
+  level->pendingEntityList.push_back(entity);
 }
 
 void LevelGenerator::placeLine(WorldPosition startPosition, Vector2i deltaVector, TILE_TYPE tileType)
@@ -118,7 +123,7 @@ void SimpleLevelGenerator::placeRoomEntities(const Room& room)
     entityPosition = room.topLeftCorner + Vector2i(1, 1);
     entityPosition += Vector2i(rand()%(room.dimensions.x-2), rand()%(room.dimensions.y-2));
     entity = EntityPtr(new HealthItem(EntityPosition(entityPosition), (float)room.depth / 15));
-    level->addEntity(entity);
+    addEntity(entity);
   }
 
   static bool placedCannon = false;
@@ -130,7 +135,7 @@ void SimpleLevelGenerator::placeRoomEntities(const Room& room)
     
     entity = EntityPtr(new Cannon(EntityPosition(entityPosition)));
     
-    level->addEntity(entity);
+    addEntity(entity);
     
     placedCannon = true;
   }
@@ -263,10 +268,14 @@ void SimpleLevelGenerator::generateRoom()
   TileMapPtr tileMap = level->tileMap;
   Room potentialRoom;
   
+  static const Vector2i roomDeltaDimensions(20, 15);
+  static const Vector2i roomMinDimensions(5, 5);
+  
   if(placedRooms == 0)
   {
     
-    potentialRoom.dimensions = Vector2i(rand() % 15 + 4, rand() % 15 + 4);
+    potentialRoom.dimensions = Vector2i((rand() % roomDeltaDimensions.x) + roomMinDimensions.x,
+					(rand() % roomDeltaDimensions.y) + roomMinDimensions.y);
     
     placeRoom(potentialRoom);
     
@@ -284,7 +293,7 @@ void SimpleLevelGenerator::generateRoom()
       // Getting The last room from the current branch
       Room currentRoom = currentRoomPath.back();
       
-      int numbOfTries = 2;
+      int numbOfTries = 1;
       while(numbOfTries)
       {
 	potentialRoom.topLeftCorner = currentRoom.topLeftCorner;
@@ -293,8 +302,9 @@ void SimpleLevelGenerator::generateRoom()
 	// Trying To Put Adjacent Room in one of cardinal directions
 	
 	DIRECTION direction = DIRECTION(rand() % 4);
-	
-	potentialRoom.dimensions = Vector2i(rand() % 20 + 4, rand() % 20 + 4);
+    
+	potentialRoom.dimensions = Vector2i((rand() % roomDeltaDimensions.x) + roomMinDimensions.x,
+					    (rand() % roomDeltaDimensions.y) + roomMinDimensions.y);
 	  
 	if(direction == DIRECTION_RIGHT)
 	  potentialRoom.topLeftCorner += Vector2i(currentRoom.dimensions.x - 1, 0);
@@ -377,7 +387,7 @@ LevelPtr SimpleLevelGenerator::regenerate(int seed)
   
   Player* player = new Player(EntityPosition(WorldPosition(), Vector2f(2.0f,2.0f)));
   EntityPtr playerPtr = EntityPtr(player);
-  level->addEntity(playerPtr);
+  addEntity(playerPtr);
   level->player = player;
   
   return level;

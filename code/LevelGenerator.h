@@ -43,10 +43,12 @@ class LevelGenerator{
   
   bool isGenerationFinished() { return finishedGenerating;}
   
- protected:
+protected:
   LevelPtr level;
   int seed;
   bool finishedGenerating;
+
+  void addEntity(EntityPtr entity);
   
   void placeLine(WorldPosition startPosition, Vector2i deltaVector, TILE_TYPE tileType);
   void fillRectangle(WorldPosition startPosition, Vector2i dimensions, TILE_TYPE tileType);

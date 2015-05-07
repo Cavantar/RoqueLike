@@ -88,23 +88,6 @@ void Game::start()
   
 }
 
-void PlayGameState::enter(Game* game)
-{
-  levelGenerator = new SimpleLevelGenerator(100);
-  
-  level = levelGenerator->create();
-  
-  levelRenderer.setWindow(&game->window);
-  levelRenderer.setTileSize(worldScale * baseTileSizeInPixels);
-
-  //levelGenerator->generate();
-}  
-
-void PlayGameState::leave(Game* game)
-{
-  delete levelGenerator;
-}  
-
 void PlayGameState::render(Game* game)
 {
   levelRenderer.renderLevel(level, cameraPosition);
@@ -114,6 +97,23 @@ void PlayGameState::render(Game* game)
     levelGenerator->renderAdditionalData(game->window, cameraPosition, worldScale * baseTileSizeInPixels);
   }
   
+}
+
+void PlayGameState::enter(Game* game)
+{
+  levelGenerator = new SimpleLevelGenerator(100);
+  
+  level = levelGenerator->create();
+  eventManager.registerListener(level.get());
+  
+  levelRenderer.setWindow(&game->window);
+  levelRenderer.setTileSize(worldScale * baseTileSizeInPixels);
+  
+}  
+
+void PlayGameState::leave(Game* game)
+{
+  delete levelGenerator;
 }
 
 GameState* PlayGameState::update(Game* game)
@@ -143,20 +143,29 @@ GameState* PlayGameState::update(Game* game)
   }
   
   handleInput(game);
-  
+
+  level->registerPendingEntities(eventManager);
   level->update(game->lastDelta);
-  level->resolveCollisions();
   
   Player* player = level->getPlayer();
   if(player && cameraBoundToPlayer)
   {
     cameraPosition = player->getPosition() + Vector2f(0.5f, 0.5f);
   }
-    
+  
   eventManager.collectEvents();
   eventManager.dispatchEvents();
+
+  level->removeDeadEntities();
   
   return NULL;
+}
+
+void PlayGameState::sendPlayerEvent(PLAYER_EVENT playerEvent)
+{
+  EventArgumentDataMap eventArgumentDataMap;
+  eventArgumentDataMap["playerEventType"] = playerEvent;
+  eventManager.queueEvent("Player", eventArgumentDataMap);
 }
 
 void PlayGameState::handleInput(Game* game)
@@ -195,35 +204,44 @@ void PlayGameState::handleInput(Game* game)
   if(input.isKeyPressed(sf::Keyboard::Q)) cameraPosition.worldPosition.tileChunkPosition.z = 1;
   if(input.isKeyPressed(sf::Keyboard::E)) cameraPosition.worldPosition.tileChunkPosition.z = 0;
   
-  if(input.isKeyPressed(sf::Keyboard::R))
+  if(input.isKeyPressed(sf::Keyboard::R) && !input.isKeyDown(sf::Keyboard::LShift))
   {
+    eventManager.reset();
+    
     level = levelGenerator->regenerate(time(NULL));
+    eventManager.registerListener(level.get());
     levelRenderer.setTileSize(worldScale * baseTileSizeInPixels);
+    
   };
   
   if(input.isKeyPressed(sf::Keyboard::R) && input.isKeyDown(sf::Keyboard::LShift))
   {
+    eventManager.reset();
+    
     level = levelGenerator->regenerate(time(NULL));
     levelGenerator->generate();
     levelRenderer.setTileSize(worldScale * baseTileSizeInPixels);
     
-    Player* player = level->getPlayer();
-    eventManager.registerListenerEvents(player, player->getEntityEvents());      
+    eventManager.registerListener(level.get());
   };
 
   Player* player = level->getPlayer();
   if(player)
   {
-    if(input.isKeyDown(sf::Keyboard::A)) player->handlePlayerEvent(PLAYER_MOVE_LEFT, game->lastDelta);
-    if(input.isKeyDown(sf::Keyboard::D)) player->handlePlayerEvent(PLAYER_MOVE_RIGHT, game->lastDelta);
-  
-    if(input.isKeyDown(sf::Keyboard::W)) player->handlePlayerEvent(PLAYER_MOVE_UP, game->lastDelta);
-    if(input.isKeyDown(sf::Keyboard::S)) player->handlePlayerEvent(PLAYER_MOVE_DOWN, game->lastDelta);
-
-    if(input.isKeyPressed(sf::Keyboard::Up)) player->handlePlayerEvent(PLAYER_SHOOT_UP, game->lastDelta);
-    if(input.isKeyPressed(sf::Keyboard::Right)) player->handlePlayerEvent(PLAYER_SHOOT_RIGHT, game->lastDelta);
-    if(input.isKeyPressed(sf::Keyboard::Down)) player->handlePlayerEvent(PLAYER_SHOOT_DOWN, game->lastDelta);
-    if(input.isKeyPressed(sf::Keyboard::Left)) player->handlePlayerEvent(PLAYER_SHOOT_LEFT, game->lastDelta);
+    
+    if(input.isKeyDown(sf::Keyboard::A)) sendPlayerEvent(PLAYER_MOVE_LEFT);
+    if(input.isKeyDown(sf::Keyboard::D)) sendPlayerEvent(PLAYER_MOVE_RIGHT);
+    
+    if(input.isKeyDown(sf::Keyboard::W)) sendPlayerEvent(PLAYER_MOVE_UP);
+    if(input.isKeyDown(sf::Keyboard::S)) sendPlayerEvent(PLAYER_MOVE_DOWN);
+    
+    if(input.isKeyPressed(sf::Keyboard::Up)) sendPlayerEvent(PLAYER_SHOOT_UP);
+    if(input.isKeyPressed(sf::Keyboard::Right)) sendPlayerEvent(PLAYER_SHOOT_RIGHT);
+    if(input.isKeyPressed(sf::Keyboard::Down)) sendPlayerEvent(PLAYER_SHOOT_DOWN);
+    if(input.isKeyPressed(sf::Keyboard::Left)) sendPlayerEvent(PLAYER_SHOOT_LEFT);
+    
   }
-  
 }
+
+
+

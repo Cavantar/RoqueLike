@@ -12,41 +12,22 @@ Level::Level()
 
 void Level::update(const float lastDelta)
 {
+  killCollidingEntities();
   updateEntities(lastDelta);
-  removeDeadEntities();
+  resolveCollisions();
+  
 }
 
-void Level::processEntityRequest(const EntityRequest& entityRequest)
+void Level::registerPendingEntities(EventManager& eventManager)
 {
-  switch(entityRequest.type){
-  case ERT_SPAWN_ENTITY:
-    {
-      Entity* entity; 
-      switch(entityRequest.entityType){
-      case ET_BULLET:
-	{
-	  entity = new Bullet(entityRequest.position,
-			      entityRequest.initialVelocity,
-			      entityRequest.dimensions);
-	  
-	} break;
-      }
-      
-      if(!isCollidingWithLevel(entity))
-      {
-	addEntity(EntityPtr(entity));
-      }
-      
-    } break;
-  }
-}
-
-void Level::processEntityRequests(const EntityRequestList& entityRequestList)
-{
-  for(auto requestIt = entityRequestList.begin(); requestIt != entityRequestList.end(); requestIt++)
+  for(auto entityIt = pendingEntityList.begin(); entityIt != pendingEntityList.end(); entityIt++)
   {
-    processEntityRequest(*requestIt);  
+    EntityPtr entityPtr= *entityIt;
+    eventManager.registerListener(entityPtr.get());
+    entityList.push_back(entityPtr);
   }
+  
+  pendingEntityList.clear();
 }
 
 void Level::updateEntities(const float lastDelta)
@@ -54,19 +35,17 @@ void Level::updateEntities(const float lastDelta)
   for(auto entityPtr = entityList.begin(); entityPtr != entityList.end(); entityPtr++)
   {
     (*entityPtr)->update(lastDelta);
-    const EntityRequestList& entityRequestList = (*entityPtr)->getRequestList();
-    processEntityRequests(entityRequestList);
   }
 }
 
 void Level::removeDeadEntities()
 {
-
+  
   auto entityPtrIt = entityList.begin();
 
   while(entityPtrIt != entityList.end())
   {
-    if(!(*entityPtrIt)->isAlive() || isCollidingWithLevel(entityPtrIt->get()))
+    if(!(*entityPtrIt)->isAlive())
     {
       entityPtrIt = entityList.erase(entityPtrIt);
     }
@@ -378,18 +357,53 @@ void Level::addEntity(EntityPtr& entityPtr)
   entityList.push_back(entityPtr);
 }
 
-bool Level::isCollidingWithLevel(const Entity* entity) const
+EventNameList Level::getEntityEvents()
+{
+  EventNameList eventNameList;
+  eventNameList.push_back("SpawnEntity");
+  return eventNameList;
+}
+
+void Level::onEvent(const std::string& eventName, EventArgumentDataMap eventDataMap)
+{
+  //std::cout << "Here\n";
+  
+  if(eventName == "SpawnEntity")
+  {
+    //std::cout << "Spawning Entity \n";
+    
+    ENTITY_TYPE entityType = (ENTITY_TYPE) eventDataMap["entityType"].asInt();
+    Entity* entity = NULL;
+    
+    switch(entityType)
+    {
+    case ET_BULLET:
+      {
+	entity = new Bullet(eventDataMap["position"].asEntityPosition(),
+			    eventDataMap["initialVelocity"].asVector2f(),
+			    eventDataMap["dimensions"].asVector2f());
+      } break;
+    }
+    
+    addEntity(EntityPtr(entity));
+  }
+}
+
+bool Level::isCollidingWithLevel(Entity* entity) const
 {
   const EntityPosition& entityPosition = entity->getPosition();
   const FloatRect& collisionRect = entity->getCollisionRect();
-
+  
   // Checking Collisions with Tiles - Cause It's Faster
   TileList affectedTiles = getAffectedTiles(collisionRect, entityPosition, Vector2f());
   for(auto tileIt = affectedTiles.begin(); tileIt != affectedTiles.end(); tileIt++)
   {
-    if(tileMap->getTileType(*tileIt) == TILE_TYPE_WALL) return true;
+    if(tileMap->getTileType(*tileIt) == TILE_TYPE_WALL)
+    {
+      return true;
+    }
   }
-
+  
   for(auto entityIt = entityList.begin(); entityIt != entityList.end(); entityIt++)
   {
     Entity* entity2 = (*entityIt).get();
@@ -402,8 +416,20 @@ bool Level::isCollidingWithLevel(const Entity* entity) const
 									 tileMap->getTileChunkSize());
     collisionRect2 += relativeDistance;
     
-    if(collisionRect.doesRectCollideWith(collisionRect2)) return true;
+    if(collisionRect.doesRectCollideWith(collisionRect2))
+    {
+      return true;
+    }
   }
   
   return false;
+}
+
+void Level::killCollidingEntities()
+{
+  for(auto entityPtr = entityList.begin(); entityPtr != entityList.end(); entityPtr++)
+  {
+    Entity* entity = (*entityPtr).get();
+    if(isCollidingWithLevel(entity)) entity->die();
+  }
 }

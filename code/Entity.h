@@ -71,24 +71,10 @@ enum ENTITY_TYPE{
   ET_BULLET
 };
 
-struct EntityRequest{
-  ENTITY_REQUEST_TYPE type;
-  union{
-    struct{
-      ENTITY_TYPE entityType;
-      EntityPosition position;
-      Vector2f initialVelocity;
-      Vector2f dimensions;
-    };
-  };
-};
-
-typedef std::list<EntityRequest> EntityRequestList;
-
 class Entity : public EventOperator {
  public:
   Entity();
- Entity(EntityPosition position) : position(position) {};
+  Entity(EntityPosition position) : position(position) {};
   virtual ~Entity() {}
   
   virtual void update(const float lastDelta) = 0;
@@ -107,26 +93,23 @@ class Entity : public EventOperator {
   virtual FloatRect getCollisionRect() const { return FloatRect();}
   virtual void onWorldCollision(COLLISION_PLANE worldCollisionType) {};
   virtual void onEntityCollision(COLLISION_PLANE worldCollisionType, Entity* entity) {};
-
+  
   // PlayerStuff
   virtual void addXp(const float amount) {} 
   virtual void addLife(const float amount) {}
-
+  
   // Flag Stuff
   virtual bool canReceiveItems() const { return false; }
   virtual bool isPlayerItem() const { return false; }
-
+  
   virtual bool canCollide() const { return true; }
   
   virtual const EntityRenderData& getRenderData() { return renderData; }
-  
-  // RequestList should be zeroed after accessing it 
-  EntityRequestList getRequestList(); 
   virtual bool isAlive() { return alive; }
+  void die();
   
- protected:
+protected:
   EntityRenderData renderData;
-  EntityRequestList entityRequestList;
   
   EntityPosition position;
   bool alive = true; 
@@ -143,6 +126,8 @@ class Moveable : public Entity {
   
   Vector2f getVelocity() const { return velocity; }
   void addVelocity(Vector2f velocity) { this->velocity += velocity; }
+
+  Vector2f getLocalCollisionCenter() const; 
   
  protected:
   Vector2f dimensions;
@@ -221,7 +206,6 @@ class Player : public Mob {
   void onEntityCollision(COLLISION_PLANE worldCollisionType, Entity* entity);
   
   void handlePlayerEvent(const PLAYER_EVENT playerEvent, const float lastDelta);
-  
   bool canReceiveItems() const { return true; }
 
   // Events and Stuff

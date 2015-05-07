@@ -62,20 +62,21 @@ class PlayGameState : public GameState {
   
   void enter(Game* game);
   void leave(Game* game);
-  
- private:
+
+private:
   EventManager eventManager;
   
   LevelRenderer levelRenderer;
   LevelGenerator* levelGenerator;
   LevelPtr level;
-      
+  
   // Camera Position - It's The Center Of The Viewport
   EntityPosition cameraPosition;
   bool cameraBoundToPlayer = true;
   
   float baseTileSizeInPixels = 20.0f;
   double worldScale = 1.0f;
-  
+
+  void sendPlayerEvent(PLAYER_EVENT playerEvent);
   void handleInput(Game* game);
 };

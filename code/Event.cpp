@@ -9,6 +9,7 @@ EventArgumentData::EventArgumentData(const EventArgumentData& eventArgumentData)
   {
   case EAT_INT :
   case EAT_FLOAT :
+  case EAT_POINTER :
     data = dataSrc;
     break;
   case EAT_STRING :
@@ -32,54 +33,6 @@ EventArgumentData::EventArgumentData(const EventArgumentData& eventArgumentData)
   defaut:
     assert(0);
   }
-}
-  
-EventArgumentData::EventArgumentData(const int32 value)
-{
-  eventArgumentType = EAT_INT;
-  intValue = value;
-}
-
-EventArgumentData::EventArgumentData(const float value)
-{
-  eventArgumentType = EAT_FLOAT;
-  floatValue = value;
-}
-
-EventArgumentData::EventArgumentData(const std::string value)
-{
-  eventArgumentType = EAT_STRING;
-  data = new std::string(value);
-}
-
-EventArgumentData::EventArgumentData(const Vector2i value)
-{
-  eventArgumentType = EAT_VECTOR2I;
-  data = new Vector2i(value);
-}
-
-EventArgumentData::EventArgumentData(const Vector2f value)
-{
-  eventArgumentType = EAT_VECTOR2F;
-  data = new Vector2f(value);
-}
-
-EventArgumentData::EventArgumentData(const Vector3i value)
-{
-  eventArgumentType = EAT_VECTOR3I;
-  data = new Vector3i(value);
-}
-
-EventArgumentData::EventArgumentData(const WorldPosition value)
-{
-  eventArgumentType = EAT_WORLDPOSITION;
-  data = new WorldPosition(value);
-}
-
-EventArgumentData::EventArgumentData(const EntityPosition value)
-{
-  eventArgumentType = EAT_ENTITYPOSITION;
-  data = new EntityPosition(value);
 }
 
 EventArgumentData::~EventArgumentData()
@@ -129,9 +82,144 @@ EventArgumentData EventArgumentData::operator=(const EventArgumentData& eventArg
 EventArgumentData EventArgumentData::operator=(int32 value)
 {
   deleteData();
+  
+  eventArgumentType = EAT_INT;
   intValue = value;
   
   return *this;
+}
+
+EventArgumentData EventArgumentData::operator=(const float value)
+{
+  deleteData();
+  
+  eventArgumentType = EAT_FLOAT;
+  floatValue = value;
+  
+  return *this;
+}
+
+EventArgumentData EventArgumentData::operator=(void * value)
+{
+  deleteData();
+  
+  eventArgumentType = EAT_POINTER;
+  data = value;
+
+  return *this;
+}
+
+EventArgumentData EventArgumentData::operator=(const std::string value)
+{
+  deleteData();
+  
+  eventArgumentType = EAT_STRING;
+  data = new std::string(value);
+  
+  return *this;
+}
+  
+EventArgumentData EventArgumentData::operator=(const Vector2i value)
+{
+  deleteData();
+  
+  eventArgumentType = EAT_VECTOR2I;
+  data = new Vector2i(value);
+  
+  return *this;
+}
+EventArgumentData EventArgumentData::operator=(const Vector2f value)
+{
+  deleteData();
+  
+  eventArgumentType = EAT_VECTOR2F;
+  data = new Vector2f(value);
+  
+  return *this;
+}
+
+EventArgumentData EventArgumentData::operator=(const Vector3i value)
+{
+  deleteData();
+  
+  eventArgumentType = EAT_VECTOR3I;
+  data = new Vector3i(value);
+  
+  return *this;
+}
+  
+EventArgumentData EventArgumentData::operator=(const WorldPosition value)
+{
+  deleteData();
+  
+  eventArgumentType = EAT_WORLDPOSITION;
+  data = new WorldPosition(value);
+  
+  return *this;
+}
+
+EventArgumentData EventArgumentData::operator=(const EntityPosition value)
+{
+  deleteData();
+  
+  eventArgumentType = EAT_ENTITYPOSITION;
+  data = new EntityPosition(value);
+  
+  return *this;
+}
+
+EventArgumentData::EventArgumentData(const int32 value)
+{
+  eventArgumentType = EAT_INT;
+  intValue = value;
+}
+
+EventArgumentData::EventArgumentData(const float value)
+{
+  eventArgumentType = EAT_FLOAT;
+  floatValue = value;
+}
+
+EventArgumentData::EventArgumentData(void* value)
+{
+  eventArgumentType = EAT_POINTER;
+  data = value;
+}
+
+EventArgumentData::EventArgumentData(const std::string value)
+{
+  eventArgumentType = EAT_STRING;
+  data = new std::string(value);
+}
+
+EventArgumentData::EventArgumentData(const Vector2i value)
+{
+  eventArgumentType = EAT_VECTOR2I;
+  data = new Vector2i(value);
+}
+
+EventArgumentData::EventArgumentData(const Vector2f value)
+{
+  eventArgumentType = EAT_VECTOR2F;
+  data = new Vector2f(value);
+}
+
+EventArgumentData::EventArgumentData(const Vector3i value)
+{
+  eventArgumentType = EAT_VECTOR3I;
+  data = new Vector3i(value);
+}
+
+EventArgumentData::EventArgumentData(const WorldPosition value)
+{
+  eventArgumentType = EAT_WORLDPOSITION;
+  data = new WorldPosition(value);
+}
+
+EventArgumentData::EventArgumentData(const EntityPosition value)
+{
+  eventArgumentType = EAT_ENTITYPOSITION;
+  data = new EntityPosition(value);
 }
 
 int EventArgumentData::asInt() const
@@ -144,6 +232,12 @@ float EventArgumentData::asFloat() const
 {
   assert(eventArgumentType == EAT_FLOAT);
   return floatValue;
+}
+
+void* EventArgumentData::asPointer() const
+{
+  assert(eventArgumentType == EAT_POINTER);
+  return data;
 }
 
 std::string EventArgumentData::asString() const
@@ -185,7 +279,8 @@ const EntityPosition& EventArgumentData::asEntityPosition() const
 void EventArgumentData::deleteData()
 {
   // If memory is allocated
-  if(eventArgumentType != EAT_INT && eventArgumentType != EAT_FLOAT && eventArgumentType != EAT_INVALID)
+  if(eventArgumentType != EAT_INT && eventArgumentType != EAT_FLOAT &&
+     eventArgumentType != EAT_INVALID && eventArgumentType != EAT_POINTER)
   {
     switch(eventArgumentType)
     {

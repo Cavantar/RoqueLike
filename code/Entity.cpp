@@ -11,11 +11,13 @@ void Entity::update(const float lastDelta)
   
 }
 
-EntityRequestList Entity::getRequestList()
+void Entity::die()
 {
-  EntityRequestList entityRequestListToReturn = entityRequestList;
-  entityRequestList.clear();
-  return entityRequestListToReturn;
+  alive = false;
+  
+  EventArgumentDataMap eventArgumentDataMap;
+  eventArgumentDataMap["pointer"] = (void*)this;
+  queueEvent("EntityRemoved", eventArgumentDataMap);
 }
 
 void Moveable::updateDeltaVectorPosition(const float lastDelta, const float fakeFrictionValue)
@@ -41,6 +43,17 @@ FloatRect Moveable::getCollisionRect() const
   return FloatRect(0, dimensions.y *(1.0f - bottomPart), dimensions.x, dimensions.y * bottomPart);
 }
 
+Vector2f Moveable::getLocalCollisionCenter() const
+{
+  FloatRect collisionRect = getCollisionRect();
+
+  Vector2f localCenter = collisionRect[0];
+  localCenter.x += collisionRect.width / 2.0f;
+  localCenter.y += collisionRect.height / 2.0f;
+
+  return localCenter;
+}
+
 Bullet::Bullet(const EntityPosition& position, const Vector2f& initialVelocity, const Vector2f& dimensions)
 {
   
@@ -62,12 +75,12 @@ void Bullet::update(const float lastDelta)
   positionDeltaVector = Vector2f();
   updateDeltaVectorPosition(lastDelta, 0.001f);
 
-  if(velocity.getLength() < 1.0f) alive = false;
+  if(velocity.getLength() < 1.0f) die();
 }
 
 void Bullet::onWorldCollision(COLLISION_PLANE worldCollisionType)
 {
-  if(numbOfBouncesLeft-- == 0) alive = false;
+  if(numbOfBouncesLeft-- == 0) die();
   
   static const float speedIncrease = 1.0f;
 
@@ -91,16 +104,11 @@ void Bullet::onEntityCollision(COLLISION_PLANE worldCollisionType, Entity* entit
   
 {
   static const float speedIncrease = 1.0f;
-
-  //std::cout << " Bullet Colliding " << (int)entity % 10 << std::endl;
-  //entity->addVelocity(velocity * 0.1f);
   
   switch(worldCollisionType) {
   case COLLISION_PLANE_VERTICAL:
     velocity.x *= -speedIncrease;
     positionDeltaVector.x *= -1.0f;
-
-    //std::cout << "Changing Direction To: " <<  ((velocity.x > 0) ? "positive" : "negative") << std::endl;
     break;
   case COLLISION_PLANE_HORIZONTAL:
     velocity.y *= -speedIncrease;
@@ -108,7 +116,9 @@ void Bullet::onEntityCollision(COLLISION_PLANE worldCollisionType, Entity* entit
 
     break;
   }
-  //entity->addLife(-0.1f);
+
+  entity->addLife(-0.05f);
+  
 }
 
 Item::Item(const EntityPosition& position, const float value)
@@ -133,7 +143,7 @@ void Item::onEntityCollision(COLLISION_PLANE worldCollisionType, Entity* entity)
   if(entity->canReceiveItems())
   {
     performItemAction(entity);
-    alive = false;
+    die();
   }
 }
 
@@ -152,7 +162,7 @@ void Mob::addLife(const float amount)
 {
   life += amount;
   if(life > 1.0f) life = 1.0f;
-  if(life < 0) alive = false;
+  if(life < 0) die();
 }
 
 const EntityRenderData& Mob::getRenderData()
@@ -182,13 +192,14 @@ void Cannon::update(const float lastDelta)
     Vector2f directionVector(cos(randomDirection), -sin(randomDirection));
     float bulletRadius = 1.0f;
     
-    EntityRequest entityRequest;
-    entityRequest.type = ERT_SPAWN_ENTITY;
-    entityRequest.entityType = ET_BULLET;
-    entityRequest.position = position + dimensions/2.0f + directionVector * 2.0f;
-    entityRequest.initialVelocity = directionVector * 10.0f;
-    entityRequest.dimensions = Vector2f(bulletRadius, bulletRadius);
-    entityRequestList.push_back(entityRequest);
+    EventArgumentDataMap eventArgumentDataMap;
+    
+    eventArgumentDataMap["entityType"] = ET_BULLET;
+    eventArgumentDataMap["dimensions"] = Vector2f(bulletRadius, bulletRadius);
+    eventArgumentDataMap["position"] = position + dimensions/2.0f + directionVector * 2.0f;
+    eventArgumentDataMap["initialVelocity"] = directionVector * 10.0f;
+      
+    queueEvent("SpawnEntity", eventArgumentDataMap);
   }
 }
 
@@ -241,109 +252,92 @@ void Player::onEntityCollision(COLLISION_PLANE worldCollisionType, Entity* entit
   
 }
 
-/*
- */
-
-void Player::handlePlayerEvent(const PLAYER_EVENT playerEvent, const float lastDelta)
-{
-  static const float bulletVelocity = 10.0f;
-  float bulletRadius = 0.5f + 0.1f * (rand()%15); 
-  
-  switch(playerEvent)
-  {
-  case PLAYER_MOVE_LEFT:
-    {
-      direction = MOB_FACING_LEFT;
-      acceleration += Vector2f(-1.0f, 0);
-      
-      /*
-      EventArgumentDataMap eventArgumentDataMap;
-      
-      eventArgumentDataMap["text"] = EventArgumentData("Hello World");
-      eventArgumentDataMap["number"] = EventArgumentData(54);
-      eventArgumentDataMap["position"] = EventArgumentData(WorldPosition());
-      
-      queueEvent("HelloThere", eventArgumentDataMap);
-      */
-      
-    }break;
-  case PLAYER_MOVE_RIGHT:
-    {
-      direction = MOB_FACING_RIGHT;
-      acceleration += Vector2f(1.0f, 0);
-    }break;
-  case PLAYER_MOVE_UP:
-    {
-      direction = MOB_FACING_UP;
-      acceleration += Vector2f(0, -1.0f);
-    }break;
-  case PLAYER_MOVE_DOWN:
-    {
-      direction = MOB_FACING_DOWN;
-      acceleration += Vector2f(0, 1.0f);
-    }break;
-    
-  case PLAYER_SHOOT_UP:
-    {
-      EntityRequest entityRequest;
-      entityRequest.type = ERT_SPAWN_ENTITY;
-      entityRequest.entityType = ET_BULLET;
-      entityRequest.position = position + Vector2f(0, -1.5f);
-      entityRequest.initialVelocity = velocity + Vector2f(0, -bulletVelocity);
-      entityRequest.dimensions = Vector2f(bulletRadius, bulletRadius);
-      entityRequestList.push_back(entityRequest);
-    }break;
-  case PLAYER_SHOOT_RIGHT:
-    {
-      EntityRequest entityRequest;
-      entityRequest.type = ERT_SPAWN_ENTITY;
-      entityRequest.entityType = ET_BULLET;
-      entityRequest.position = position + Vector2f(1.5f, 0);
-      entityRequest.initialVelocity = velocity + Vector2f(bulletVelocity, 0);
-      entityRequest.dimensions = Vector2f(bulletRadius, bulletRadius);
-      entityRequestList.push_back(entityRequest);
-    }break;
-  case PLAYER_SHOOT_DOWN:
-    {
-      EntityRequest entityRequest;
-      entityRequest.type = ERT_SPAWN_ENTITY;
-      entityRequest.entityType = ET_BULLET;
-      entityRequest.position = position + Vector2f(0, 2.5f);
-      entityRequest.initialVelocity = velocity + Vector2f(0, bulletVelocity);
-      entityRequest.dimensions = Vector2f(bulletRadius, bulletRadius);
-      entityRequestList.push_back(entityRequest);
-    }break;
-  case PLAYER_SHOOT_LEFT:
-    {
-      EntityRequest entityRequest;
-      entityRequest.type = ERT_SPAWN_ENTITY;
-      entityRequest.entityType = ET_BULLET;
-      entityRequest.position = position + Vector2f(-0.5f, 0);
-      entityRequest.initialVelocity = velocity + Vector2f(-bulletVelocity, 0);
-      entityRequest.dimensions = Vector2f(bulletRadius, bulletRadius);
-      entityRequestList.push_back(entityRequest);
-    }break;
-  }
-
-}
 EventNameList Player::getEntityEvents()
 {
   EventNameList eventNameList;
   eventNameList.push_back("HelloThere");
+  eventNameList.push_back("Player");
   return eventNameList;
 }
 
 void Player::onEvent(const std::string& eventName, EventArgumentDataMap eventDataMap)
 {
+  if(eventName == "HelloThere")
+  {
+      
+    std::cout << eventName << ": " << eventDataMap["text"].asString() << " " <<
+      eventDataMap["number"].asInt() << std::endl;
   
-  std::cout << eventName << ": " << eventDataMap["text"].asString() << " " <<
-    eventDataMap["number"].asInt() << std::endl;
-  
-  WorldPosition worldPos = eventDataMap["position"].asWorldPosition();
-  
-  std::cout << worldPos.tilePosition.x << std::endl;
-  
-  /*  
-  */
+    WorldPosition worldPos = eventDataMap["position"].asWorldPosition();
+    
+    std::cout << worldPos.tilePosition.x << std::endl;
+    
+  }
+  else if(eventName == "Player")
+  {
+    
+    static const float bulletVelocity = 10.0f;
+    float bulletRadius = 0.5f + 0.1f * (rand()%15); 
+    
+    static const float bulletDistance = 3.0f;
+    
+    PLAYER_EVENT playerEvent = (PLAYER_EVENT)eventDataMap["playerEventType"].asInt();
+    
+    switch(playerEvent)
+    {
+    case PLAYER_MOVE_LEFT:
+      {
+	direction = MOB_FACING_LEFT;
+	acceleration += Vector2f(-1.0f, 0);
+      }break;
+    case PLAYER_MOVE_RIGHT:
+      {
+	direction = MOB_FACING_RIGHT;
+	acceleration += Vector2f(1.0f, 0);
+      }break;
+    case PLAYER_MOVE_UP:
+      {
+	direction = MOB_FACING_UP;
+	acceleration += Vector2f(0, -1.0f);
+      }break;
+    case PLAYER_MOVE_DOWN:
+      {
+	direction = MOB_FACING_DOWN;
+	acceleration += Vector2f(0, 1.0f);
+      }break;
+    
+    case PLAYER_SHOOT_UP: 
+    case PLAYER_SHOOT_RIGHT:
+    case PLAYER_SHOOT_DOWN: 
+    case PLAYER_SHOOT_LEFT: 
+      {
+	EventArgumentDataMap eventArgumentDataMap;
+
+	//std::cout << "Here Mutha\n";
+      
+	Vector2f tempDirectionVector;
+	switch(playerEvent)
+	{
+	case PLAYER_SHOOT_UP: tempDirectionVector = Vector2f(0, -1.0f);
+	  break;
+	case PLAYER_SHOOT_RIGHT: tempDirectionVector = Vector2f(1.0f, 0);
+	  break;
+	case PLAYER_SHOOT_DOWN: tempDirectionVector = Vector2f(0, 1.0f);
+	  break;
+	case PLAYER_SHOOT_LEFT: tempDirectionVector = Vector2f(-1.0f, 0);
+	  break;
+	}
+      
+	eventArgumentDataMap["entityType"] = ET_BULLET;
+	eventArgumentDataMap["dimensions"] = Vector2f(bulletRadius, bulletRadius);
+	eventArgumentDataMap["position"] = position + Vector2f(getLocalCollisionCenter().x, 0) +
+	  tempDirectionVector * bulletDistance;
+	eventArgumentDataMap["initialVelocity"] = velocity + tempDirectionVector * bulletVelocity;
+      
+	queueEvent("SpawnEntity", eventArgumentDataMap);
+      
+      }break;
+    }
+  }
   
 }

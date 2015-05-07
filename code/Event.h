@@ -11,6 +11,7 @@
 enum EVENT_ARGUMENT_TYPE{
   EAT_INT,
   EAT_FLOAT,
+  EAT_POINTER,
   EAT_STRING,
   EAT_VECTOR2I,
   EAT_VECTOR2F,
@@ -28,12 +29,24 @@ class EventArgumentData{
   ~EventArgumentData();
   
   EventArgumentData operator=(const EventArgumentData& eventArgumentData);
-  EventArgumentData operator=(int32 value);
+  
+  EventArgumentData operator=(const int32 value);
+  EventArgumentData operator=(const float value);
+  EventArgumentData operator=(void * value);
+  
+  EventArgumentData operator=(const std::string value);
+  EventArgumentData operator=(const Vector2i value);
+  EventArgumentData operator=(const Vector2f value);
+  EventArgumentData operator=(const Vector3i value);
+  
+  EventArgumentData operator=(const WorldPosition value);
+  EventArgumentData operator=(const EntityPosition value);
   
   EventArgumentData(const int32 value);
   EventArgumentData(const float value);
-  EventArgumentData(const std::string value);
+  EventArgumentData(void* value);
   
+  EventArgumentData(const std::string value);
   EventArgumentData(const Vector2i value);
   EventArgumentData(const Vector2f value);
   EventArgumentData(const Vector3i value);
@@ -43,8 +56,9 @@ class EventArgumentData{
   
   int asInt() const;
   float asFloat() const;
+  void* asPointer() const;
+  
   std::string asString() const;
-
   const Vector2i& asVector2i() const;
   const Vector2f& asVector2f() const;
   const Vector3i& asVector3i() const;
