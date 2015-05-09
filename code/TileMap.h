@@ -6,15 +6,12 @@
 
 #include "EntityPosition.h"
 
-#ifdef UNITY_BUILD
-#include "EntityPosition.cpp"
-#endif
-
 enum TILE_TYPE{
   TILE_TYPE_VOID,
   TILE_TYPE_WALL,
-  TILE_TYPE_FLOOR
-  
+  TILE_TYPE_STONE_GROUND,
+  TILE_TYPE_ICE_GROUND,
+  TILE_TYPE_SPEED_GROUND
 };
 
 // TileChunkData[y][x] accessor order
@@ -51,6 +48,8 @@ class TileMap{
   // Can't Be const because of hashmap,
   TILE_TYPE getTileType(WorldPosition& tileWorldPosition);
   const TileChunkMap& getTileChunkMap() const { return tileChunkMap; }
+
+  void recanonicalize(EntityPosition& entityPosition) const;
   
   const Vector2i& getTileChunkSize() const { return tileChunkSize; }
   

@@ -229,17 +229,16 @@ void PlayGameState::handleInput(Game* game)
   if(player)
   {
     
-    if(input.isKeyDown(sf::Keyboard::A)) sendPlayerEvent(PLAYER_MOVE_LEFT);
-    if(input.isKeyDown(sf::Keyboard::D)) sendPlayerEvent(PLAYER_MOVE_RIGHT);
+    if(input.isKeyDown(sf::Keyboard::A)) player->handlePlayerEvent(PLAYER_MOVE_LEFT, *level.get());
+    if(input.isKeyDown(sf::Keyboard::D)) player->handlePlayerEvent(PLAYER_MOVE_RIGHT, *level.get());
     
-    if(input.isKeyDown(sf::Keyboard::W)) sendPlayerEvent(PLAYER_MOVE_UP);
-    if(input.isKeyDown(sf::Keyboard::S)) sendPlayerEvent(PLAYER_MOVE_DOWN);
+    if(input.isKeyDown(sf::Keyboard::W)) player->handlePlayerEvent(PLAYER_MOVE_UP, *level.get());
+    if(input.isKeyDown(sf::Keyboard::S)) player->handlePlayerEvent(PLAYER_MOVE_DOWN, *level.get());
     
-    if(input.isKeyPressed(sf::Keyboard::Up)) sendPlayerEvent(PLAYER_SHOOT_UP);
-    if(input.isKeyPressed(sf::Keyboard::Right)) sendPlayerEvent(PLAYER_SHOOT_RIGHT);
-    if(input.isKeyPressed(sf::Keyboard::Down)) sendPlayerEvent(PLAYER_SHOOT_DOWN);
-    if(input.isKeyPressed(sf::Keyboard::Left)) sendPlayerEvent(PLAYER_SHOOT_LEFT);
-    
+    if(input.isKeyPressed(sf::Keyboard::Up)) player->handlePlayerEvent(PLAYER_SHOOT_UP, *level.get());
+    if(input.isKeyPressed(sf::Keyboard::Right)) player->handlePlayerEvent(PLAYER_SHOOT_RIGHT, *level.get());
+    if(input.isKeyPressed(sf::Keyboard::Down)) player->handlePlayerEvent(PLAYER_SHOOT_DOWN, *level.get());
+    if(input.isKeyPressed(sf::Keyboard::Left)) player->handlePlayerEvent(PLAYER_SHOOT_LEFT, *level.get());
   }
 }
 

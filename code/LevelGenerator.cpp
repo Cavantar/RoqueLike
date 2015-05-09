@@ -105,40 +105,62 @@ void SimpleLevelGenerator::placeRoom(const Room& room)
   // Placing Floor
   fillRectangle(room.topLeftCorner + Vector2i(1, 1),
 		Vector2i(room.dimensions.x - 2, room.dimensions.y - 2),
-		TILE_TYPE_FLOOR);
-  
+		room.floorType);
 }
 
-void SimpleLevelGenerator::placeRoomEntities(const Room& room)
+void SimpleLevelGenerator::placeRoomEntities(const Room& room, bool immediateMode)
 {
-
-  //std::list<WorldPostion> takenFields;  
-
-  // Health Pack
+  
+  //std::list<WorldPosition> takenFields;  
+  
   WorldPosition entityPosition;
   EntityPtr entity;
-  
-  if((rand()%11) < 3)
-  {
-    entityPosition = room.topLeftCorner + Vector2i(1, 1);
-    entityPosition += Vector2i(rand()%(room.dimensions.x-2), rand()%(room.dimensions.y-2));
-    entity = EntityPtr(new HealthItem(EntityPosition(entityPosition), (float)room.depth / 15));
-    addEntity(entity);
-  }
 
-  static bool placedCannon = false;
+  //static bool placedCannon = false;
   
-  if(!placedCannon && (rand()%11) < 3)
+  if(immediateMode)
   {
-    entityPosition = room.topLeftCorner + Vector2i(1, 1);
-    entityPosition += Vector2i(rand()%(room.dimensions.x-2), rand()%(room.dimensions.y-2));
-    
-    entity = EntityPtr(new Cannon(EntityPosition(entityPosition)));
-    
-    addEntity(entity);
-    
-    placedCannon = true;
+    // Health Pack
+    if((rand()%11) < 3)
+    {
+      entityPosition = room.topLeftCorner + Vector2i(1, 1);
+      entityPosition += Vector2i(rand()%(room.dimensions.x-2), rand()%(room.dimensions.y-2));
+      entity = EntityPtr(new HealthItem(EntityPosition(entityPosition), (float)room.depth / 15));
+      addEntity(entity);
+    }
   }
+  else {
+    
+    float roomDifficulty = (float)room.depth / (float)maxRoomDepth;
+    
+    if((rand()%11) < 2)
+    {
+      entityPosition = room.topLeftCorner + Vector2i(1, 1);
+      entityPosition += Vector2i(rand()%(room.dimensions.x-2), rand()%(room.dimensions.y-2));
+      
+      entity = EntityPtr(new Cannon(EntityPosition(entityPosition), (roomDifficulty*10.0f) + 1));
+      addEntity(entity);
+    }
+    
+    // Health Pack
+    if((rand()%11) < 4)
+    {
+      entityPosition = room.topLeftCorner + Vector2i(1, 1);
+      entityPosition += Vector2i(rand()%(room.dimensions.x-2), rand()%(room.dimensions.y-2));
+      entity = EntityPtr(new HealthItem(EntityPosition(entityPosition), roomDifficulty * 5.0f));
+      addEntity(entity);
+    }
+  }
+}
+
+void SimpleLevelGenerator::placeRemainingEntities()
+{
+  
+  for(auto roomIt = rooms.begin(); roomIt != rooms.end(); roomIt++)
+  {
+    placeRoomEntities(*roomIt, false);
+  }
+  
 }
 
 int SimpleLevelGenerator::getMaxRoomDepth() const
@@ -163,7 +185,7 @@ void SimpleLevelGenerator::placeCorridor(const Room& srcRoom, const Room& dstRoo
     
     WorldPosition corridorPosition = srcRoom.topLeftCorner + Vector2i(horizontalOffset, 0);
     
-    level->tileMap->setTileType(corridorPosition, TILE_TYPE_FLOOR);
+    level->tileMap->setTileType(corridorPosition, srcRoom.floorType);
   }
   else if(direction == DIRECTION_RIGHT)
   {
@@ -175,7 +197,7 @@ void SimpleLevelGenerator::placeCorridor(const Room& srcRoom, const Room& dstRoo
     
     WorldPosition corridorPosition = dstRoom.topLeftCorner + Vector2i(0, verticalOffset);
     
-    level->tileMap->setTileType(corridorPosition, TILE_TYPE_FLOOR);
+    level->tileMap->setTileType(corridorPosition, srcRoom.floorType);
   }
   else if(direction == DIRECTION_DOWN)
   {
@@ -187,7 +209,7 @@ void SimpleLevelGenerator::placeCorridor(const Room& srcRoom, const Room& dstRoo
     
     WorldPosition corridorPosition = dstRoom.topLeftCorner + Vector2i(horizontalOffset, 0);
     
-    level->tileMap->setTileType(corridorPosition, TILE_TYPE_FLOOR);
+    level->tileMap->setTileType(corridorPosition, srcRoom.floorType);
   }
   else if(direction == DIRECTION_LEFT)
   {
@@ -199,9 +221,9 @@ void SimpleLevelGenerator::placeCorridor(const Room& srcRoom, const Room& dstRoo
     
     WorldPosition corridorPosition = srcRoom.topLeftCorner + Vector2i(0, verticalOffset);
     
-    level->tileMap->setTileType(corridorPosition, TILE_TYPE_FLOOR);
+    level->tileMap->setTileType(corridorPosition, srcRoom.floorType);
   }
-    
+  
 }
 
 void SimpleLevelGenerator::openWall(const Room& srcRoom, const Room& dstRoom, const DIRECTION direction)
@@ -215,7 +237,7 @@ void SimpleLevelGenerator::openWall(const Room& srcRoom, const Room& dstRoom, co
     for(int offset = 0; offset < possibleCorridorPlacements; offset++)
     {
       WorldPosition corridorPosition = srcRoom.topLeftCorner + Vector2i(offset + 1, 0);
-      level->tileMap->setTileType(corridorPosition, TILE_TYPE_FLOOR);
+      level->tileMap->setTileType(corridorPosition, srcRoom.floorType);
     }
   }
   else if(direction == DIRECTION_RIGHT)
@@ -228,7 +250,7 @@ void SimpleLevelGenerator::openWall(const Room& srcRoom, const Room& dstRoom, co
     {
       
       WorldPosition wallTilePosition = dstRoom.topLeftCorner + Vector2i(0, offset + 1);
-      level->tileMap->setTileType(wallTilePosition, TILE_TYPE_FLOOR);
+      level->tileMap->setTileType(wallTilePosition, srcRoom.floorType);
     }
     
   }
@@ -243,7 +265,7 @@ void SimpleLevelGenerator::openWall(const Room& srcRoom, const Room& dstRoom, co
     {
 
       WorldPosition corridorPosition = dstRoom.topLeftCorner + Vector2i(offset + 1, 0);
-      level->tileMap->setTileType(corridorPosition, TILE_TYPE_FLOOR);
+      level->tileMap->setTileType(corridorPosition, srcRoom.floorType);
     }
   }
   else if(direction == DIRECTION_LEFT )
@@ -256,7 +278,7 @@ void SimpleLevelGenerator::openWall(const Room& srcRoom, const Room& dstRoom, co
     for(int offset = 0; offset < possibleCorridorPlacements; offset++)
     {
       WorldPosition corridorPosition = srcRoom.topLeftCorner + Vector2i(0, offset + 1);
-      level->tileMap->setTileType(corridorPosition, TILE_TYPE_FLOOR);
+      level->tileMap->setTileType(corridorPosition, srcRoom.floorType);
     }
   }
   
@@ -318,6 +340,11 @@ void SimpleLevelGenerator::generateRoom()
 	// If it's not colliding we place it on the map
 	if(!potentialRoom.isColliding(tileMap))
 	{
+	  
+	  if(potentialRoom.depth > 15) potentialRoom.floorType = TILE_TYPE_ICE_GROUND;
+	  else if(potentialRoom.depth > 10) potentialRoom.floorType = TILE_TYPE_SPEED_GROUND;
+	  else potentialRoom.floorType = TILE_TYPE_STONE_GROUND;
+	  
 	  placeRoom(potentialRoom);
 	  placeRoomEntities(potentialRoom);
 	  
@@ -404,6 +431,8 @@ void SimpleLevelGenerator::generate()
     generateRoom();
   }
   
+  maxRoomDepth = getMaxRoomDepth();
+  placeRemainingEntities();
   finishedGenerating = true;
 }
 
@@ -416,6 +445,9 @@ void SimpleLevelGenerator::generateStep()
   if(placedRooms == numbOfRoomsToGenerate ||
      (placedRooms != 1 && currentRoomPath.size() == 0))
   {
+    
+    maxRoomDepth = getMaxRoomDepth();
+    placeRemainingEntities();
     finishedGenerating = true;
   }
 }
@@ -482,7 +514,6 @@ void SimpleLevelGenerator::renderAdditionalData(sf::RenderWindow& window,
     rectangleShape.setSize(roomSize);
     
     // TODO Check If It's On The Screen !
-    
     window.draw(rectangleShape);
   }
   

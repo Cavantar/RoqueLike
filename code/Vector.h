@@ -2,6 +2,8 @@
 #include "types.h"
 #include <unordered_map>
 
+#define M_PI 3.14159265358979323846
+
 template <typename T>
 class Vector2{
  public:
@@ -24,6 +26,8 @@ class Vector2{
   bool operator!=(const Vector2<T>& vector) const ;
 
   float getLength() const ;
+  void normalize();
+  static Vector2<T> directionVector(float angle = rand()%360);
 };
 
 typedef Vector2<int32> Vector2i;
@@ -104,7 +108,6 @@ class Rect{
 
 typedef Rect<int> IntRect; 
 typedef Rect<float> FloatRect; 
-
 
 // Because Templates 
 #ifndef UNITY_BUILD

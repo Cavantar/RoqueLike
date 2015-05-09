@@ -59,19 +59,28 @@ void LevelRenderer::renderTileChunk(const TileChunkPtr& tileChunk, const Vector2
 	  
 	  rectangleShape.setSize(sf::Vector2f(tileSize, tileSize * wallHeight));
 	  
-	  rectangleShape.setFillColor(sf::Color::Magenta);
+	  rectangleShape.setFillColor(sf::Color(150,150,150));
 	} break;
-      case TILE_TYPE_FLOOR:
+      case TILE_TYPE_STONE_GROUND:
 	{
 	  rectangleShape.setSize(sf::Vector2f(tileSize, tileSize));
-	  rectangleShape.setFillColor(sf::Color::Cyan);
+	  rectangleShape.setFillColor(sf::Color(128, 128, 128));
+	} break;
+      case TILE_TYPE_ICE_GROUND:
+	{
+	  rectangleShape.setSize(sf::Vector2f(tileSize, tileSize));
+	  rectangleShape.setFillColor(sf::Color(165,242, 243));
+	} break;
+      case TILE_TYPE_SPEED_GROUND:
+	{
+	  rectangleShape.setSize(sf::Vector2f(tileSize, tileSize));
+	  rectangleShape.setFillColor(sf::Color(250,128,114));
 	} break;
       }
       
       window->draw(rectangleShape);
     }
   }
-
 }
 
 void LevelRenderer::renderTileMap(const TileMapPtr& tileMap, EntityPosition& cameraPosition)

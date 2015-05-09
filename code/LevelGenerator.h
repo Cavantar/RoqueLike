@@ -9,13 +9,13 @@ class Room{
   WorldPosition topLeftCorner;
   Vector2i dimensions;
   int depth;
-
+  TILE_TYPE floorType;
+  
   bool isColliding(TileMapPtr tileMap);
   
- Room(const WorldPosition& topLeftCorner=WorldPosition(),
-      const Vector2i& dimensions=Vector2i(),
-      int32 depth=0) : topLeftCorner(topLeftCorner), dimensions(dimensions), depth(depth) {}
-
+  Room(const WorldPosition& topLeftCorner=WorldPosition(), const Vector2i& dimensions=Vector2i(),
+       int32 depth=0, TILE_TYPE floorType = TILE_TYPE_STONE_GROUND) :
+    topLeftCorner(topLeftCorner), dimensions(dimensions), depth(depth), floorType(floorType) {}
 };
 
 enum DIRECTION{
@@ -77,9 +77,14 @@ class SimpleLevelGenerator : public LevelGenerator{
 
   int placedRooms = 0;
   int numbOfRoomsToGenerate;
+
+  // Set after level is generated completely
+  int maxRoomDepth = -1;
   
   void placeRoom(const Room& room);
-  void placeRoomEntities(const Room& room);
+  void placeRoomEntities(const Room& room, bool immediateMode = true);
+  
+  void placeRemainingEntities();
   void generateRoom();
   
   int getMaxRoomDepth() const ;

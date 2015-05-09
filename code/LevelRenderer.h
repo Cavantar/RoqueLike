@@ -1,17 +1,17 @@
 #pragma once
 
-#include "Level.h"
 #include <SFML/Graphics.hpp>
+#include "Level.h"
 
 class LevelRenderer{
  public:
   LevelRenderer();
   
   void setWindow(sf::RenderWindow* window) { this->window = window; }
-  void setTileSize(const float tileSizeInPixels) { this->tileSizeInPixels = tileSizeInPixels; }
-  
-  void renderLevel(const LevelPtr& level, EntityPosition& cameraPosition);
-  
+void setTileSize(const float tileSizeInPixels) { this->tileSizeInPixels = tileSizeInPixels; }
+
+void renderLevel(const LevelPtr& level, EntityPosition& cameraPosition);
+
  private:
   sf::Font font;
   

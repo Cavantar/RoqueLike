@@ -4,9 +4,25 @@
 #include "Input.h"
 #include "EventManager.h"
 
+#include "Vector.h"
+#include "TileMap.h"
+
+#ifdef UNITY_BUILD
+
+#include "EntityPosition.cpp"
+
+#endif
+
+#include "Entity.h"
 #include "Level.h"
-#include "LevelRenderer.h" 
-#include "LevelGenerator.h"
+
+#ifdef UNITY_BUILD
+
+#include "Vector.cpp"
+#include "TileMap.cpp"
+#include "Entity.cpp"
+
+#endif
 
 #ifdef UNITY_BUILD
 
@@ -17,6 +33,9 @@
 #include "LevelGenerator.cpp"
 
 #endif
+
+#include "LevelRenderer.h" 
+#include "LevelGenerator.h"
 
 class Game;
 class GameState{

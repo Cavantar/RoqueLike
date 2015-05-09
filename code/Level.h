@@ -4,38 +4,10 @@
 #include <vector>
 #include <memory>
 #include <assert.h>
-
-#include "Vector.h"
-#include "TileMap.h"
 #include "Entity.h"
-
-#ifdef UNITY_BUILD
-
-#include "Vector.cpp"
-#include "TileMap.cpp"
-#include "Entity.cpp"
-
-#endif
 
 typedef std::list<EntityPtr> EntityList;
 typedef std::list<WorldPosition> TileList;
-
-class WorldCollisionResult{
- public:
-  float maxAllowedT;
-  COLLISION_PLANE collisionPlane;
-  
- WorldCollisionResult() : maxAllowedT(1.0f), collisionPlane(COLLISION_PLANE_NONE) {}
-};
-
-class EntityCollisionResult{
- public:
-  float maxAllowedT;
-  Entity* collidedEntity;
-  COLLISION_PLANE collisionPlane;
-  
- EntityCollisionResult() : maxAllowedT(1.0f), collidedEntity(NULL), collisionPlane(COLLISION_PLANE_NONE) {}
-};
 
 class Level : public EventOperator{
   friend class LevelGenerator;
@@ -45,15 +17,20 @@ class Level : public EventOperator{
   void update(const float lastDelta);
   void registerPendingEntities(EventManager& eventManager);
   
-  void resolveCollisions();
+  //void resolveCollisions();
   
   const TileMapPtr& getTileMap() const { return tileMap; }
   const EntityList& getEntityList() const { return entityList;}
   
-  void addEntity(EntityPtr& entityPtr);
+  bool addEntity(EntityPtr& entityPtr);
   Player* getPlayer() const { return player; }
   
   void removeDeadEntities();
+
+  EntityCollisionResult checkCollisions(const Entity* entity, Vector2f deltaVector) const ;
+
+  float getFrictionValueAtPosition(EntityPosition& entityPosition) const; 
+  float getAccelerationModifierAtPosition(EntityPosition& entityPosition) const; 
   
   // Event Operator
   EventNameList getEntityEvents();
@@ -71,20 +48,20 @@ private:
   void updateEntities(const float lastDelta);
   
   TileList getAffectedTiles(const FloatRect& collisionRect,
-					    const EntityPosition& basePosition,
-					    const Vector2f positionDeltaVector) const;
+			    const EntityPosition& basePosition,
+			    const Vector2f positionDeltaVector) const;
   
   WorldCollisionResult checkWorldCollision(const FloatRect& collisionRect,
 					   const EntityPosition& basePosition,
 					   const Vector2f positionDeltaVector = Vector2f()) const;
   
-  EntityCollisionResult checkEntityCollision(const EntityPtr& entityPtr) const;
+  EntityCollisionResult checkEntityCollision(const Entity* entity,
+					     const FloatRect& collisionRect,
+					     const EntityPosition& basePosition,
+					     const Vector2f positionDeltaVector = Vector2f()) const;
   
   bool isCollidingWithLevel(Entity* entity) const;
-
-  
   void killCollidingEntities();
-
 };
 
 typedef std::shared_ptr<Level> LevelPtr;

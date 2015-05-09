@@ -23,8 +23,6 @@ class WorldPosition{
 						    const WorldPosition& dstPosition,
 						    const Vector2i& tileChunkDimensions);
   
-  
-
   WorldPosition operator+(Vector2i vector) const;
   WorldPosition operator-(Vector2i vector) const;
   

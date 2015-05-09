@@ -70,6 +70,22 @@ float Vector2<T>::getLength() const
   return sqrt(pow(x, 2) + pow(y, 2));
 }
 
+template <typename T>
+void Vector2<T>::normalize() 
+{
+  float length = getLength();
+  x /= length;
+  y /= length;
+}
+
+template <typename T>
+Vector2<T> Vector2<T>::directionVector(float angle)
+{
+
+  float radAng = ((M_PI)/180.0f) * angle;
+  return Vector2<T>(cos(radAng), -sin(radAng));
+}
+
 
 // Vector3
 

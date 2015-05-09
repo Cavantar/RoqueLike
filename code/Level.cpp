@@ -14,8 +14,6 @@ void Level::update(const float lastDelta)
 {
   killCollidingEntities();
   updateEntities(lastDelta);
-  resolveCollisions();
-  
 }
 
 void Level::registerPendingEntities(EventManager& eventManager)
@@ -34,19 +32,21 @@ void Level::updateEntities(const float lastDelta)
 {
   for(auto entityPtr = entityList.begin(); entityPtr != entityList.end(); entityPtr++)
   {
-    (*entityPtr)->update(lastDelta);
+    (*entityPtr)->update(*this, lastDelta);
   }
 }
 
 void Level::removeDeadEntities()
 {
-  
   auto entityPtrIt = entityList.begin();
 
   while(entityPtrIt != entityList.end())
   {
     if(!(*entityPtrIt)->isAlive())
     {
+      (*entityPtrIt)->performDeathAction(*this);
+      
+      if((*entityPtrIt)->isPlayer()) player = NULL;
       entityPtrIt = entityList.erase(entityPtrIt);
     }
     else
@@ -54,7 +54,105 @@ void Level::removeDeadEntities()
       entityPtrIt++;
     }
   }
+}
+
+EntityCollisionResult Level::checkCollisions(const Entity* entity, Vector2f deltaVector) const
+{
+  // EntityCollision Is initalized by default with values indicating no collision
+  EntityCollisionResult collisionCheckResult; 
   
+  // If There's no velocity collision couldn't occur - That Eliminates non Moving Entities
+  if(deltaVector == Vector2f())
+  {
+    return collisionCheckResult;
+  }
+  
+  EntityPosition entityPosition = entity->getPosition();
+  FloatRect collisionRect = entity->getCollisionRect();
+  
+  WorldCollisionResult worldCollisionResult = checkWorldCollision(collisionRect,
+								  entityPosition,
+								  deltaVector);
+  
+  EntityCollisionResult entityCollisionResult = checkEntityCollision(entity,
+								     collisionRect,
+								     entityPosition,
+								     deltaVector);
+  
+  float tileDistancePrecision;
+  
+  if(worldCollisionResult.maxAllowedT == entityCollisionResult.maxAllowedT == 1.0f)
+  {
+    // No Collision
+    return collisionCheckResult;
+  }
+  else
+  {
+    if(worldCollisionResult.maxAllowedT < entityCollisionResult.maxAllowedT)
+    {
+      // Collision With Tiles
+      tileDistancePrecision = 0.01f;
+      
+      collisionCheckResult.maxAllowedT = worldCollisionResult.maxAllowedT;
+      collisionCheckResult.collisionPlane = worldCollisionResult.collisionPlane;
+    }
+    else
+    {
+      // Collision With Entity
+      tileDistancePrecision = 0.1f;
+
+      collisionCheckResult.maxAllowedT = entityCollisionResult.maxAllowedT;
+      collisionCheckResult.collisionPlane = entityCollisionResult.collisionPlane;
+      collisionCheckResult.collidedEntity = entityCollisionResult.collidedEntity;
+    }
+    	
+    // Have To Decrease It Because Lack Of Precision Causes Clipping Errors
+    float deltaVectorLength = deltaVector.getLength();
+    
+    // In Tiles
+    float decreaseValue = tileDistancePrecision / deltaVectorLength;
+	
+    if(decreaseValue < 1.0f)
+    {
+      collisionCheckResult.maxAllowedT -= decreaseValue;
+    }
+    else collisionCheckResult.maxAllowedT = 0;
+
+  }
+  
+  return collisionCheckResult;
+}
+
+float Level::getFrictionValueAtPosition(EntityPosition& entityPosition) const
+{
+  float frictionValue = 1.3;
+  
+  tileMap->recanonicalize(entityPosition);
+  TILE_TYPE tileType = tileMap->getTileType(entityPosition.worldPosition);
+  
+  switch(tileType)
+  {
+  case TILE_TYPE_ICE_GROUND:
+    frictionValue = 0.1f;
+    break;
+  }
+  return frictionValue;
+}
+
+float Level::getAccelerationModifierAtPosition(EntityPosition& entityPosition) const
+{
+  float accelerationModifier = 1.0;
+  
+  tileMap->recanonicalize(entityPosition);
+  TILE_TYPE tileType = tileMap->getTileType(entityPosition.worldPosition);
+  
+  switch(tileType)
+  {
+  case TILE_TYPE_SPEED_GROUND:
+    accelerationModifier = 2.0f;
+    break;
+  }
+  return accelerationModifier;
 }
 
 std::list<WorldPosition> Level::getAffectedTiles(const FloatRect& collisionRect,
@@ -95,7 +193,6 @@ std::list<WorldPosition> Level::getAffectedTiles(const FloatRect& collisionRect,
     
     for(int x = minX; x <= maxX; x++)
     {
-      
       affectedTiles.push_back(cornerPosition.worldPosition + Vector2i(x, y));
     }
     
@@ -195,51 +292,52 @@ WorldCollisionResult Level::checkWorldCollision(const FloatRect& collisionRect,
 }
 
   
-EntityCollisionResult Level::checkEntityCollision(const EntityPtr& entityPtr) const
+EntityCollisionResult Level::checkEntityCollision(const Entity* entity,
+						  const FloatRect& collisionRect,
+						  const EntityPosition& basePosition,
+						  const Vector2f positionDeltaVector ) const
 {
-
+  
   float maxAllowedT = 1.0f;
   int wallIndex = -1;
-
-  EntityPtr entityPtr1 = entityPtr;
-  FloatRect collisionRect1 = entityPtr1->getCollisionRect();
-      
-  float halfWidth = collisionRect1.width / 2.0f;
-  float halfHeight = collisionRect1.height / 2.0f;
-    
+  
+  float halfWidth = collisionRect.width / 2.0f;
+  float halfHeight = collisionRect.height / 2.0f;
+  
   // Centering EntityPoint For Minkowsky
-  Vector2f entityPosition = collisionRect1[0] + Vector2f(halfWidth, halfHeight);
+  Vector2f entityPosition = collisionRect[0] + Vector2f(halfWidth, halfHeight);
   
   EntityCollisionResult collisionResult;
+  if(!entity->canCollideWithEntities()) return collisionResult;
+  
   for(auto entity2 = entityList.begin(); entity2 != entityList.end(); entity2++)
   {
     // If The Entities are The Same we don't check Collisions(Comparing Pointers)
-    if(entityPtr.get() == (*entity2).get()) continue;
-    if(!(*entity2)->canCollide()) continue;
+    if(entity == (*entity2).get()) continue;
+    if(!(*entity2)->isAlive() || !(*entity2)->canCollideWithEntities()) continue;
     
     // Check Collisions
     // Convert To Local Space By Subtracting deltaVector
     
     EntityPtr entityPtr2 = *entity2;
-    Vector2f deltaVector1 = entityPtr1->getPositionDeltaVector();
-
+    
     // Collision Rect For Second Object
     FloatRect collisionRect2 = entityPtr2->getCollisionRect();
     
-    Vector2f localRectPosition = EntityPosition::calculateDistanceInTiles(entityPtr1->getPosition(),
+    Vector2f localRectPosition = EntityPosition::calculateDistanceInTiles(basePosition,
 									  entityPtr2->getPosition(),
 									  tileMap->getTileChunkSize());
     
     // Minkowsky Addition
     FloatRect collidingRect(localRectPosition.x + collisionRect2.left - halfWidth,
 			    localRectPosition.y + collisionRect2.top - halfHeight,
-			    collisionRect2.width + collisionRect1.width,
-			    collisionRect2.height + collisionRect1.height);
+			    collisionRect2.width + collisionRect.width,
+			    collisionRect2.height + collisionRect.height);
     
     // Checking Each of 4 walls and Getting The One That Collides First
     for(int wall=0; wall < 4; wall++)
     {
-      float tempT = collidingRect.getMaxTime(entityPosition, deltaVector1, wall);
+      float tempT = collidingRect.getMaxTime(entityPosition, positionDeltaVector, wall);
       
       if(tempT < maxAllowedT && tempT >= 0.0f) 
       {
@@ -267,94 +365,19 @@ EntityCollisionResult Level::checkEntityCollision(const EntityPtr& entityPtr) co
   return collisionResult;
 }
 
-void Level::resolveCollisions()
+bool Level::addEntity(EntityPtr& entityPtr)
 {
-  
-  for(auto entityIt = entityList.begin(); entityIt != entityList.end(); entityIt++)
+
+  if(!isCollidingWithLevel(entityPtr.get()))
   {
-    EntityPtr& entity = *entityIt;
-    
-    Vector2f positionDeltaVector = entity->getPositionDeltaVector();
-    
-    // If There's no velocity collision couldn't occur - That Eliminates non Moving Entities
-    if(positionDeltaVector == Vector2f()) continue;
-    
-    EntityPosition entityPosition = entity->getPosition();
-    FloatRect collisionRect = entity->getCollisionRect();
-
-    WorldCollisionResult worldCollisionResult = checkWorldCollision(collisionRect,
-								    entityPosition,
-								    positionDeltaVector);
-    
-    EntityCollisionResult entityCollisionResult = checkEntityCollision(entity);
-    
-    if(worldCollisionResult.maxAllowedT == entityCollisionResult.maxAllowedT == 1.0f)
-    {
-      // No Collision
-      entity->setPosition(entityPosition + positionDeltaVector);
-    }
-    else
-    {
-      if(worldCollisionResult.maxAllowedT < entityCollisionResult.maxAllowedT)
-      {
-	// Collision With Tiles
-	
-	// Have To Decrease It Because Lack Of Precision Causes Clipping Errors
-	float deltaVectorLength = positionDeltaVector.getLength();
-	
-	// In Tiles
-
-	float tileDistancePrecision = 0.01f;
-	float decreaseValue = tileDistancePrecision / deltaVectorLength;
-	
-	if(decreaseValue < 1.0f)
-	{
-	  worldCollisionResult.maxAllowedT -= decreaseValue;
-	}
-	else worldCollisionResult.maxAllowedT = 0;
-		
-	entity->setPosition(entityPosition + positionDeltaVector * worldCollisionResult.maxAllowedT);
-	entity->onWorldCollision(worldCollisionResult.collisionPlane);
-      }
-      else
-      {
-	// Collision With Entity
-
-	// Have To Decrease It Because Lack Of Precision Causes Clipping Errors
-
-	float deltaVectorLength = positionDeltaVector.getLength();
-	
-	// In Tiles
-
-	float tileDistancePrecision = 0.1f;
-	float decreaseValue = tileDistancePrecision / deltaVectorLength;
-	
-	//std::cout << entityCollisionResult.maxAllowedT << std::endl;
-	
-	if(decreaseValue < 1.0f)
-	{
-	    entityCollisionResult.maxAllowedT -= decreaseValue;
-	}
-	else entityCollisionResult.maxAllowedT = 0;
-	
-	entity->setPosition(entityPosition + positionDeltaVector * entityCollisionResult.maxAllowedT);
-	
-	Entity* collidedEntity = entityCollisionResult.collidedEntity;
-	entity->onEntityCollision(entityCollisionResult.collisionPlane, entityCollisionResult.collidedEntity);
-	
-	if(entity->canReceiveItems() && collidedEntity->isPlayerItem())
-	{
-	  collidedEntity->onEntityCollision(entityCollisionResult.collisionPlane, entity.get());
-	}
-	
-      }
-    }
+    pendingEntityList.push_back(entityPtr);
+    return true;
   }
-}
-
-void Level::addEntity(EntityPtr& entityPtr)
-{
-  entityList.push_back(entityPtr);
+  else
+  {
+    return false;
+  }
+  
 }
 
 EventNameList Level::getEntityEvents()
@@ -381,11 +404,19 @@ void Level::onEvent(const std::string& eventName, EventArgumentDataMap eventData
       {
 	entity = new Bullet(eventDataMap["position"].asEntityPosition(),
 			    eventDataMap["initialVelocity"].asVector2f(),
-			    eventDataMap["dimensions"].asVector2f());
+			    eventDataMap["dimensions"].asVector2f(),
+			    0.1f);
+	
+	if(isCollidingWithLevel(entity))
+	{
+	  delete entity;
+	  entity = NULL;
+	}
+	
       } break;
     }
     
-    addEntity(EntityPtr(entity));
+    if(entity) addEntity(EntityPtr(entity));
   }
 }
 
@@ -403,23 +434,29 @@ bool Level::isCollidingWithLevel(Entity* entity) const
       return true;
     }
   }
-  
-  for(auto entityIt = entityList.begin(); entityIt != entityList.end(); entityIt++)
-  {
-    Entity* entity2 = (*entityIt).get();
-    if(entity == entity2) continue;
-    EntityPosition entityPosition2 = entity2->getPosition();
-    FloatRect collisionRect2 = entity2->getCollisionRect();
 
-    Vector2f relativeDistance = EntityPosition::calculateDistanceInTiles(entityPosition,
-									 entityPosition2,
-									 tileMap->getTileChunkSize());
-    collisionRect2 += relativeDistance;
-    
-    if(collisionRect.doesRectCollideWith(collisionRect2))
+  if(entity->canCollideWithEntities())
+  {
+      
+    for(auto entityIt = entityList.begin(); entityIt != entityList.end(); entityIt++)
     {
-      return true;
+      Entity* entity2 = (*entityIt).get();
+      if(entity == entity2 || !entity2->isAlive() || !entity2->canCollideWithEntities()) continue;
+      
+      EntityPosition entityPosition2 = entity2->getPosition();
+      FloatRect collisionRect2 = entity2->getCollisionRect();
+
+      Vector2f relativeDistance = EntityPosition::calculateDistanceInTiles(entityPosition,
+									   entityPosition2,
+									   tileMap->getTileChunkSize());
+      collisionRect2 += relativeDistance;
+    
+      if(collisionRect.doesRectCollideWith(collisionRect2))
+      {
+	return true;
+      }
     }
+    
   }
   
   return false;

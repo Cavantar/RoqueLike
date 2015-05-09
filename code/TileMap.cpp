@@ -52,8 +52,13 @@ TILE_TYPE TileMap::getTileType(WorldPosition& tileWorldPosition)
   
 }
 
+void TileMap::recanonicalize(EntityPosition& entityPosition) const
+{
+  entityPosition.recanonicalize(tileChunkSize);
+}
+
 bool TileMap::isRectangleOfTileType(WorldPosition startPosition,
-					   Vector2i dimensions, TILE_TYPE tileType)
+				    Vector2i dimensions, TILE_TYPE tileType)
 {
   for(int y = 0; y < dimensions.y; y++)
   {
