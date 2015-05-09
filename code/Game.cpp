@@ -96,19 +96,27 @@ void PlayGameState::render(Game* game)
   {
     levelGenerator->renderAdditionalData(game->window, cameraPosition, worldScale * baseTileSizeInPixels);
   }
+
+  Player* player = level->getPlayer();
+  if(player)
+  {
+    playerHud.render(player);
+  }
   
 }
 
 void PlayGameState::enter(Game* game)
 {
-  levelGenerator = new SimpleLevelGenerator(100);
+  levelGenerator = new SimpleLevelGenerator(50);
   
   level = levelGenerator->create();
   eventManager.registerListener(level.get());
   
   levelRenderer.setWindow(&game->window);
   levelRenderer.setTileSize(worldScale * baseTileSizeInPixels);
-  
+
+  playerHud.setWindow(&game->window);
+  playerHud.setFont(levelRenderer.getFont());
 }  
 
 void PlayGameState::leave(Game* game)

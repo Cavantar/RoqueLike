@@ -4,15 +4,16 @@
 #include "Level.h"
 
 class LevelRenderer{
- public:
+public:
   LevelRenderer();
   
   void setWindow(sf::RenderWindow* window) { this->window = window; }
-void setTileSize(const float tileSizeInPixels) { this->tileSizeInPixels = tileSizeInPixels; }
-
-void renderLevel(const LevelPtr& level, EntityPosition& cameraPosition);
-
- private:
+  void setTileSize(const float tileSizeInPixels) { this->tileSizeInPixels = tileSizeInPixels; }
+  
+  void renderLevel(const LevelPtr& level, EntityPosition& cameraPosition);
+  sf::Font* getFont() { return &font;}
+  
+private:
   sf::Font font;
   
   float tileSizeInPixels;

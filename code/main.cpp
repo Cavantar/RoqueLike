@@ -9,6 +9,7 @@
 #include <fcntl.h>
 #include <io.h>
 #include <iostream>
+#include <fstream>
 
 static const int MAX_CONSOLE_LINES = 500;
   

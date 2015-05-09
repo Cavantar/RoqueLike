@@ -15,12 +15,14 @@
 
 #include "Entity.h"
 #include "Level.h"
+#include "PlayerHud.h"
 
 #ifdef UNITY_BUILD
 
 #include "Vector.cpp"
 #include "TileMap.cpp"
 #include "Entity.cpp"
+#include "PlayerHud.cpp"
 
 #endif
 
@@ -88,6 +90,7 @@ private:
   LevelRenderer levelRenderer;
   LevelGenerator* levelGenerator;
   LevelPtr level;
+  PlayerHud playerHud;
   
   // Camera Position - It's The Center Of The Viewport
   EntityPosition cameraPosition;

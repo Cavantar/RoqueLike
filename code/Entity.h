@@ -119,7 +119,7 @@ public:
   
   // PlayerStuff
   virtual void addXp(const float amount) {} 
-  virtual void addLife(const float amount) {}
+  virtual void addHealth(const float amount) {}
   
   // Flag Stuff
   virtual bool canReceiveItems() const { return false; }
@@ -151,13 +151,16 @@ class Moveable : public Entity {
   Vector2f getLocalCollisionCenter() const ;
   EntityPosition getCollisionCenter() const ;
   
+  Vector2f getReflectedVelocity(COLLISION_PLANE collisionPlane, float speedIncrease) const ;
+  float getMovementSpeed() const { return metersPerSecondSquared; }
+  
 protected:
   Vector2f dimensions;
   
   Vector2f velocity;
   Vector2f acceleration;
   
-  float metersPerSecondSquared = 50;
+  float metersPerSecondSquared = 25;
   
   Vector2f getPositionDeltaVector(const float lastDelta, const float fakeFrictionValue,
 				  const float accelerationModifier = 1.0f);
@@ -178,6 +181,7 @@ public:
   FloatRect getCollisionRect() const;
   
   bool canCollideWithEntities() const { return false; }
+  
 private:
   float xpAmount;
 };
@@ -224,23 +228,30 @@ private:
 class Mob: public Moveable {
 public:
   Mob(const EntityPosition& position, int level, int life = 1.0f);
-  void addLife(const float amount);
+  void addHealth(const float amount);
   const EntityRenderData& getRenderData();
   
+  int getLevel() const { return level; }
+  float getHealth() const { return health; }
+  float getMaxHealth() const { return maxHealth; }
+  
+  float getDamageValue() const { return damageValue; }
 protected:
   int level = 0;
-  float health = 0.1f;
   
+  float health = 0.1f;
   float maxHealth = 1.0f;
+
+  float damageValue = 0;
 };
 
 class Cannon : public Mob {
- public:
+public:
   Cannon(const EntityPosition& position, int level);
   void update(Level& level, const float lastDelta);
   void performDeathAction(Level& level);
   
- private:
+private:
   float localTime = 0;
 };
 
@@ -256,7 +267,19 @@ class Player : public Mob {
   bool canReceiveItems() const { return true; }
   bool isPlayer() const { return true; }
   
-  void addXp(const float amount); 
+  void addXp(const float amount);
+  void levelUp();
+  
+  float getShieldValue() const { return shieldValue; } 
+
+  float getStamina() const { return stamina; }
+  float getMaxStamina() const { return maxStamina; }
+  
+  float getXp() const { return xpAmount; }
+  float getCurrentLevelXp() const { return (level - 1) * 100; } 
+  float getNextLevelXp() const { return level * 100; }
+
+  int getSkillPoints() const { return skillPointCount; } 
   
   // Events and Stuff
   
@@ -265,7 +288,12 @@ class Player : public Mob {
   
 private:
   float xpAmount = 0;
-  float damageValue = 0.1f;
+  float shieldValue = 0;
+
+  float stamina = 100;
+  float maxStamina = 100;
+
+  int skillPointCount = 0;
   
   MOB_DIRECTION direction;
 };

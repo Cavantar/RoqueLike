@@ -60,20 +60,39 @@ EntityPosition Moveable::getCollisionCenter() const
   return position + getLocalCollisionCenter(); 
 }
 
+Vector2f Moveable::getReflectedVelocity(COLLISION_PLANE collisionPlane, float speedIncrease) const 
+{
+  Vector2f reflectedVector = velocity;
+  
+  switch(collisionPlane) {
+  case COLLISION_PLANE_VERTICAL:
+    reflectedVector.x *= -speedIncrease;
+    break;
+  case COLLISION_PLANE_HORIZONTAL:
+    reflectedVector.y *= -speedIncrease;
+    break;
+  }
+
+  return reflectedVector;
+}
+
 void Moveable::handleCollisionResult(EntityCollisionResult& collisionResult,
 				     const Vector2f& positionDeltaVector)
 {
   if(collisionResult.maxAllowedT != 1.0f)
   {
+    // Colliding With Entities
     if(collisionResult.collidedEntity != NULL)
     {
       onEntityCollision(collisionResult.collisionPlane, collisionResult.collidedEntity);
     }
+    // Colliding With Tiles
     else
     {
       onWorldCollision(collisionResult.collisionPlane);
     }
   }
+  // Moving Player By Allowed Value
   position += positionDeltaVector * collisionResult.maxAllowedT;
 }
 
@@ -136,21 +155,13 @@ void XpOrb::update(Level& level, const float lastDelta)
   
   EntityCollisionResult collisionResult = level.checkCollisions(this, positionDeltaVector);
   handleCollisionResult(collisionResult, positionDeltaVector);
-  
 }
 
-void XpOrb::onWorldCollision(COLLISION_PLANE worldCollisionType)
+void XpOrb::onWorldCollision(COLLISION_PLANE collisionPlane)
 {
-  static const float speedIncrease = 1.0f;
+  static const float speedIncrease = 0.5f;
 
-  switch(worldCollisionType) {
-  case COLLISION_PLANE_VERTICAL:
-    velocity.x *= -speedIncrease;
-    break;
-  case COLLISION_PLANE_HORIZONTAL:
-    velocity.y *= -speedIncrease;
-    break;
-  }
+  velocity = getReflectedVelocity(collisionPlane, speedIncrease);
 }
 
 FloatRect XpOrb::getCollisionRect() const
@@ -186,20 +197,12 @@ void Bullet::update(Level& level, const float lastDelta)
   handleCollisionResult(collisionResult, positionDeltaVector);
 }
 
-void Bullet::onWorldCollision(COLLISION_PLANE worldCollisionType)
+void Bullet::onWorldCollision(COLLISION_PLANE collisionPlane)
 {
   if(numbOfBouncesLeft-- == 0) die();
   
   static const float speedIncrease = 1.0f;
-
-  switch(worldCollisionType) {
-  case COLLISION_PLANE_VERTICAL:
-    velocity.x *= -speedIncrease;
-    break;
-  case COLLISION_PLANE_HORIZONTAL:
-    velocity.y *= -speedIncrease;
-    break;
-  }
+  velocity = getReflectedVelocity(collisionPlane, speedIncrease);
 }
 
 FloatRect Bullet::getCollisionRect() const
@@ -208,20 +211,13 @@ FloatRect Bullet::getCollisionRect() const
   return FloatRect(0, dimensions.y *(1.0f - bottomPart), dimensions.x, dimensions.y * bottomPart);
 }
 
-void Bullet::onEntityCollision(COLLISION_PLANE worldCollisionType, Entity* entity)
+void Bullet::onEntityCollision(COLLISION_PLANE collisionPlane, Entity* entity)
 {
   static const float speedIncrease = 1.0f;
+
+  velocity = getReflectedVelocity(collisionPlane, speedIncrease);
   
-  switch(worldCollisionType) {
-  case COLLISION_PLANE_VERTICAL:
-    velocity.x *= -speedIncrease;
-    break;
-  case COLLISION_PLANE_HORIZONTAL:
-    velocity.y *= -speedIncrease;
-    break;
-  }
-  
-  entity->addLife(-damageValue);
+  entity->addHealth(-damageValue);
   die();
 }
 
@@ -269,7 +265,7 @@ FloatRect Item::getCollisionRect() const
 }
 void HealthItem::performItemAction(Entity* actionReceiver)
 {
-  actionReceiver->addLife(itemValue);
+  actionReceiver->addHealth(itemValue);
 }
 
 Mob::Mob(const EntityPosition& position, int level, int health) : level(level), health(health)
@@ -278,10 +274,10 @@ Mob::Mob(const EntityPosition& position, int level, int health) : level(level), 
   renderData.type = ER_MOB;
 }
 
-void Mob::addLife(const float amount)
+void Mob::addHealth(const float amount)
 {
   health += amount;
-  if(health > 1.0f) health = 1.0f;
+  if(health > maxHealth) health = maxHealth;
   else if(health < 0) die();
 }
 
@@ -295,10 +291,13 @@ Cannon::Cannon(const EntityPosition& position, int level) : Mob(position, level)
 {
   dimensions = Vector2f(1.0f, 1.0f);
   renderData.spriteName = "Cannon";
+  renderData.color = Vector3f();
   
   std::stringstream caption;
   caption << "Cannon lvl: " << level;  
   renderData.caption = caption.str();
+  
+  damageValue = (level + 1.0f) / 5.0f;
 }
 
 void Cannon::update(Level& level, const float lastDelta)
@@ -317,27 +316,24 @@ void Cannon::update(Level& level, const float lastDelta)
       Vector2f distanceVector = EntityPosition::calculateDistanceInTiles(position, playerPosition,
 									 level.getTileMap()->getTileChunkSize());
       
-      Vector2f directionVector;
-      float bulletRadius = 0.7f + (this->level) / 10;
-      
+      // If There's Player in Radius of given length 
       if(distanceVector.getLength() < 15.0f)
       {
 	distanceVector.normalize();
-	directionVector = distanceVector;
+	Vector2f directionVector = distanceVector;
+	float bulletRadius = 0.7f + (this->level) / 10;
+
+	float bulletSpeedModifier = ((this->level) / 10.0f) + 1.0f; 
 	
 	Entity* bullet;
 	bullet = new Bullet(position + dimensions/2.0f + directionVector * 2.0f,
-			    directionVector * 10.0f,
+			    directionVector * 10.0f * bulletSpeedModifier,
 			    Vector2f(bulletRadius, bulletRadius),
-			    (this->level + 1.0f) / 5.0f);
+			    damageValue);
 	
 	level.addEntity(EntityPtr(bullet));
       }
-      else
-      {
-	float randomDirection = ((3.14f) / 180.0f) * (rand() % 360);
-	directionVector = Vector2f(cos(randomDirection), -sin(randomDirection));
-      }
+      
     }
   } 
 }
@@ -349,7 +345,13 @@ void Cannon::performDeathAction(Level& level)
   while(xpToSpawn)
   {
     float value = -1;
-    while(value > xpToSpawn || value < 0) value = ((rand() % 10) + 1) * 10;
+    
+    // Getting Randomly valued experience orb (in range)
+    do
+    {
+      value = ((rand() % 10) + 1) * 10;
+    }
+    while(value > xpToSpawn);
     
     Entity* entity = new XpOrb(position, Vector2f::directionVector(), value);
     level.addEntity(EntityPtr(entity));
@@ -358,11 +360,13 @@ void Cannon::performDeathAction(Level& level)
   }
 }
 
-Player::Player(const EntityPosition& position) : Mob(position, 0.1f)
+Player::Player(const EntityPosition& position) : Mob(position, 1, 0.1f)
 {
   dimensions = Vector2f(0.8f, 2.0f);
   renderData.spriteName = "Player";
   renderData.caption = "Player";
+
+  damageValue = 0.1f;
 }
 
 void Player::update(Level& level, const float lastDelta)
@@ -375,40 +379,22 @@ void Player::update(Level& level, const float lastDelta)
   
   EntityCollisionResult collisionResult = level.checkCollisions(this, positionDeltaVector);
   handleCollisionResult(collisionResult, positionDeltaVector);
+  
+  if(xpAmount >= getNextLevelXp()) levelUp();
 }
 
-void Player::onWorldCollision(COLLISION_PLANE worldCollisionType)
+void Player::onWorldCollision(COLLISION_PLANE collisionPlane)
 {
   const float bounceFactor = 0.5f;
-  
-  switch(worldCollisionType) {
-  case COLLISION_PLANE_VERTICAL:
-    velocity.x *= -0.5f;
-    break;
-  case COLLISION_PLANE_HORIZONTAL:
-    velocity.y *= -0.5f;
-    break;
-  case COLLISION_PLANE_BOTH:
-    velocity = Vector2f();
-    break;
-  }
+  velocity = getReflectedVelocity(collisionPlane, bounceFactor);
 }
 
-void Player::onEntityCollision(COLLISION_PLANE worldCollisionType, Entity* entity)
+void Player::onEntityCollision(COLLISION_PLANE collisionPlane, Entity* entity)
 {
   static const float speedIncrease = 1.05f;
   entity->addVelocity(velocity * 0.01f);
   
-  
-  switch(worldCollisionType) {
-  case COLLISION_PLANE_VERTICAL:
-    velocity.x *= -speedIncrease;
-    break;
-  case COLLISION_PLANE_HORIZONTAL:
-    velocity.y *= -speedIncrease;
-    break;
-  }    
-  
+  velocity = getReflectedVelocity(collisionPlane, speedIncrease);
 }
 
 void Player::addXp(const float amount)
@@ -416,6 +402,15 @@ void Player::addXp(const float amount)
   xpAmount += amount;
   std::cout << "Added: " << amount << " xp\n";
   std::cout << "CurrentXp: " << xpAmount << " xp\n";
+}
+
+void Player::levelUp()
+{
+  level++;
+  skillPointCount++;
+  
+  maxHealth += 0.2f;
+  maxStamina += 0.2f;
 }
 
 EventNameList Player::getEntityEvents()
@@ -474,10 +469,10 @@ void Player::handlePlayerEvent(const PLAYER_EVENT playerEvent, Level& level)
 	break;
       }
 
-      Entity* bullet;
+      EntityPosition bulletPosition = position + Vector2f(getLocalCollisionCenter().x, 0) +
+	tempDirectionVector * bulletDistance;
       
-      bullet = new Bullet(position + Vector2f(getLocalCollisionCenter().x, 0) +
-			  tempDirectionVector * bulletDistance,
+      Entity* bullet = new Bullet(bulletPosition,
 			  velocity + tempDirectionVector * bulletVelocity,
 			  Vector2f(bulletRadius, bulletRadius),
 			  damageValue);
