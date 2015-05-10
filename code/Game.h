@@ -5,39 +5,27 @@
 #include "EventManager.h"
 
 #include "Vector.h"
-#include "TileMap.h"
-
-#ifdef UNITY_BUILD
-
-#include "EntityPosition.cpp"
-
-#endif
 
 #include "Entity.h"
 #include "Level.h"
 #include "PlayerHud.h"
+#include "LevelRenderer.h" 
+#include "LevelGenerator.h"
 
 #ifdef UNITY_BUILD
 
+#include "EntityPosition.cpp"
 #include "Vector.cpp"
 #include "TileMap.cpp"
 #include "Entity.cpp"
 #include "PlayerHud.cpp"
-
-#endif
-
-#ifdef UNITY_BUILD
-
 #include "Input.cpp"
 #include "EventManager.cpp"
 #include "Level.cpp"
 #include "LevelRenderer.cpp"
-#include "LevelGenerator.cpp"
-
+#include "LevelGenerator.cpp"			\
+  
 #endif
-
-#include "LevelRenderer.h" 
-#include "LevelGenerator.h"
 
 class Game;
 class GameState{
@@ -98,7 +86,7 @@ private:
   
   float baseTileSizeInPixels = 20.0f;
   double worldScale = 1.0f;
-
+  
   void sendPlayerEvent(PLAYER_EVENT playerEvent);
   void handleInput(Game* game);
 };

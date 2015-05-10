@@ -2,35 +2,9 @@
 
 #include "Vector.h"
 #include "EntityPosition.h"
+#include "ILevel.h"
 
 #include <memory>
-
-enum COLLISION_PLANE{
-  COLLISION_PLANE_VERTICAL,
-  COLLISION_PLANE_HORIZONTAL,
-  COLLISION_PLANE_BOTH,
-  COLLISION_PLANE_NONE
-};
-
-class WorldCollisionResult{
-public:
-  float maxAllowedT;
-  COLLISION_PLANE collisionPlane;
-  
-  WorldCollisionResult() : maxAllowedT(1.0f), collisionPlane(COLLISION_PLANE_NONE) {}
-};
-
-// TODO: Fix This Shit it's ugly as fuck
-
-class Entity;
-class EntityCollisionResult{
-public:
-  float maxAllowedT;
-  Entity* collidedEntity;
-  COLLISION_PLANE collisionPlane;
-  
-  EntityCollisionResult() : maxAllowedT(1.0f), collidedEntity(NULL), collisionPlane(COLLISION_PLANE_NONE) {}
-};
 
 enum PLAYER_EVENT{
   PLAYER_MOVE_UP,
@@ -42,7 +16,6 @@ enum PLAYER_EVENT{
   PLAYER_SHOOT_DOWN,
   PLAYER_SHOOT_LEFT,
   PLAYER_SHOOT_RIGHT
-  
 };
 
 enum MOB_DIRECTION{
@@ -83,23 +56,13 @@ struct EntityRenderData{
   };
 };
 
-enum ENTITY_REQUEST_TYPE{
-  ERT_SPAWN_ENTITY
-};
-
-enum ENTITY_TYPE{
-  ET_BULLET
-};
-
-class Level;
-
 class Entity : public EventOperator {
 public:
   Entity();
   Entity(EntityPosition position) : position(position) {};
   virtual ~Entity() {}
   
-  virtual void update(Level& level, const float lastDelta) = 0;
+  virtual void update(ILevel* level, const float lastDelta) = 0;
   
   // Position / Movement
   const EntityPosition& getPosition() const { return position; }
@@ -107,7 +70,6 @@ public:
   
   // Delta vector should be zeroed after accessing it 
   virtual Vector2f getVelocity() const  { return Vector2f(); }
-  
   virtual void addVelocity(Vector2f velocity) {}
   
   // Collision Stuff
@@ -115,7 +77,7 @@ public:
   virtual void onWorldCollision(COLLISION_PLANE worldCollisionType) {}
   virtual void onEntityCollision(COLLISION_PLANE worldCollisionType, Entity* entity) {}
   
-  virtual void performDeathAction(Level& level) {}
+  virtual void performDeathAction(ILevel* level) {}
   
   // PlayerStuff
   virtual void addXp(const float amount) {} 
@@ -172,7 +134,7 @@ protected:
 class XpOrb : public Moveable {
 public:
   XpOrb(const EntityPosition& position, const Vector2f& initialVelocity, float xpAmount);
-  void update(Level& level, const float lastDelta);
+  void update(ILevel* level, const float lastDelta);
   
   bool isPlayerItem() const { return true; }
   
@@ -191,7 +153,7 @@ public:
   Bullet(const EntityPosition& position, const Vector2f& initialVelocity,
 	 const Vector2f& dimensions, float damageValue);
   
-  void update(Level& level, const float lastDelta);
+  void update(ILevel* level, const float lastDelta);
   void onWorldCollision(COLLISION_PLANE worldCollisionType);
   void onEntityCollision(COLLISION_PLANE worldCollisionType, Entity* entity);
   
@@ -205,7 +167,7 @@ private:
 class Item : public Entity {
  public:
   Item(const EntityPosition& position, const float value);
-  void update(Level& level, const float lastDelta);
+  void update(ILevel* level, const float lastDelta);
   
   FloatRect getCollisionRect() const;
   
@@ -236,7 +198,7 @@ public:
   float getMaxHealth() const { return maxHealth; }
   
   float getDamageValue() const { return damageValue; }
-  void spawnXp(Level& level, float xpToSpawn) const;
+  void spawnXp(ILevel* level, float xpToSpawn) const;
   
 protected:
   int level = 0;
@@ -250,8 +212,8 @@ protected:
 class Cannon : public Mob {
 public:
   Cannon(const EntityPosition& position, int level);
-  void update(Level& level, const float lastDelta);
-  void performDeathAction(Level& level);
+  void update(ILevel* level, const float lastDelta);
+  void performDeathAction(ILevel* level);
   
 private:
   float localTime = 0;
@@ -261,12 +223,12 @@ class Player : public Mob {
  public:
   Player(const EntityPosition& position);
   
-  void update(Level& level, const float lastDelta);
+  void update(ILevel* level, const float lastDelta);
   void onWorldCollision(COLLISION_PLANE worldCollisionType);
   void onEntityCollision(COLLISION_PLANE worldCollisionType, Entity* entity);
   
-  void handlePlayerEvent(const PLAYER_EVENT playerEvent, Level& level);
-  void performDeathAction(Level& level);
+  void handlePlayerEvent(const PLAYER_EVENT playerEvent, ILevel* level);
+  void performDeathAction(ILevel* level);
   
   bool canReceiveItems() const { return true; }
   bool isPlayer() const { return true; }

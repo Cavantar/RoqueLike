@@ -4,7 +4,10 @@
 #include <vector>
 #include <memory>
 #include <assert.h>
+
+#include "ILevel.h"
 #include "Entity.h"
+#include "TileMap.h"
 
 typedef std::list<EntityPtr> EntityList;
 typedef std::list<WorldPosition> TileList;
@@ -15,13 +18,14 @@ struct CollisionCheckData{
   Vector2f deltaVector;
 };
 
-class Level : public EventOperator{
+class Level : public ILevel{
   friend class LevelGenerator;
   friend class SimpleLevelGenerator;
  public:
-  Level(); 
-  void update(const float lastDelta);
-  void registerPendingEntities(EventManager& eventManager);
+Level(); 
+//~Level(){}; 
+void update(const float lastDelta);
+void registerPendingEntities(EventManager& eventManager);
   
   const TileMapPtr& getTileMap() const { return tileMap; }
   const EntityList& getEntityList() const { return entityList;}

@@ -113,18 +113,18 @@ XpOrb::XpOrb(const EntityPosition& position, const Vector2f& initialVelocity, fl
   renderData.color = Vector3f(102 + rand()%20, 255 - rand()%30, 0);
 }
 
-void XpOrb::update(Level& level, const float lastDelta)
+void XpOrb::update(ILevel* level, const float lastDelta)
 {
   // Simulate Movement First
   
-  Player* player = level.getPlayer();
+  Player* player = level->getPlayer();
   if(player)
   {
 
     // Getting Direction Accelerate Towards
     EntityPosition playerPosition = player->getCollisionCenter();
     Vector2f distanceVector = EntityPosition::calculateDistanceInTiles(position, playerPosition,
-								       level.getTileMap()->getTileChunkSize());
+								       level->getTileMap()->getTileChunkSize());
     float distance = distanceVector.getLength();
     if(distance < 15)
     {
@@ -136,7 +136,7 @@ void XpOrb::update(Level& level, const float lastDelta)
     if(distance < 3)
     {
       distanceVector = EntityPosition::calculateDistanceInTiles(position, player->getPosition(),
-								level.getTileMap()->getTileChunkSize());
+								level->getTileMap()->getTileChunkSize());
       
     
       FloatRect playerCollisionRect = player->getCollisionRect();
@@ -153,7 +153,7 @@ void XpOrb::update(Level& level, const float lastDelta)
   
   Vector2f positionDeltaVector = getPositionDeltaVector(lastDelta, 0.5f);
   
-  EntityCollisionResult collisionResult = level.checkCollisions(this, positionDeltaVector);
+  EntityCollisionResult collisionResult = level->checkCollisions(this, positionDeltaVector);
   handleCollisionResult(collisionResult, positionDeltaVector);
 }
 
@@ -176,7 +176,8 @@ Bullet::Bullet(const EntityPosition& position, const Vector2f& initialVelocity,
   this->dimensions = dimensions;
   this->position = position;
   velocity = initialVelocity;
-
+  //numbOfBouncesLeft = 2;
+  
   this->damageValue = damageValue; 
   
   renderData.type = ER_PRIMITIVE;
@@ -186,14 +187,14 @@ Bullet::Bullet(const EntityPosition& position, const Vector2f& initialVelocity,
   renderData.color = Vector3f(rand()%256, rand()%256, rand()%256);
 }
 
-void Bullet::update(Level& level, const float lastDelta)
+void Bullet::update(ILevel* level, const float lastDelta)
 {
   
   Vector2f positionDeltaVector = getPositionDeltaVector(lastDelta, 0.001f);
   
   if(velocity.getLength() < 1.0f) die();
   
-  EntityCollisionResult collisionResult = level.checkCollisions(this, positionDeltaVector);
+  EntityCollisionResult collisionResult = level->checkCollisions(this, positionDeltaVector);
   handleCollisionResult(collisionResult, positionDeltaVector);
 }
 
@@ -215,9 +216,11 @@ void Bullet::onEntityCollision(COLLISION_PLANE collisionPlane, Entity* entity)
 {
   static const float speedIncrease = 1.0f;
 
+  entity->addHealth(-damageValue);
+  entity->addVelocity(velocity * 0.5f);
+  
   velocity = getReflectedVelocity(collisionPlane, speedIncrease);
   
-  entity->addHealth(-damageValue);
   die();
 }
 
@@ -233,14 +236,14 @@ Item::Item(const EntityPosition& position, const float value)
   renderData.color = Vector3f(255.0f, 0, 0);
 }
 
-void Item::update(Level& level, const float lastDelta)
+void Item::update(ILevel* level, const float lastDelta)
 {
-  Player* player = level.getPlayer();
+  Player* player = level->getPlayer();
   if(player)
   {
     EntityPosition playerPosition = player->getPosition();
     Vector2f distanceVector = EntityPosition::calculateDistanceInTiles(position, playerPosition,
-								       level.getTileMap()->getTileChunkSize());
+								       level->getTileMap()->getTileChunkSize());
     
     FloatRect playerCollisionRect = player->getCollisionRect();
     playerCollisionRect += distanceVector;
@@ -287,7 +290,7 @@ const EntityRenderData& Mob::getRenderData()
   return renderData;
 }
 
-void Mob::spawnXp(Level& level, float xpToSpawn) const
+void Mob::spawnXp(ILevel* level, float xpToSpawn) const
 {
   while(xpToSpawn)
   {
@@ -301,7 +304,7 @@ void Mob::spawnXp(Level& level, float xpToSpawn) const
     while(value > xpToSpawn);
     
     Entity* entity = new XpOrb(position, Vector2f::directionVector() * 3.0f, value);
-    level.addEntity(EntityPtr(entity));
+    level->addEntity(EntityPtr(entity));
     
     xpToSpawn -= value;
   }
@@ -322,7 +325,7 @@ Cannon::Cannon(const EntityPosition& position, int level) : Mob(position, level)
   damageValue = (level + 1.0f) / 5.0f;
 }
 
-void Cannon::update(Level& level, const float lastDelta)
+void Cannon::update(ILevel* level, const float lastDelta)
 {
   float shootPeriod = 5.0f / this->level;
   localTime += lastDelta;
@@ -330,13 +333,13 @@ void Cannon::update(Level& level, const float lastDelta)
   if(localTime >= shootPeriod)
   {
     localTime = fmodf(localTime, shootPeriod);
-    Player* player = level.getPlayer();
+    Player* player = level->getPlayer();
 
     if(player)
     {
       EntityPosition playerPosition = player->getCollisionCenter();
       Vector2f distanceVector = EntityPosition::calculateDistanceInTiles(position, playerPosition,
-									 level.getTileMap()->getTileChunkSize());
+									 level->getTileMap()->getTileChunkSize());
       // If There's Player in Radius of given length 
       if(distanceVector.getLength() < 15.0f)
       {
@@ -353,14 +356,14 @@ void Cannon::update(Level& level, const float lastDelta)
 			    Vector2f(bulletRadius, bulletRadius),
 			    damageValue);
 	
-	level.addEntity(EntityPtr(bullet));
+	level->addEntity(EntityPtr(bullet));
       }
       
     }
   } 
 }
 
-void Cannon::performDeathAction(Level& level)
+void Cannon::performDeathAction(ILevel* level)
 {
   float xpToSpawn = (this->level) * 20;
   spawnXp(level, xpToSpawn);
@@ -375,15 +378,15 @@ Player::Player(const EntityPosition& position) : Mob(position, 1, 1.0f)
   damageValue = 1.0f;
 }
 
-void Player::update(Level& level, const float lastDelta)
+void Player::update(ILevel* level, const float lastDelta)
 {
   EntityPosition collisionCenter = getCollisionCenter();
-  float friction = level.getFrictionValueAtPosition(collisionCenter);
-  float accelerationModifier  = level.getAccelerationModifierAtPosition(collisionCenter);
+  float friction = level->getFrictionValueAtPosition(collisionCenter);
+  float accelerationModifier  = level->getAccelerationModifierAtPosition(collisionCenter);
   
   Vector2f positionDeltaVector = getPositionDeltaVector(lastDelta, friction, accelerationModifier);
   
-  EntityCollisionResult collisionResult = level.checkCollisions(this, positionDeltaVector);
+  EntityCollisionResult collisionResult = level->checkCollisions(this, positionDeltaVector);
   handleCollisionResult(collisionResult, positionDeltaVector);
   
   if(xpAmount >= getNextLevelXp()) levelUp();
@@ -430,7 +433,7 @@ EventNameList Player::getEntityEvents()
   return eventNameList;
 }
 
-void Player::handlePlayerEvent(const PLAYER_EVENT playerEvent, Level& level)
+void Player::handlePlayerEvent(const PLAYER_EVENT playerEvent, ILevel* level)
 {
   switch(playerEvent)
   {
@@ -486,7 +489,7 @@ void Player::handlePlayerEvent(const PLAYER_EVENT playerEvent, Level& level)
 			  Vector2f(bulletRadius, bulletRadius),
 			  damageValue);
       
-      if(stamina > 20 && level.addEntity(EntityPtr(bullet))) stamina -= 20;
+      if(stamina > 20 && level->addEntity(EntityPtr(bullet))) stamina -= 20;
       
     }break;
   }
@@ -505,7 +508,7 @@ void Player::onEvent(const std::string& eventName, EventArgumentDataMap eventDat
   }
 }
 
-void Player::performDeathAction(Level& level)
+void Player::performDeathAction(ILevel* level)
 {
   float xpToSpawn = (this->level) * 200 + xpAmount;
   spawnXp(level, xpToSpawn);

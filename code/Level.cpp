@@ -31,7 +31,7 @@ void Level::updateEntities(const float lastDelta)
 {
   for(auto entityPtr = entityList.begin(); entityPtr != entityList.end(); entityPtr++)
   {
-    (*entityPtr)->update(*this, lastDelta);
+    (*entityPtr)->update(this, lastDelta);
   }
 }
 
@@ -43,7 +43,7 @@ void Level::removeDeadEntities()
   {
     if(!(*entityPtrIt)->isAlive())
     {
-      (*entityPtrIt)->performDeathAction(*this);
+      (*entityPtrIt)->performDeathAction(this);
       
       if((*entityPtrIt)->isPlayer()) player = NULL;
       entityPtrIt = entityList.erase(entityPtrIt);
@@ -343,33 +343,14 @@ void Level::onEvent(const std::string& eventName, EventArgumentDataMap eventData
 {
   //std::cout << "Here\n";
   
-  if(eventName == "SpawnEntity")
-  {
-    //std::cout << "Spawning Entity \n";
-    
-    ENTITY_TYPE entityType = (ENTITY_TYPE) eventDataMap["entityType"].asInt();
-    Entity* entity = NULL;
-    
-    switch(entityType)
-    {
-    case ET_BULLET:
+  /*  
+      if(eventName == "SpawnEntity")
       {
-	entity = new Bullet(eventDataMap["position"].asEntityPosition(),
-			    eventDataMap["initialVelocity"].asVector2f(),
-			    eventDataMap["dimensions"].asVector2f(),
-			    0.1f);
-	
-	if(isCollidingWithLevel(entity))
-	{
-	  delete entity;
-	  entity = NULL;
-	}
-	
-      } break;
-    }
-    
-    if(entity) addEntity(EntityPtr(entity));
-  }
+      //std::cout << "Spawning Entity \n";
+      
+      }
+  */
+  
 }
 
 bool Level::isCollidingWithLevel(Entity* entity) const
