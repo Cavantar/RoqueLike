@@ -24,24 +24,37 @@ void LevelRenderer::renderTileChunk(const TileChunkPtr& tileChunk, const Vector2
   //rectangleShape.setOutlineThickness(1.0f * (tileSize / 20.0f));
 
   const TileChunkData& tileChunkData = tileChunk->getTileChunkData();
-
+  const sf::Vector2u windowDimensions = window->getSize();
+  
   static const float wallHeight = 1.0f;
   
   int tileChunkHeight = tileChunkData.size();
   int tileChunkWidth = tileChunkData[0].size();
 
+  int minX = 0;
+  int maxX = tileChunkWidth;
+  
+  int minY = 0;
+  int maxY = tileChunkHeight;
+
+  if(screenChunkPosition.x < 0) minX = (-screenChunkPosition.x / tileSize);
+  if(screenChunkPosition.y < 0) minY = (-screenChunkPosition.y / tileSize);
+  
+  if(screenChunkPosition.x > windowDimensions.x) maxX -= (screenChunkPosition.x - windowDimensions.x) / tileSize;
+  if(screenChunkPosition.y > windowDimensions.y) maxY -= (screenChunkPosition.y - windowDimensions.y) / tileSize;
+  
+  
   sf::Vector2f screenTilePosition = sf::Vector2f(screenChunkPosition.x, screenChunkPosition.y);
   rectangleShape.setPosition(screenTilePosition);
   
-  for(int y = 0; y < tileChunkHeight; ++y)
+  for(int y = minY; y < maxY; ++y)
   {
     
-    for(int x = 0; x < tileChunkWidth; ++x)
+    for(int x = minX; x < maxX; ++x)
     {
       
       if(tileChunkData[y][x] == TILE_TYPE_VOID)
       {
-	
 	continue;
       }
 
@@ -96,11 +109,10 @@ void LevelRenderer::renderTileMap(const TileMapPtr& tileMap, EntityPosition& cam
   
   // How many Chunks I have to render
   
-  float chunksPerScreenWidth = (float)windowDimensions.x/(float)tileChunkSizeInPixels.x;
-  float chunksPerScreenHeight = (float)windowDimensions.y/(float)tileChunkSizeInPixels.y;
+  float chunksPerScreenWidth = (float)windowDimensions.x/tileChunkSizeInPixels.x;
+  float chunksPerScreenHeight = (float)windowDimensions.y/tileChunkSizeInPixels.y;
   
   // cameraPosition identifies center of the viewport so we have to translate it
-  
   cameraPosition.recanonicalize(tileChunkSize);
   
   float tilesPerScreenWidth = (float)windowDimensions.x/tileSizeInPixels;
@@ -119,7 +131,7 @@ void LevelRenderer::renderTileMap(const TileMapPtr& tileMap, EntityPosition& cam
   // Determining UpperLeftCorner and LowerRightCorner Chunks
   Vector3i topLeftChunkPosition = topLeftViewport.worldPosition.tileChunkPosition;
   Vector3i bottomRightChunkPosition = topLeftChunkPosition +
-    Vector3i(chunksPerScreenWidth + 2, chunksPerScreenHeight + 2, 0);
+    Vector3i(ceil(chunksPerScreenWidth) + 1, ceil(chunksPerScreenHeight) + 1, 0);
   
   for(int y = topLeftChunkPosition.y; y < bottomRightChunkPosition.y; y++)
   {
@@ -128,34 +140,43 @@ void LevelRenderer::renderTileMap(const TileMapPtr& tileMap, EntityPosition& cam
     {
       
       sf::CircleShape shape = sf::CircleShape(tileChunkSizeInPixels.x / 2.0f);
+      shape.setScale(1.0f, (float)tileChunkSize.y / (float)tileChunkSize.x);
+
+      shape.setFillColor(sf::Color(128 - ((abs(y)%8) * 16), 0 , 128 - ((abs(x)%8) * 16)));
+      
+      /*      
       if((x + y)%3) shape.setFillColor(sf::Color::Blue);
       else if((x+y)%2) shape.setFillColor(sf::Color::Green);
       else shape.setFillColor(sf::Color::Yellow);
+      */      
+      /*
+       */
       
       Vector2f screenChunkPosition;
       
       // screenChunkPosition is composed of numbOfChunk that should be rendered multiplied by pixel width
       // subtracted by how much chunk is out of screen(offset) in Pixels
       // subtracted by subTile Offset in Pixels
-      
+
       screenChunkPosition.x = (x - topLeftChunkPosition.x) * tileChunkSizeInPixels.x -
 	cameraOffset.x - topLeftViewport.tileOffset.x * tileSizeInPixels;
       
-      screenChunkPosition.y = (y - topLeftChunkPosition.y) * tileChunkSizeInPixels.x -
+      screenChunkPosition.y = (y - topLeftChunkPosition.y) * tileChunkSizeInPixels.y -
 	cameraOffset.y - topLeftViewport.tileOffset.y * tileSizeInPixels;
       
       shape.setPosition(screenChunkPosition.x, screenChunkPosition.y);
       window->draw(shape);
 
       Vector3i tileChunkPosition(x, y, cameraPosition.worldPosition.tileChunkPosition.z);
-
+      
       // If The Chunk Doesn't Exist We don't render anything
       if(!tileChunkMap.count(tileChunkPosition)) continue;
-
+      
       renderTileChunk(tileChunkMap.at(tileChunkPosition), screenChunkPosition, tileSizeInPixels);
+      
     }
   }
-
+  
 }
 
 

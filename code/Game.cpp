@@ -107,7 +107,7 @@ void PlayGameState::render(Game* game)
 
 void PlayGameState::enter(Game* game)
 {
-  levelGenerator = new SimpleLevelGenerator(50);
+  levelGenerator = new SimpleLevelGenerator(150);
   
   level = levelGenerator->create();
   eventManager.registerListener(level.get());

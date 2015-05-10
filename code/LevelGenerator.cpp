@@ -147,7 +147,7 @@ void SimpleLevelGenerator::placeRoomEntities(const Room& room, bool immediateMod
     {
       entityPosition = room.topLeftCorner + Vector2i(1, 1);
       entityPosition += Vector2i(rand()%(room.dimensions.x-2), rand()%(room.dimensions.y-2));
-      entity = EntityPtr(new HealthItem(EntityPosition(entityPosition), roomDifficulty * 5.0f));
+      entity = EntityPtr(new HealthItem(EntityPosition(entityPosition), roomDifficulty * 20.0f));
       addEntity(entity);
     }
   }

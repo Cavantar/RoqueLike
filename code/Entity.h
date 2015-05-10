@@ -239,8 +239,8 @@ public:
 protected:
   int level = 0;
   
-  float health = 0.1f;
-  float maxHealth = 1.0f;
+  float health = 3.0f;
+  float maxHealth = 10.0f;
 
   float damageValue = 0;
 };

@@ -83,7 +83,7 @@ class PlayGameState : public GameState {
   
   void enter(Game* game);
   void leave(Game* game);
-
+  
 private:
   EventManager eventManager;
   

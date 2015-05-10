@@ -102,7 +102,7 @@ XpOrb::XpOrb(const EntityPosition& position, const Vector2f& initialVelocity, fl
   velocity = initialVelocity;
   this->xpAmount = xpAmount;
   
-  float radius = 1.0f * (xpAmount / 50.0f);
+  float radius = 1.0f * (xpAmount / 70.0f);
   
   dimensions = Vector2f(radius, radius);
   
@@ -296,8 +296,10 @@ Cannon::Cannon(const EntityPosition& position, int level) : Mob(position, level)
   std::stringstream caption;
   caption << "Cannon lvl: " << level;  
   renderData.caption = caption.str();
-  
-  damageValue = (level + 1.0f) / 5.0f;
+
+  maxHealth = 10 + (level - 1) * 5;
+  health = maxHealth;
+  damageValue = (level);
 }
 
 void Cannon::update(Level& level, const float lastDelta)
@@ -360,13 +362,13 @@ void Cannon::performDeathAction(Level& level)
   }
 }
 
-Player::Player(const EntityPosition& position) : Mob(position, 1, 0.1f)
+Player::Player(const EntityPosition& position) : Mob(position, 1, 1.0f)
 {
   dimensions = Vector2f(0.8f, 2.0f);
   renderData.spriteName = "Player";
   renderData.caption = "Player";
 
-  damageValue = 0.1f;
+  damageValue = 1.0f;
 }
 
 void Player::update(Level& level, const float lastDelta)
@@ -381,6 +383,9 @@ void Player::update(Level& level, const float lastDelta)
   handleCollisionResult(collisionResult, positionDeltaVector);
   
   if(xpAmount >= getNextLevelXp()) levelUp();
+  
+  stamina += (lastDelta / 5.0f) * maxStamina;
+  if(stamina >= maxStamina) stamina = maxStamina;
 }
 
 void Player::onWorldCollision(COLLISION_PLANE collisionPlane)
@@ -409,8 +414,8 @@ void Player::levelUp()
   level++;
   skillPointCount++;
   
-  maxHealth += 0.2f;
-  maxStamina += 0.2f;
+  maxHealth += 10.0f;
+  maxStamina += 20.0f;
 }
 
 EventNameList Player::getEntityEvents()
@@ -477,7 +482,7 @@ void Player::handlePlayerEvent(const PLAYER_EVENT playerEvent, Level& level)
 			  Vector2f(bulletRadius, bulletRadius),
 			  damageValue);
       
-      level.addEntity(EntityPtr(bullet));
+      if(stamina > 20 && level.addEntity(EntityPtr(bullet))) stamina -= 20;
       
     }break;
   }

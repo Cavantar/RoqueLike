@@ -5,7 +5,7 @@
 TileChunk::TileChunk(const uint32 width, const uint32 height)
 {
   tileChunkData.resize(height);
-  for(int i=0; i<width; i++)
+  for(int i=0; i<height; i++)
   {
     tileChunkData[i].resize(width);
   }
