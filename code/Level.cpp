@@ -201,7 +201,7 @@ WorldCollisionResult Level::checkCollisionsWithTiles(TileList& tiles,
 						     const CollisionCheckData& collisionCheckData) const 
 {
   
-  WorldCollisionResult worldCollisionResult; 
+  WorldCollisionResult collisionResult; 
   
   // Checking Each Tile 
   for(auto tileIt = tiles.begin(); tileIt != tiles.end(); tileIt++)
@@ -216,7 +216,7 @@ WorldCollisionResult Level::checkCollisionsWithTiles(TileList& tiles,
 									    EntityPosition(*tileIt),
 									    tileMap->getTileChunkSize());
       
-      // This Part Is Preparing Objects for Minkowsy's Collision Checking 
+      // Preparing Objects for Minkowsy's Collision Checking 
       float halfWidth = collisionCheckData.collisionRect.width / 2.0f;
       float halfHeight = collisionCheckData.collisionRect.height / 2.0f;
 	
@@ -232,63 +232,27 @@ WorldCollisionResult Level::checkCollisionsWithTiles(TileList& tiles,
       {
 	float tempT = localTileRect.getMaxTime(playerPoint, collisionCheckData.deltaVector, wallIndex);
 	
-	if(tempT < worldCollisionResult.maxAllowedT)
+	if(tempT < collisionResult.maxAllowedT)
 	{
-	  worldCollisionResult.maxAllowedT = tempT;
+	  collisionResult.maxAllowedT = tempT;
 	  
 	  if(wallIndex%2 == 0)
-	    worldCollisionResult.collisionPlane = COLLISION_PLANE_HORIZONTAL;
+	    collisionResult.collisionPlane = COLLISION_PLANE_HORIZONTAL;
 	  else
-	    worldCollisionResult.collisionPlane = COLLISION_PLANE_VERTICAL;
+	    collisionResult.collisionPlane = COLLISION_PLANE_VERTICAL;
 	  
 	}
       }
     }
   }
   
-  return worldCollisionResult;
+  return collisionResult;
 }
   
 WorldCollisionResult Level::checkWorldCollision(const CollisionCheckData& collisionCheckData) const
 {
-  WorldCollisionResult collisionResult;
-  
-  const Vector2i& tileChunkSize = tileMap->getTileChunkSize();
-  
-  // 2 Collision Check Iterations Per Tile In Delta Vector 
-  int numbOfCollisionIterations = collisionCheckData.deltaVector.getLength() * 2.0f;
-  
-  // But Minimum is One
-  numbOfCollisionIterations = std::max(numbOfCollisionIterations, 1);
-  
-  // DeltaPosition Increment per collision iteration
-  Vector2f deltaPart = collisionCheckData.deltaVector / numbOfCollisionIterations;
-  
-  EntityPosition lastMovedPosition = collisionCheckData.basePosition;
-  for(int i=1; i<= numbOfCollisionIterations; i++)
-  {
-    // Getting Tiles That May Collide With Player
-    CollisionCheckData itCollisionCheckData = {lastMovedPosition, collisionCheckData.collisionRect, deltaPart};
-    TileList affectedTiles = getAffectedTiles(itCollisionCheckData);
-    WorldCollisionResult iterationCollisionResult = checkCollisionsWithTiles(affectedTiles, itCollisionCheckData);
-
-    // Checking If Collision Occured During TileCheck
-    if(iterationCollisionResult.maxAllowedT < 1.0f && iterationCollisionResult.maxAllowedT >= 0.0f)
-    {
-      // Adding Current Checked Part Of Delta Vector 
-      collisionResult.maxAllowedT = (float(i-1)/(float)numbOfCollisionIterations);
-      
-      // Adding The Relative Point Of Collision To DeltaVector
-      collisionResult.maxAllowedT += (iterationCollisionResult.maxAllowedT / (float)numbOfCollisionIterations);
-      collisionResult.collisionPlane = iterationCollisionResult.collisionPlane;
-      
-      return collisionResult;
-    }
-
-    // Advancing Position by DeltaPart because Collision hasn't occured
-    lastMovedPosition += deltaPart;
-  }
-  
+  TileList affectedTiles = getAffectedTiles(collisionCheckData);
+  WorldCollisionResult collisionResult = checkCollisionsWithTiles(affectedTiles, collisionCheckData);
   return collisionResult;
 }
 

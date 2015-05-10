@@ -71,7 +71,6 @@ void LevelRenderer::renderTileChunk(const TileChunkPtr& tileChunk, const Vector2
 	  rectangleShape.setPosition(screenTilePosition);
 	  
 	  rectangleShape.setSize(sf::Vector2f(tileSize, tileSize * wallHeight));
-	  
 	  rectangleShape.setFillColor(sf::Color(150,150,150));
 	} break;
       case TILE_TYPE_STONE_GROUND:
@@ -141,16 +140,7 @@ void LevelRenderer::renderTileMap(const TileMapPtr& tileMap, EntityPosition& cam
       
       sf::CircleShape shape = sf::CircleShape(tileChunkSizeInPixels.x / 2.0f);
       shape.setScale(1.0f, (float)tileChunkSize.y / (float)tileChunkSize.x);
-
       shape.setFillColor(sf::Color(128 - ((abs(y)%8) * 16), 0 , 128 - ((abs(x)%8) * 16)));
-      
-      /*      
-      if((x + y)%3) shape.setFillColor(sf::Color::Blue);
-      else if((x+y)%2) shape.setFillColor(sf::Color::Green);
-      else shape.setFillColor(sf::Color::Yellow);
-      */      
-      /*
-       */
       
       Vector2f screenChunkPosition;
       
@@ -170,19 +160,19 @@ void LevelRenderer::renderTileMap(const TileMapPtr& tileMap, EntityPosition& cam
       Vector3i tileChunkPosition(x, y, cameraPosition.worldPosition.tileChunkPosition.z);
       
       // If The Chunk Doesn't Exist We don't render anything
-      if(!tileChunkMap.count(tileChunkPosition)) continue;
-      
-      renderTileChunk(tileChunkMap.at(tileChunkPosition), screenChunkPosition, tileSizeInPixels);
-      
+      if(tileChunkMap.count(tileChunkPosition))
+      {
+	renderTileChunk(tileChunkMap.at(tileChunkPosition), screenChunkPosition, tileSizeInPixels);
+      }
     }
   }
   
 }
 
-
 void LevelRenderer::render(const EntityRenderData& entityRenderData, Vector2f entityPositionOnScreen)
 {
-    
+  const sf::Vector2u windowDimensions = window->getSize();
+  
   switch(entityRenderData.type) {
   case ER_PRIMITIVE:
     {
@@ -231,6 +221,11 @@ void LevelRenderer::render(const EntityRenderData& entityRenderData, Vector2f en
       else entityDimensions = sf::Vector2f(1.0f, 1.0f);
       
       sf::Vector2f entityDimensionsInPixels = entityDimensions * tileSizeInPixels;
+      
+      if(entityPositionOnScreen.x + entityDimensionsInPixels.x < 0 ||
+	 entityPositionOnScreen.y + entityDimensionsInPixels.y < 0 ||
+	 entityPositionOnScreen.x >= windowDimensions.x ||
+	 entityPositionOnScreen.y >= windowDimensions.y) break;
       
       rectangleShape.setSize(entityDimensionsInPixels);
       

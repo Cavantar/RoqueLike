@@ -236,6 +236,8 @@ public:
   float getMaxHealth() const { return maxHealth; }
   
   float getDamageValue() const { return damageValue; }
+  void spawnXp(Level& level, float xpToSpawn) const;
+  
 protected:
   int level = 0;
   
@@ -264,6 +266,8 @@ class Player : public Mob {
   void onEntityCollision(COLLISION_PLANE worldCollisionType, Entity* entity);
   
   void handlePlayerEvent(const PLAYER_EVENT playerEvent, Level& level);
+  void performDeathAction(Level& level);
+  
   bool canReceiveItems() const { return true; }
   bool isPlayer() const { return true; }
   
@@ -271,14 +275,14 @@ class Player : public Mob {
   void levelUp();
   
   float getShieldValue() const { return shieldValue; } 
-
+  
   float getStamina() const { return stamina; }
   float getMaxStamina() const { return maxStamina; }
   
   float getXp() const { return xpAmount; }
   float getCurrentLevelXp() const { return (level - 1) * 100; } 
   float getNextLevelXp() const { return level * 100; }
-
+  
   int getSkillPoints() const { return skillPointCount; } 
   
   // Events and Stuff

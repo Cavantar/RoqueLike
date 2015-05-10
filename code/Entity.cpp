@@ -287,6 +287,26 @@ const EntityRenderData& Mob::getRenderData()
   return renderData;
 }
 
+void Mob::spawnXp(Level& level, float xpToSpawn) const
+{
+  while(xpToSpawn)
+  {
+    float value = -1;
+    
+    // Getting Randomly valued experience orb (in range)
+    do
+    {
+      value = ((rand() % 10) + 1) * 10;
+    }
+    while(value > xpToSpawn);
+    
+    Entity* entity = new XpOrb(position, Vector2f::directionVector() * 3.0f, value);
+    level.addEntity(EntityPtr(entity));
+    
+    xpToSpawn -= value;
+  }
+}
+
 Cannon::Cannon(const EntityPosition& position, int level) : Mob(position, level)
 {
   dimensions = Vector2f(1.0f, 1.0f);
@@ -299,7 +319,7 @@ Cannon::Cannon(const EntityPosition& position, int level) : Mob(position, level)
 
   maxHealth = 10 + (level - 1) * 5;
   health = maxHealth;
-  damageValue = (level);
+  damageValue = (level + 1.0f) / 5.0f;
 }
 
 void Cannon::update(Level& level, const float lastDelta)
@@ -314,21 +334,21 @@ void Cannon::update(Level& level, const float lastDelta)
 
     if(player)
     {
-      EntityPosition playerPosition = player->getPosition();
+      EntityPosition playerPosition = player->getCollisionCenter();
       Vector2f distanceVector = EntityPosition::calculateDistanceInTiles(position, playerPosition,
 									 level.getTileMap()->getTileChunkSize());
-      
       // If There's Player in Radius of given length 
       if(distanceVector.getLength() < 15.0f)
       {
 	distanceVector.normalize();
 	Vector2f directionVector = distanceVector;
+	
 	float bulletRadius = 0.7f + (this->level) / 10;
 
 	float bulletSpeedModifier = ((this->level) / 10.0f) + 1.0f; 
 	
 	Entity* bullet;
-	bullet = new Bullet(position + dimensions/2.0f + directionVector * 2.0f,
+	bullet = new Bullet(position + directionVector * 2.0f,
 			    directionVector * 10.0f * bulletSpeedModifier,
 			    Vector2f(bulletRadius, bulletRadius),
 			    damageValue);
@@ -343,23 +363,7 @@ void Cannon::update(Level& level, const float lastDelta)
 void Cannon::performDeathAction(Level& level)
 {
   float xpToSpawn = (this->level) * 20;
-
-  while(xpToSpawn)
-  {
-    float value = -1;
-    
-    // Getting Randomly valued experience orb (in range)
-    do
-    {
-      value = ((rand() % 10) + 1) * 10;
-    }
-    while(value > xpToSpawn);
-    
-    Entity* entity = new XpOrb(position, Vector2f::directionVector(), value);
-    level.addEntity(EntityPtr(entity));
-    
-    xpToSpawn -= value;
-  }
+  spawnXp(level, xpToSpawn);
 }
 
 Player::Player(const EntityPosition& position) : Mob(position, 1, 1.0f)
@@ -499,4 +503,10 @@ void Player::onEvent(const std::string& eventName, EventArgumentDataMap eventDat
     WorldPosition worldPos = eventDataMap["position"].asWorldPosition();
     std::cout << worldPos.tilePosition.x << std::endl;
   }
+}
+
+void Player::performDeathAction(Level& level)
+{
+  float xpToSpawn = (this->level) * 200 + xpAmount;
+  spawnXp(level, xpToSpawn);
 }
