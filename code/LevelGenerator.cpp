@@ -25,14 +25,14 @@ LevelPtr LevelGenerator::create(int seed)
   Player* player = new Player(EntityPosition(WorldPosition(), Vector2f(2.0f,2.0f)));
   EntityPtr playerPtr = EntityPtr(player);
   addEntity(playerPtr);
-  level->player = player;
+  level->setPlayer(player);
   
   return level;
 }
 
 void LevelGenerator::addEntity(EntityPtr entity)
 {
-  level->pendingEntityList.push_back(entity);
+  level->addEntity(entity);
 }
 
 void LevelGenerator::placeLine(WorldPosition startPosition, Vector2i deltaVector, TILE_TYPE tileType)
@@ -44,6 +44,8 @@ void LevelGenerator::placeLine(WorldPosition startPosition, Vector2i deltaVector
   float slope = (float)deltaVector.y / (float)deltaVector.x;
   float slopeAcc = 0;
 
+  TileMapPtr tileMap = level->getTileMap();
+  
   if(slope <= 1.0f)
   {
     while(currentPosition.x != deltaVector.x)
@@ -55,7 +57,7 @@ void LevelGenerator::placeLine(WorldPosition startPosition, Vector2i deltaVector
 	slopeAcc -= 1.0f;
 	++currentPosition.y;
       }
-      level->tileMap->setTileType(startPosition + currentPosition, tileType);
+      tileMap->setTileType(startPosition + currentPosition, tileType);
 
       ++currentPosition.x;
     }
@@ -72,7 +74,7 @@ void LevelGenerator::placeLine(WorldPosition startPosition, Vector2i deltaVector
 	slopeAcc -= 1.0f;
 	++currentPosition.x;
       }
-      level->tileMap->setTileType(startPosition + currentPosition, tileType);
+      tileMap->setTileType(startPosition + currentPosition, tileType);
 
       ++currentPosition.y;
     }
@@ -82,12 +84,13 @@ void LevelGenerator::placeLine(WorldPosition startPosition, Vector2i deltaVector
 
 void LevelGenerator::fillRectangle(WorldPosition startPosition, Vector2i dimensions, TILE_TYPE tileType)
 {
-
+  TileMapPtr tileMap = level->getTileMap();
+  
   for(int y = 0; y < dimensions.y; y++)
   {
     for(int x = 0; x < dimensions.x; x++)
     {
-      level->tileMap->setTileType(startPosition + Vector2i(x, y), tileType);
+      tileMap->setTileType(startPosition + Vector2i(x, y), tileType);
     }
   }
 }
@@ -175,6 +178,8 @@ int SimpleLevelGenerator::getMaxRoomDepth() const
 
 void SimpleLevelGenerator::placeCorridor(const Room& srcRoom, const Room& dstRoom, const DIRECTION direction)
 {
+  TileMapPtr tileMap = level->getTileMap();
+  
   if(direction == DIRECTION_UP)
   {
     int possibleCorridorPlacements = std::min(srcRoom.dimensions.x, dstRoom.dimensions.x);
@@ -185,7 +190,7 @@ void SimpleLevelGenerator::placeCorridor(const Room& srcRoom, const Room& dstRoo
     
     WorldPosition corridorPosition = srcRoom.topLeftCorner + Vector2i(horizontalOffset, 0);
     
-    level->tileMap->setTileType(corridorPosition, srcRoom.floorType);
+    tileMap->setTileType(corridorPosition, srcRoom.floorType);
   }
   else if(direction == DIRECTION_RIGHT)
   {
@@ -197,7 +202,7 @@ void SimpleLevelGenerator::placeCorridor(const Room& srcRoom, const Room& dstRoo
     
     WorldPosition corridorPosition = dstRoom.topLeftCorner + Vector2i(0, verticalOffset);
     
-    level->tileMap->setTileType(corridorPosition, srcRoom.floorType);
+    tileMap->setTileType(corridorPosition, srcRoom.floorType);
   }
   else if(direction == DIRECTION_DOWN)
   {
@@ -209,7 +214,7 @@ void SimpleLevelGenerator::placeCorridor(const Room& srcRoom, const Room& dstRoo
     
     WorldPosition corridorPosition = dstRoom.topLeftCorner + Vector2i(horizontalOffset, 0);
     
-    level->tileMap->setTileType(corridorPosition, srcRoom.floorType);
+    tileMap->setTileType(corridorPosition, srcRoom.floorType);
   }
   else if(direction == DIRECTION_LEFT)
   {
@@ -221,13 +226,16 @@ void SimpleLevelGenerator::placeCorridor(const Room& srcRoom, const Room& dstRoo
     
     WorldPosition corridorPosition = srcRoom.topLeftCorner + Vector2i(0, verticalOffset);
     
-    level->tileMap->setTileType(corridorPosition, srcRoom.floorType);
+    tileMap->setTileType(corridorPosition, srcRoom.floorType);
   }
   
 }
 
 void SimpleLevelGenerator::openWall(const Room& srcRoom, const Room& dstRoom, const DIRECTION direction)
 {
+  
+  TileMapPtr tileMap = level->getTileMap();
+
   if(direction == DIRECTION_UP)
   {
     int possibleCorridorPlacements = std::min(srcRoom.dimensions.x, dstRoom.dimensions.x);
@@ -237,7 +245,7 @@ void SimpleLevelGenerator::openWall(const Room& srcRoom, const Room& dstRoom, co
     for(int offset = 0; offset < possibleCorridorPlacements; offset++)
     {
       WorldPosition corridorPosition = srcRoom.topLeftCorner + Vector2i(offset + 1, 0);
-      level->tileMap->setTileType(corridorPosition, srcRoom.floorType);
+      tileMap->setTileType(corridorPosition, srcRoom.floorType);
     }
   }
   else if(direction == DIRECTION_RIGHT)
@@ -250,7 +258,7 @@ void SimpleLevelGenerator::openWall(const Room& srcRoom, const Room& dstRoom, co
     {
       
       WorldPosition wallTilePosition = dstRoom.topLeftCorner + Vector2i(0, offset + 1);
-      level->tileMap->setTileType(wallTilePosition, srcRoom.floorType);
+      tileMap->setTileType(wallTilePosition, srcRoom.floorType);
     }
     
   }
@@ -265,7 +273,7 @@ void SimpleLevelGenerator::openWall(const Room& srcRoom, const Room& dstRoom, co
     {
 
       WorldPosition corridorPosition = dstRoom.topLeftCorner + Vector2i(offset + 1, 0);
-      level->tileMap->setTileType(corridorPosition, srcRoom.floorType);
+      tileMap->setTileType(corridorPosition, srcRoom.floorType);
     }
   }
   else if(direction == DIRECTION_LEFT )
@@ -278,7 +286,7 @@ void SimpleLevelGenerator::openWall(const Room& srcRoom, const Room& dstRoom, co
     for(int offset = 0; offset < possibleCorridorPlacements; offset++)
     {
       WorldPosition corridorPosition = srcRoom.topLeftCorner + Vector2i(0, offset + 1);
-      level->tileMap->setTileType(corridorPosition, srcRoom.floorType);
+      tileMap->setTileType(corridorPosition, srcRoom.floorType);
     }
   }
   
@@ -287,7 +295,7 @@ void SimpleLevelGenerator::openWall(const Room& srcRoom, const Room& dstRoom, co
 void SimpleLevelGenerator::generateRoom()
 {
     
-  TileMapPtr tileMap = level->tileMap;
+  TileMapPtr tileMap = level->getTileMap();
   Room potentialRoom;
   
   static const Vector2i roomDeltaDimensions(20, 15);
@@ -415,7 +423,7 @@ LevelPtr SimpleLevelGenerator::regenerate(int seed)
   Player* player = new Player(EntityPosition(WorldPosition(), Vector2f(2.0f,2.0f)));
   EntityPtr playerPtr = EntityPtr(player);
   addEntity(playerPtr);
-  level->player = player;
+  level->setPlayer(player);
   
   return level;
 }
@@ -424,7 +432,7 @@ void SimpleLevelGenerator::generate()
 {
   srand(seed);
 
-  TileMapPtr tileMap = level->tileMap;
+  TileMapPtr tileMap = level->getTileMap();
   
   while(placedRooms != numbOfRoomsToGenerate)
   {
@@ -456,7 +464,7 @@ void SimpleLevelGenerator::renderAdditionalData(sf::RenderWindow& window,
 						EntityPosition& cameraPosition,
 						float tileSizeInPixels)
 {
-  TileMapPtr tileMap = level->tileMap;
+  TileMapPtr tileMap = level->getTileMap();
   
   const sf::Vector2u windowDimensions = window.getSize();
 

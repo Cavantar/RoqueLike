@@ -1,6 +1,7 @@
 #include "Entity.h"
 #include <iostream>
 #include <sstream>
+#include <iomanip>
 
 Entity::Entity() : position(EntityPosition())   
 {
@@ -14,6 +15,35 @@ void Entity::die()
   EventArgumentDataMap eventArgumentDataMap;
   eventArgumentDataMap["pointer"] = (void*)this;
   queueEvent("EntityRemoved", eventArgumentDataMap);
+}
+
+OverlayText::OverlayText(const EntityPosition& position, const OverlayTextData& overlayTextData) :
+  Entity(position), overlayTextData(overlayTextData), localTime(0)
+{
+  renderData.type = ER_OVERLAYTEXT;
+  
+  renderData.text = overlayTextData.text;
+  renderData.fontSize = overlayTextData.fontSize;
+  renderData.textColor = overlayTextData.color;
+  renderData.textFadeValue = 0;
+}
+
+void OverlayText::update(const float lastDelta)
+{
+  localTime += lastDelta;
+  if(localTime >= overlayTextData.duration)
+  {
+    die();
+  }
+
+  float halfTime = overlayTextData.duration / 2.0f;
+  if(localTime > halfTime)
+  {
+    renderData.textFadeValue = ((localTime - halfTime) / halfTime) * 255;
+  }
+  
+  static const Vector2f textVelocity(0, -8.0f);
+  position += textVelocity * lastDelta;
 }
 
 Vector2f Moveable::getPositionDeltaVector(const float lastDelta, const float fakeFrictionValue,
@@ -31,10 +61,17 @@ Vector2f Moveable::getPositionDeltaVector(const float lastDelta, const float fak
   positionDeltaVector = acceleration * 0.5f * (lastDelta * lastDelta) + velocity * lastDelta;
   velocity += acceleration * lastDelta;
   
+  const float clampValue = 5000;
+  if(velocity.x > clampValue ) velocity.x = clampValue;
+  if(velocity.x < -clampValue ) velocity.x = -clampValue;
+  if(velocity.y > clampValue ) velocity.y = clampValue;
+  if(velocity.y < -clampValue ) velocity.y = -clampValue;
+  
   // If fakeFrictionValue Is 1.0f Than velocity will be reduced to 0 in 1 second  
   velocity -= velocity * fakeFrictionValue * lastDelta;
   acceleration = Vector2f();
-
+  acceleration = Vector2f();
+  
   return positionDeltaVector;
 }
 
@@ -113,15 +150,15 @@ XpOrb::XpOrb(const EntityPosition& position, const Vector2f& initialVelocity, fl
   renderData.color = Vector3f(102 + rand()%20, 255 - rand()%30, 0);
 }
 
-void XpOrb::update(ILevel* level, const float lastDelta)
+void XpOrb::update(const float lastDelta)
 {
   // Simulate Movement First
   
   Player* player = level->getPlayer();
   if(player)
   {
-
-    // Getting Direction Accelerate Towards
+    
+    // Getting Direction To Accelerate Towards
     EntityPosition playerPosition = player->getCollisionCenter();
     Vector2f distanceVector = EntityPosition::calculateDistanceInTiles(position, playerPosition,
 								       level->getTileMap()->getTileChunkSize());
@@ -187,7 +224,7 @@ Bullet::Bullet(const EntityPosition& position, const Vector2f& initialVelocity,
   renderData.color = Vector3f(rand()%256, rand()%256, rand()%256);
 }
 
-void Bullet::update(ILevel* level, const float lastDelta)
+void Bullet::update(const float lastDelta)
 {
   
   Vector2f positionDeltaVector = getPositionDeltaVector(lastDelta, 0.001f);
@@ -236,7 +273,7 @@ Item::Item(const EntityPosition& position, const float value)
   renderData.color = Vector3f(255.0f, 0, 0);
 }
 
-void Item::update(ILevel* level, const float lastDelta)
+void Item::update(const float lastDelta)
 {
   Player* player = level->getPlayer();
   if(player)
@@ -271,7 +308,7 @@ void HealthItem::performItemAction(Entity* actionReceiver)
   actionReceiver->addHealth(itemValue);
 }
 
-Mob::Mob(const EntityPosition& position, int level, int health) : level(level), health(health)
+Mob::Mob(const EntityPosition& position, int mobLevel, int health) : mobLevel(mobLevel), health(health)
 {
   this->position = position;
   renderData.type = ER_MOB;
@@ -282,6 +319,24 @@ void Mob::addHealth(const float amount)
   health += amount;
   if(health > maxHealth) health = maxHealth;
   else if(health < 0) die();
+  
+  OverlayTextData overlayTextData = {"", 2.0f, Vector3f(), 3.0f};
+  std::stringstream tempText;
+  tempText << std::fixed << std::setw(11) << std::setprecision(2);
+    
+  tempText << amount << " Health";
+  if(amount > 0)
+  {
+    overlayTextData.color = Vector3f(0, 200.0f, 0);
+  }
+  else
+  {
+    overlayTextData.color = Vector3f(200.0f, 0, 0);
+  }
+  
+  overlayTextData.text = tempText.str();
+  Entity* overlayText = new OverlayText(position, overlayTextData);
+  level->addOverlayEntity(EntityPtr(overlayText));
 }
 
 const EntityRenderData& Mob::getRenderData()
@@ -290,22 +345,23 @@ const EntityRenderData& Mob::getRenderData()
   return renderData;
 }
 
-void Mob::spawnXp(ILevel* level, float xpToSpawn) const
+void Mob::spawnXp(int xpToSpawn) const
 {
+  assert(!(xpToSpawn%10));
+
+  //xpToSpawn *= 10;
   while(xpToSpawn)
   {
     float value = -1;
     
     // Getting Randomly valued experience orb (in range)
-    do
-    {
-      value = ((rand() % 10) + 1) * 10;
-    }
-    while(value > xpToSpawn);
+    // I assume that the xp is divisible by 10
+    value = (((rand() % (xpToSpawn/10)) + 1) * 10) % (xpToSpawn + 10);
     
     Entity* entity = new XpOrb(position, Vector2f::directionVector() * 3.0f, value);
     level->addEntity(EntityPtr(entity));
-    
+
+    //std::cout << "Spawning: " << value << " xp \n";
     xpToSpawn -= value;
   }
 }
@@ -325,9 +381,9 @@ Cannon::Cannon(const EntityPosition& position, int level) : Mob(position, level)
   damageValue = (level + 1.0f) / 5.0f;
 }
 
-void Cannon::update(ILevel* level, const float lastDelta)
+void Cannon::update(const float lastDelta)
 {
-  float shootPeriod = 5.0f / this->level;
+  float shootPeriod = 5.0f / mobLevel;
   localTime += lastDelta;
 
   if(localTime >= shootPeriod)
@@ -346,9 +402,9 @@ void Cannon::update(ILevel* level, const float lastDelta)
 	distanceVector.normalize();
 	Vector2f directionVector = distanceVector;
 	
-	float bulletRadius = 0.7f + (this->level) / 10;
-
-	float bulletSpeedModifier = ((this->level) / 10.0f) + 1.0f; 
+	float bulletRadius = 0.7f + mobLevel / 10;
+	
+	float bulletSpeedModifier = (mobLevel / 10.0f) + 1.0f; 
 	
 	Entity* bullet;
 	bullet = new Bullet(position + directionVector * 2.0f,
@@ -363,10 +419,10 @@ void Cannon::update(ILevel* level, const float lastDelta)
   } 
 }
 
-void Cannon::performDeathAction(ILevel* level)
+void Cannon::performDeathAction()
 {
-  float xpToSpawn = (this->level) * 20;
-  spawnXp(level, xpToSpawn);
+  int xpToSpawn = mobLevel * 20;
+  spawnXp(xpToSpawn);
 }
 
 Player::Player(const EntityPosition& position) : Mob(position, 1, 1.0f)
@@ -378,7 +434,7 @@ Player::Player(const EntityPosition& position) : Mob(position, 1, 1.0f)
   damageValue = 1.0f;
 }
 
-void Player::update(ILevel* level, const float lastDelta)
+void Player::update(const float lastDelta)
 {
   EntityPosition collisionCenter = getCollisionCenter();
   float friction = level->getFrictionValueAtPosition(collisionCenter);
@@ -393,6 +449,8 @@ void Player::update(ILevel* level, const float lastDelta)
   
   stamina += (lastDelta / 5.0f) * maxStamina;
   if(stamina >= maxStamina) stamina = maxStamina;
+
+  //std::cout << velocity.x << " " << velocity.y << std::endl;
 }
 
 void Player::onWorldCollision(COLLISION_PLANE collisionPlane)
@@ -412,17 +470,31 @@ void Player::onEntityCollision(COLLISION_PLANE collisionPlane, Entity* entity)
 void Player::addXp(const float amount)
 {
   xpAmount += amount;
-  std::cout << "Added: " << amount << " xp\n";
-  std::cout << "CurrentXp: " << xpAmount << " xp\n";
+  OverlayTextData overlayTextData = {"", 2.0f, Vector3f(), 3.0f};
+  std::stringstream tempText;
+  tempText << std::fixed << std::setw(11) << std::setprecision(2);
+    
+  tempText << amount << " Xp";
+  overlayTextData.color = Vector3f(0, 200.0f, 0);
+  
+  overlayTextData.text = tempText.str();
+  Entity* overlayText = new OverlayText(position, overlayTextData);
+  level->addOverlayEntity(EntityPtr(overlayText));  
 }
 
 void Player::levelUp()
 {
-  level++;
+  mobLevel++;
   skillPointCount++;
   
   maxHealth += 10.0f;
   maxStamina += 20.0f;
+
+  OverlayTextData overlayTextData = {"", 4.0f, Vector3f(), 3.0f};
+  overlayTextData.color = Vector3f(0, 200.0f, 0);
+  overlayTextData.text = "Leveled Up !";
+  Entity* overlayText = new OverlayText(position, overlayTextData);
+  level->addOverlayEntity(EntityPtr(overlayText));
 }
 
 EventNameList Player::getEntityEvents()
@@ -433,65 +505,63 @@ EventNameList Player::getEntityEvents()
   return eventNameList;
 }
 
-void Player::handlePlayerEvent(const PLAYER_EVENT playerEvent, ILevel* level)
+void Player::handlePlayerInput(const PlayerInput& playerInput)
 {
-  switch(playerEvent)
-  {
-  case PLAYER_MOVE_LEFT:
-    {
-      direction = MOB_FACING_LEFT;
-      acceleration += Vector2f(-1.0f, 0);
-    }break;
-  case PLAYER_MOVE_RIGHT:
-    {
-      direction = MOB_FACING_RIGHT;
-      acceleration += Vector2f(1.0f, 0);
-    }break;
-  case PLAYER_MOVE_UP:
-    {
-      direction = MOB_FACING_UP;
-      acceleration += Vector2f(0, -1.0f);
-    }break;
-  case PLAYER_MOVE_DOWN:
-    {
-      direction = MOB_FACING_DOWN;
-      acceleration += Vector2f(0, 1.0f);
-    }break;
-    
-  case PLAYER_SHOOT_UP: 
-  case PLAYER_SHOOT_RIGHT:
-  case PLAYER_SHOOT_DOWN: 
-  case PLAYER_SHOOT_LEFT: 
-    {
-      static const float bulletVelocity = 10.0f;
-      float bulletRadius = 0.5f; 
-    
-      static const float bulletDistance = 3.0f;
-      
-      Vector2f tempDirectionVector;
-      switch(playerEvent)
-      {
-      case PLAYER_SHOOT_UP: tempDirectionVector = Vector2f(0, -1.0f);
-	break;
-      case PLAYER_SHOOT_RIGHT: tempDirectionVector = Vector2f(1.0f, 0);
-	break;
-      case PLAYER_SHOOT_DOWN: tempDirectionVector = Vector2f(0, 1.0f);
-	break;
-      case PLAYER_SHOOT_LEFT: tempDirectionVector = Vector2f(-1.0f, 0);
-	break;
-      }
 
-      EntityPosition bulletPosition = position + Vector2f(getLocalCollisionCenter().x, 0) +
-	tempDirectionVector * bulletDistance;
+  if(playerInput.up)
+  {
+    direction = MOB_FACING_UP;
+    acceleration += Vector2f(0, -1.0f);
+  }
+  if(playerInput.right)
+  {
+    direction = MOB_FACING_RIGHT;
+    acceleration += Vector2f(1.0f, 0);
+  }
+  if(playerInput.down)
+  {
+    direction = MOB_FACING_DOWN;
+    acceleration += Vector2f(0, 1.0f);
+  }
+  if(playerInput.left)
+  {
+    direction = MOB_FACING_LEFT;
+    acceleration += Vector2f(-1.0f, 0);
+  }
+
+  if(playerInput.actionUp || playerInput.actionRight ||
+     playerInput.actionDown || playerInput.actionLeft)
+  {
+    static const float bulletVelocity = 10.0f;
+    float bulletRadius = 0.5f;
+    
+    static const float bulletDistance = 3.0f;
+    Vector2f tempDirectionVector;
+    
+
+    if(playerInput.actionUp) tempDirectionVector = Vector2f(0, -1.0f);
+    if(playerInput.actionRight) tempDirectionVector = Vector2f(1.0f, 0);
+    if(playerInput.actionDown) tempDirectionVector = Vector2f(0, 1.0f);
+    if(playerInput.actionLeft) tempDirectionVector = Vector2f(-1.0f, 0);
+    
+    EntityPosition bulletPosition = position + Vector2f(getLocalCollisionCenter().x, 0) +
+      tempDirectionVector * bulletDistance;
       
-      Entity* bullet = new Bullet(bulletPosition,
-			  velocity + tempDirectionVector * bulletVelocity,
-			  Vector2f(bulletRadius, bulletRadius),
-			  damageValue);
+    Entity* bullet = new Bullet(bulletPosition,
+				velocity + tempDirectionVector * bulletVelocity,
+				Vector2f(bulletRadius, bulletRadius),
+				damageValue);
       
-      if(stamina > 20 && level->addEntity(EntityPtr(bullet))) stamina -= 20;
-      
-    }break;
+    if(stamina > 20 && level->addEntity(EntityPtr(bullet))) stamina -= 20;
+  }
+
+  if(skillPointCount > 0)
+  {
+    if(playerInput.playerKey1) upgradeAbility(PU_SHIELD);
+    if(playerInput.playerKey2) upgradeAbility(PU_DAMAGE);
+    if(playerInput.playerKey3) upgradeAbility(PU_MOVESPEED);
+    if(playerInput.playerKey4) upgradeAbility(PU_HEALTH);
+    if(playerInput.playerKey4) upgradeAbility(PU_STAMINA);
   }
 }
 
@@ -508,8 +578,36 @@ void Player::onEvent(const std::string& eventName, EventArgumentDataMap eventDat
   }
 }
 
-void Player::performDeathAction(ILevel* level)
+void Player::performDeathAction()
 {
-  float xpToSpawn = (this->level) * 200 + xpAmount;
-  spawnXp(level, xpToSpawn);
+  int xpToSpawn = mobLevel * 200 + xpAmount;
+  spawnXp(xpToSpawn);
 }
+
+void Player::upgradeAbility(PLAYER_UPGRADE upgrade)
+{
+  switch(upgrade)
+  {
+  case PU_HEALTH:
+    maxHealth *= 1.5f;
+    break;
+  case PU_SHIELD:
+    shieldValue *= 1.5f;
+    break;
+  case PU_MOVESPEED:
+    metersPerSecondSquared += 5.0f;
+    break;
+  case PU_DAMAGE:
+    damageValue *= 1.5f;
+    break;
+  case PU_STAMINA:
+    maxStamina *= 1.5f;
+    break;
+  case PU_BULLETSPEED:
+    
+    break;
+  }
+
+  --skillPointCount;
+}
+

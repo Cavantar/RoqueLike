@@ -1,6 +1,8 @@
 @echo off
 
-mkdir ..\build
+IF "%1" == "ninja" GOTO ninja
+
+if not exist ..\build mkdir ..\build
 pushd ..\build
 
 set UnityBuild=True
@@ -32,4 +34,17 @@ set LinkerOptions=/link /LIBPATH:%LibraryDirectory%
 REM /SUBSYSTEM:windows 
 cl %CompilerOptions% %FilesToCompile% %Libraries% %LinkerOptions%
 
+REM cd ../code
+REM start "" nmake
+
 popd
+
+GOTO end 
+
+:ninja
+echo NinjaBuild
+cd ../code
+ninja
+
+:end
+

@@ -1,4 +1,5 @@
 #include "LevelRenderer.h"
+#include <iostream>
 
 LevelRenderer::LevelRenderer() : window(NULL), tileSizeInPixels(0)
 {
@@ -13,8 +14,12 @@ void LevelRenderer::renderLevel(const LevelPtr& level, EntityPosition& cameraPos
   const TileMapPtr& tileMap = level->getTileMap();
   
   renderTileMap(tileMap, cameraPosition);
-  renderEntities(level->getEntityList(), cameraPosition,
+  renderEntities(level->getEntityList(0), cameraPosition,
 		 tileMap->getTileChunkSize());
+  
+  renderEntities(level->getEntityList(1), cameraPosition,
+		 tileMap->getTileChunkSize());
+
 }
 
 void LevelRenderer::renderTileChunk(const TileChunkPtr& tileChunk, const Vector2f& screenChunkPosition,
@@ -284,6 +289,42 @@ void LevelRenderer::render(const EntityRenderData& entityRenderData, Vector2f en
       entityText.setColor(sf::Color::Black);
       
       window->draw(entityText);
+      
+    } break;
+  case ER_OVERLAYTEXT:
+    {
+      sf::RectangleShape rectangleShape;
+      rectangleShape.setOutlineThickness(0);
+      
+      sf::Vector2f entityDimensions;
+      
+      entityDimensions = sf::Vector2f(2.0f, 1.0f);
+      
+      sf::Vector2f entityDimensionsInPixels = entityDimensions * tileSizeInPixels;
+      rectangleShape.setSize(entityDimensionsInPixels);
+      
+      rectangleShape.setFillColor(sf::Color::Blue);
+      rectangleShape.setPosition(entityPositionOnScreen.x, entityPositionOnScreen.y);
+      
+      //window->draw(rectangleShape);
+      
+      sf::Text entityText;
+      entityText.setFont(font);
+      entityText.setString(entityRenderData.text);
+      float textHeightInTiles = entityRenderData.fontSize;
+      entityText.setCharacterSize(textHeightInTiles * tileSizeInPixels);
+
+      sf::Color textColor = sf::Color(entityRenderData.textColor.x,
+				      entityRenderData.textColor.y,
+				      entityRenderData.textColor.z,
+				      255 - entityRenderData.textFadeValue);
+      
+      sf::FloatRect localTextBounds = entityText.getLocalBounds();
+      entityText.setPosition(entityPositionOnScreen.x, entityPositionOnScreen.y);
+      entityText.setColor(textColor);
+      
+      window->draw(entityText);
+
       
     } break;
   }

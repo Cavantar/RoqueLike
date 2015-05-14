@@ -8,6 +8,7 @@ void Game::updateGameState()
   if(newGameState != NULL)
   {
     gameState->leave(this);
+
     
     delete gameState;
     gameState = newGameState;
@@ -78,11 +79,9 @@ void Game::start()
     window.clear();
     gameState->render(this);
     window.display();
-
+    
     // Time Handling
-    
     lastDelta = clock.restart().asSeconds();
-    
     setWindowTitleToFps();
   }
   
@@ -169,13 +168,6 @@ GameState* PlayGameState::update(Game* game)
   return NULL;
 }
 
-void PlayGameState::sendPlayerEvent(PLAYER_EVENT playerEvent)
-{
-  EventArgumentDataMap eventArgumentDataMap;
-  eventArgumentDataMap["playerEventType"] = playerEvent;
-  eventManager.queueEvent("Player", eventArgumentDataMap);
-}
-
 void PlayGameState::handleInput(Game* game)
 {
   
@@ -236,17 +228,26 @@ void PlayGameState::handleInput(Game* game)
   Player* player = level->getPlayer();
   if(player)
   {
+
+    PlayerInput playerInput = {};
     
-    if(input.isKeyDown(sf::Keyboard::A)) player->handlePlayerEvent(PLAYER_MOVE_LEFT, level.get());
-    if(input.isKeyDown(sf::Keyboard::D)) player->handlePlayerEvent(PLAYER_MOVE_RIGHT, level.get());
+    if(input.isKeyDown(sf::Keyboard::W)) playerInput.up = true;
+    if(input.isKeyDown(sf::Keyboard::D)) playerInput.right = true;
+    if(input.isKeyDown(sf::Keyboard::S)) playerInput.down = true;
+    if(input.isKeyDown(sf::Keyboard::A)) playerInput.left = true;
     
-    if(input.isKeyDown(sf::Keyboard::W)) player->handlePlayerEvent(PLAYER_MOVE_UP, level.get());
-    if(input.isKeyDown(sf::Keyboard::S)) player->handlePlayerEvent(PLAYER_MOVE_DOWN, level.get());
+    if(input.isKeyPressed(sf::Keyboard::Up)) playerInput.actionUp = true;
+    if(input.isKeyPressed(sf::Keyboard::Right)) playerInput.actionRight = true;
+    if(input.isKeyPressed(sf::Keyboard::Down)) playerInput.actionDown = true;
+    if(input.isKeyPressed(sf::Keyboard::Left)) playerInput.actionLeft = true;
     
-    if(input.isKeyPressed(sf::Keyboard::Up)) player->handlePlayerEvent(PLAYER_SHOOT_UP, level.get());
-    if(input.isKeyPressed(sf::Keyboard::Right)) player->handlePlayerEvent(PLAYER_SHOOT_RIGHT, level.get());
-    if(input.isKeyPressed(sf::Keyboard::Down)) player->handlePlayerEvent(PLAYER_SHOOT_DOWN, level.get());
-    if(input.isKeyPressed(sf::Keyboard::Left)) player->handlePlayerEvent(PLAYER_SHOOT_LEFT, level.get());
+    if(input.isKeyPressed(sf::Keyboard::Num1)) playerInput.playerKey1 = true;
+    if(input.isKeyPressed(sf::Keyboard::Num2)) playerInput.playerKey2 = true;
+    if(input.isKeyPressed(sf::Keyboard::Num3)) playerInput.playerKey3 = true;
+    if(input.isKeyPressed(sf::Keyboard::Num4)) playerInput.playerKey4 = true;
+    if(input.isKeyPressed(sf::Keyboard::Num5)) playerInput.playerKey5 = true;
+    
+    player->handlePlayerInput(playerInput);
   }
 }
 

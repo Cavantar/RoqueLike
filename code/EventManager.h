@@ -2,10 +2,6 @@
 
 #include "Event.h"
 
-#ifdef UNITY_BUILD
-#include "Event.cpp"
-#endif
-
 typedef std::unordered_map<std::string, std::list<EventOperator*>> EventListenerList;
 typedef std::list<EventOperator*> EventBroadcasterList;
 

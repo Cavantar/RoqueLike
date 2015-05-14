@@ -241,6 +241,13 @@
   (compile jakub-makescript)
   )
 
+(defun ninja-make-without-asking ()
+  "Make the current build."
+  (interactive)
+  (save-buffer)
+  (compile (concat jakub-makescript " ninja"))
+  )
+
 (defun kill-buffer-other-window ()
   "Kills buffer In Other Window."
   (interactive)
@@ -427,7 +434,8 @@
 (define-key-for-code (kbd "M-e") 'next-blank-line)
 (define-key-for-code (kbd "M-l") 'recenter-top-bottom)
 
-(define-key-for-code (kbd "M-m") 'make-without-asking)
+(define-key-for-code (kbd "M-m") 'ninja-make-without-asking)
+(define-key-for-code (kbd "M-M") 'make-without-asking)
 (define-key-for-code (kbd "M-n") 'casey-find-corresponding-file)
 (define-key-for-code (kbd "M-N") 'casey-find-corresponding-file-other-window)
 (define-key-for-code (kbd "M-r") 'my:launch-build)

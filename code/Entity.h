@@ -6,18 +6,24 @@
 
 #include <memory>
 
-enum PLAYER_EVENT{
-  PLAYER_MOVE_UP,
-  PLAYER_MOVE_DOWN,
-  PLAYER_MOVE_LEFT,
-  PLAYER_MOVE_RIGHT,
-  
-  PLAYER_SHOOT_UP,
-  PLAYER_SHOOT_DOWN,
-  PLAYER_SHOOT_LEFT,
-  PLAYER_SHOOT_RIGHT
-};
+struct PlayerInput {
+  bool up;
+  bool right;
+  bool down;
+  bool left;
 
+  bool actionUp;
+  bool actionRight;
+  bool actionDown;
+  bool actionLeft;
+
+  bool playerKey1;
+  bool playerKey2;
+  bool playerKey3;
+  bool playerKey4;
+  bool playerKey5;
+};
+  
 enum MOB_DIRECTION{
   MOB_FACING_UP,
   MOB_FACING_RIGHT,
@@ -26,6 +32,7 @@ enum MOB_DIRECTION{
 };
 
 enum ENTITY_RENDER_DATA_TYPE{
+  ER_OVERLAYTEXT,
   ER_PRIMITIVE,
   ER_MOB
 };
@@ -53,6 +60,13 @@ struct EntityRenderData{
       float life;
     };
     
+    // OverlayText
+    struct{
+      std::string text;
+      float fontSize;
+      Vector3f textColor;
+      float textFadeValue;
+    };
   };
 };
 
@@ -60,15 +74,17 @@ class Entity : public EventOperator {
 public:
   Entity();
   Entity(EntityPosition position) : position(position) {};
-  virtual ~Entity() {}
+  virtual ~Entity() {};
+
+  // Important
+  void setLevel(ILevel* level) { this->level = level; } 
   
-  virtual void update(ILevel* level, const float lastDelta) = 0;
+  virtual void update(const float lastDelta) = 0;
   
   // Position / Movement
   const EntityPosition& getPosition() const { return position; }
   void setPosition(const EntityPosition& position) { this->position = position;}
   
-  // Delta vector should be zeroed after accessing it 
   virtual Vector2f getVelocity() const  { return Vector2f(); }
   virtual void addVelocity(Vector2f velocity) {}
   
@@ -77,7 +93,7 @@ public:
   virtual void onWorldCollision(COLLISION_PLANE worldCollisionType) {}
   virtual void onEntityCollision(COLLISION_PLANE worldCollisionType, Entity* entity) {}
   
-  virtual void performDeathAction(ILevel* level) {}
+  virtual void performDeathAction() {}
   
   // PlayerStuff
   virtual void addXp(const float amount) {} 
@@ -94,13 +110,29 @@ public:
   void die();
   
 protected:
+  ILevel* level;
   EntityRenderData renderData;
-  
   EntityPosition position;
   bool alive = true; 
 };
-
 typedef std::shared_ptr<Entity> EntityPtr;
+
+struct OverlayTextData{
+  std::string text;
+  float fontSize;
+  Vector3f color;
+  float duration;
+};
+
+class OverlayText: public Entity {
+public:
+  OverlayText(const EntityPosition& position, const OverlayTextData& overlayTextData);
+  void update(const float lastDelta);
+  
+private:
+  OverlayTextData overlayTextData;
+  float localTime;
+};
 
 class Moveable : public Entity {
  public:
@@ -134,14 +166,11 @@ protected:
 class XpOrb : public Moveable {
 public:
   XpOrb(const EntityPosition& position, const Vector2f& initialVelocity, float xpAmount);
-  void update(ILevel* level, const float lastDelta);
+  void update(const float lastDelta);
   
   bool isPlayerItem() const { return true; }
-  
   void onWorldCollision(COLLISION_PLANE worldCollisionType);
-  
   FloatRect getCollisionRect() const;
-  
   bool canCollideWithEntities() const { return false; }
   
 private:
@@ -153,7 +182,7 @@ public:
   Bullet(const EntityPosition& position, const Vector2f& initialVelocity,
 	 const Vector2f& dimensions, float damageValue);
   
-  void update(ILevel* level, const float lastDelta);
+  void update(const float lastDelta);
   void onWorldCollision(COLLISION_PLANE worldCollisionType);
   void onEntityCollision(COLLISION_PLANE worldCollisionType, Entity* entity);
   
@@ -167,7 +196,7 @@ private:
 class Item : public Entity {
  public:
   Item(const EntityPosition& position, const float value);
-  void update(ILevel* level, const float lastDelta);
+  void update(const float lastDelta);
   
   FloatRect getCollisionRect() const;
   
@@ -193,15 +222,15 @@ public:
   void addHealth(const float amount);
   const EntityRenderData& getRenderData();
   
-  int getLevel() const { return level; }
+  int getMobLevel() const { return mobLevel; }
   float getHealth() const { return health; }
   float getMaxHealth() const { return maxHealth; }
   
   float getDamageValue() const { return damageValue; }
-  void spawnXp(ILevel* level, float xpToSpawn) const;
+  void spawnXp(int xpToSpawn) const;
   
 protected:
-  int level = 0;
+  int mobLevel = 0;
   
   float health = 3.0f;
   float maxHealth = 10.0f;
@@ -212,23 +241,32 @@ protected:
 class Cannon : public Mob {
 public:
   Cannon(const EntityPosition& position, int level);
-  void update(ILevel* level, const float lastDelta);
-  void performDeathAction(ILevel* level);
+  void update(const float lastDelta);
+  void performDeathAction();
   
 private:
   float localTime = 0;
+};
+
+enum PLAYER_UPGRADE {
+  PU_HEALTH,
+  PU_SHIELD,
+  PU_MOVESPEED,
+  PU_DAMAGE,
+  PU_STAMINA,
+  PU_BULLETSPEED
 };
 
 class Player : public Mob {
  public:
   Player(const EntityPosition& position);
   
-  void update(ILevel* level, const float lastDelta);
+  void update(const float lastDelta);
   void onWorldCollision(COLLISION_PLANE worldCollisionType);
   void onEntityCollision(COLLISION_PLANE worldCollisionType, Entity* entity);
   
-  void handlePlayerEvent(const PLAYER_EVENT playerEvent, ILevel* level);
-  void performDeathAction(ILevel* level);
+  void handlePlayerInput(const PlayerInput& playerInput);
+  void performDeathAction();
   
   bool canReceiveItems() const { return true; }
   bool isPlayer() const { return true; }
@@ -242,19 +280,18 @@ class Player : public Mob {
   float getMaxStamina() const { return maxStamina; }
   
   float getXp() const { return xpAmount; }
-  float getCurrentLevelXp() const { return (level - 1) * 100; } 
-  float getNextLevelXp() const { return level * 100; }
+  float getCurrentLevelXp() const { return (mobLevel - 1) * 100; } 
+  float getNextLevelXp() const { return mobLevel * 100; }
   
   int getSkillPoints() const { return skillPointCount; } 
   
   // Events and Stuff
-  
   EventNameList getEntityEvents();
   void onEvent(const std::string& eventName, EventArgumentDataMap eventDataMap);
   
 private:
   float xpAmount = 0;
-  float shieldValue = 0;
+  float shieldValue = 0.5f;
 
   float stamina = 100;
   float maxStamina = 100;
@@ -262,4 +299,6 @@ private:
   int skillPointCount = 0;
   
   MOB_DIRECTION direction;
+
+  void upgradeAbility(PLAYER_UPGRADE upgrade);
 };

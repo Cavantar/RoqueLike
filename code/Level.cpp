@@ -21,7 +21,7 @@ void Level::registerPendingEntities(EventManager& eventManager)
   {
     EntityPtr entityPtr= *entityIt;
     eventManager.registerListener(entityPtr.get());
-    entityList.push_back(entityPtr);
+    entityList[0].push_back(entityPtr);
   }
   
   pendingEntityList.clear();
@@ -29,28 +29,36 @@ void Level::registerPendingEntities(EventManager& eventManager)
 
 void Level::updateEntities(const float lastDelta)
 {
-  for(auto entityPtr = entityList.begin(); entityPtr != entityList.end(); entityPtr++)
+
+  for(int entityLayer = 0; entityLayer < numbOfEntityLayers; entityLayer++)
   {
-    (*entityPtr)->update(this, lastDelta);
+    for(auto entityPtr = entityList[entityLayer].begin(); entityPtr != entityList[entityLayer].end(); entityPtr++)
+    {
+      (*entityPtr)->update(lastDelta);
+    }
   }
+  
 }
 
 void Level::removeDeadEntities()
 {
-  auto entityPtrIt = entityList.begin();
-
-  while(entityPtrIt != entityList.end())
+  for(int entityLayer = 0; entityLayer < numbOfEntityLayers; entityLayer++)
   {
-    if(!(*entityPtrIt)->isAlive())
+    auto entityPtrIt = entityList[entityLayer].begin();
+    
+    while(entityPtrIt != entityList[entityLayer].end())
     {
-      (*entityPtrIt)->performDeathAction(this);
-      
-      if((*entityPtrIt)->isPlayer()) player = NULL;
-      entityPtrIt = entityList.erase(entityPtrIt);
-    }
-    else
-    {
-      entityPtrIt++;
+      if(!(*entityPtrIt)->isAlive())
+      {
+	(*entityPtrIt)->performDeathAction();
+	
+	if((*entityPtrIt)->isPlayer()) player = NULL;
+	entityPtrIt = entityList[entityLayer].erase(entityPtrIt);
+      }
+      else
+      {
+	entityPtrIt++;
+      }
     }
   }
 }
@@ -272,7 +280,7 @@ EntityCollisionResult Level::checkEntityCollision(const Entity* entity,
   
   EntityCollisionResult collisionResult;
   
-  for(auto entity2 = entityList.begin(); entity2 != entityList.end(); entity2++)
+  for(auto entity2 = entityList[0].begin(); entity2 != entityList[0].end(); entity2++)
   {
     // If The Entities are The Same we don't check Collisions(Comparing Pointers)
     if(entity == (*entity2).get()) continue;
@@ -319,9 +327,9 @@ EntityCollisionResult Level::checkEntityCollision(const Entity* entity,
 
 bool Level::addEntity(EntityPtr& entityPtr)
 {
-
   if(!isCollidingWithLevel(entityPtr.get()))
   {
+    entityPtr->setLevel(this);
     pendingEntityList.push_back(entityPtr);
     return true;
   }
@@ -330,6 +338,12 @@ bool Level::addEntity(EntityPtr& entityPtr)
     return false;
   }
   
+}
+
+void Level::addOverlayEntity(EntityPtr& entityPtr)
+{
+  entityPtr->setLevel(this);
+  entityList[1].push_back(entityPtr);
 }
 
 EventNameList Level::getEntityEvents()
@@ -374,7 +388,7 @@ bool Level::isCollidingWithLevel(Entity* entity) const
   if(entity->canCollideWithEntities())
   {
       
-    for(auto entityIt = entityList.begin(); entityIt != entityList.end(); entityIt++)
+    for(auto entityIt = entityList[0].begin(); entityIt != entityList[0].end(); entityIt++)
     {
       Entity* entity2 = (*entityIt).get();
       if(entity == entity2 || !entity2->isAlive() || !entity2->canCollideWithEntities()) continue;
@@ -400,7 +414,7 @@ bool Level::isCollidingWithLevel(Entity* entity) const
 
 void Level::killCollidingEntities()
 {
-  for(auto entityPtr = entityList.begin(); entityPtr != entityList.end(); entityPtr++)
+  for(auto entityPtr = entityList[0].begin(); entityPtr != entityList[0].end(); entityPtr++)
   {
     Entity* entity = (*entityPtr).get();
     if(isCollidingWithLevel(entity)) entity->die();

@@ -18,20 +18,23 @@ struct CollisionCheckData{
   Vector2f deltaVector;
 };
 
+const int numbOfEntityLayers = 2;
+
 class Level : public ILevel{
-  friend class LevelGenerator;
-  friend class SimpleLevelGenerator;
- public:
-Level(); 
-//~Level(){}; 
-void update(const float lastDelta);
-void registerPendingEntities(EventManager& eventManager);
+public:
+  Level(); 
+  void update(const float lastDelta);
+  void registerPendingEntities(EventManager& eventManager);
   
   const TileMapPtr& getTileMap() const { return tileMap; }
-  const EntityList& getEntityList() const { return entityList;}
+  const EntityList& getEntityList(int layerIndex = 0) const { return entityList[layerIndex];}
   
   bool addEntity(EntityPtr& entityPtr);
+  // Overlay Entities Won't be registered with EventManager
+  void addOverlayEntity(EntityPtr& entityPtr);
+  
   Player* getPlayer() const { return player; }
+  void setPlayer(Player* player) { this->player = player; }
   
   void removeDeadEntities();
 
@@ -46,7 +49,8 @@ void registerPendingEntities(EventManager& eventManager);
   
 private:
   TileMapPtr tileMap;
-  EntityList entityList;
+  EntityList entityList[numbOfEntityLayers];
+  
   // Entities That Are Not Yet Registered By The Event Manager
   EntityList pendingEntityList;
   Player* player;

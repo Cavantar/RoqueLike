@@ -1,9 +1,22 @@
 #include "Game.h"
 
 #ifdef UNITY_BUILD
+
 #include "Game.cpp"
+#include "EntityPosition.cpp"
+#include "Vector.cpp"
+#include "TileMap.cpp"
+#include "Entity.cpp"
+#include "PlayerHud.cpp"
+#include "Input.cpp"
+#include "Event.cpp"
+#include "EventManager.cpp"
+#include "Level.cpp"
+#include "LevelRenderer.cpp"
+#include "LevelGenerator.cpp"
+
 #endif
-  
+
 #include <windows.h>
 #include <stdio.h>
 #include <fcntl.h>
