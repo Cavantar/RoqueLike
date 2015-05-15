@@ -292,7 +292,9 @@ class Player : public Mob {
 private:
   float xpAmount = 0;
   float shieldValue = 0.5f;
-
+  
+  float bulletVelocity = 10.0f;
+  
   float stamina = 100;
   float maxStamina = 100;
 

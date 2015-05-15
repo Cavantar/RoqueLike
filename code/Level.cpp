@@ -9,13 +9,15 @@ Level::Level()
   std::cout << "Level Created !\n";
 }
 
-void Level::update(const float lastDelta)
+void
+Level::update(const float lastDelta)
 {
   killCollidingEntities();
   updateEntities(lastDelta);
 }
 
-void Level::registerPendingEntities(EventManager& eventManager)
+void
+Level::registerPendingEntities(EventManager& eventManager)
 {
   for(auto entityIt = pendingEntityList.begin(); entityIt != pendingEntityList.end(); entityIt++)
   {
@@ -27,7 +29,8 @@ void Level::registerPendingEntities(EventManager& eventManager)
   pendingEntityList.clear();
 }
 
-void Level::updateEntities(const float lastDelta)
+void
+Level::updateEntities(const float lastDelta)
 {
 
   for(int entityLayer = 0; entityLayer < numbOfEntityLayers; entityLayer++)
@@ -40,7 +43,8 @@ void Level::updateEntities(const float lastDelta)
   
 }
 
-void Level::removeDeadEntities()
+void
+Level::removeDeadEntities()
 {
   for(int entityLayer = 0; entityLayer < numbOfEntityLayers; entityLayer++)
   {
@@ -63,7 +67,8 @@ void Level::removeDeadEntities()
   }
 }
 
-EntityCollisionResult Level::checkCollisions(const Entity* entity, Vector2f deltaVector) const
+EntityCollisionResult
+Level::checkCollisions(const Entity* entity, Vector2f deltaVector) const
 {
   // EntityCollision Is initalized by default with values indicating no collision
   EntityCollisionResult collisionCheckResult; 
@@ -128,7 +133,8 @@ EntityCollisionResult Level::checkCollisions(const Entity* entity, Vector2f delt
   return collisionCheckResult;
 }
 
-float Level::getFrictionValueAtPosition(EntityPosition& entityPosition) const
+float
+Level::getFrictionValueAtPosition(EntityPosition& entityPosition) const
 {
   float frictionValue = 1.3;
   
@@ -144,7 +150,8 @@ float Level::getFrictionValueAtPosition(EntityPosition& entityPosition) const
   return frictionValue;
 }
 
-float Level::getAccelerationModifierAtPosition(EntityPosition& entityPosition) const
+float
+Level::getAccelerationModifierAtPosition(EntityPosition& entityPosition) const
 {
   float accelerationModifier = 1.0;
   
@@ -160,9 +167,10 @@ float Level::getAccelerationModifierAtPosition(EntityPosition& entityPosition) c
   return accelerationModifier;
 }
 
-std::list<WorldPosition> Level::getAffectedTiles(const CollisionCheckData& collisionCheckData) const
+TileList
+Level::getAffectedTiles(const CollisionCheckData& collisionCheckData) const
 {
-  std::list<WorldPosition> affectedTiles;
+  TileList affectedTiles;
   
   const Vector2i& tileChunkSize = tileMap->getTileChunkSize();
   
@@ -204,9 +212,9 @@ std::list<WorldPosition> Level::getAffectedTiles(const CollisionCheckData& colli
   return affectedTiles;
 }
 
-  
-WorldCollisionResult Level::checkCollisionsWithTiles(TileList& tiles,
-						     const CollisionCheckData& collisionCheckData) const 
+WorldCollisionResult
+Level::checkCollisionsWithTiles(TileList& tiles,
+				const CollisionCheckData& collisionCheckData) const 
 {
   
   WorldCollisionResult collisionResult; 
@@ -257,15 +265,16 @@ WorldCollisionResult Level::checkCollisionsWithTiles(TileList& tiles,
   return collisionResult;
 }
   
-WorldCollisionResult Level::checkWorldCollision(const CollisionCheckData& collisionCheckData) const
+WorldCollisionResult
+Level::checkWorldCollision(const CollisionCheckData& collisionCheckData) const
 {
   TileList affectedTiles = getAffectedTiles(collisionCheckData);
   WorldCollisionResult collisionResult = checkCollisionsWithTiles(affectedTiles, collisionCheckData);
   return collisionResult;
 }
 
-
-EntityCollisionResult Level::checkEntityCollision(const Entity* entity,
+EntityCollisionResult
+Level::checkEntityCollision(const Entity* entity,
 						  const CollisionCheckData& collisionCheckData) const
 {
   
@@ -325,7 +334,8 @@ EntityCollisionResult Level::checkEntityCollision(const Entity* entity,
   return collisionResult;
 }
 
-bool Level::addEntity(EntityPtr& entityPtr)
+bool
+Level::addEntity(EntityPtr& entityPtr)
 {
   if(!isCollidingWithLevel(entityPtr.get()))
   {
@@ -340,20 +350,23 @@ bool Level::addEntity(EntityPtr& entityPtr)
   
 }
 
-void Level::addOverlayEntity(EntityPtr& entityPtr)
+void
+Level::addOverlayEntity(EntityPtr& entityPtr)
 {
   entityPtr->setLevel(this);
   entityList[1].push_back(entityPtr);
 }
 
-EventNameList Level::getEntityEvents()
+EventNameList
+Level::getEntityEvents()
 {
   EventNameList eventNameList;
   eventNameList.push_back("SpawnEntity");
   return eventNameList;
 }
 
-void Level::onEvent(const std::string& eventName, EventArgumentDataMap eventDataMap)
+void
+Level::onEvent(const std::string& eventName, EventArgumentDataMap eventDataMap)
 {
   //std::cout << "Here\n";
   
@@ -367,7 +380,8 @@ void Level::onEvent(const std::string& eventName, EventArgumentDataMap eventData
   
 }
 
-bool Level::isCollidingWithLevel(Entity* entity) const
+bool
+Level::isCollidingWithLevel(Entity* entity) const
 {
   const EntityPosition& entityPosition = entity->getPosition();
   const FloatRect& collisionRect = entity->getCollisionRect();
@@ -412,7 +426,8 @@ bool Level::isCollidingWithLevel(Entity* entity) const
   return false;
 }
 
-void Level::killCollidingEntities()
+void
+Level::killCollidingEntities()
 {
   for(auto entityPtr = entityList[0].begin(); entityPtr != entityList[0].end(); entityPtr++)
   {

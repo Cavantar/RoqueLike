@@ -11,18 +11,21 @@ TileChunk::TileChunk(const uint32 width, const uint32 height)
   }
 }
 
-TILE_TYPE TileChunk::getTileType(const Vector2i& tilePosition) const
+TILE_TYPE
+TileChunk::getTileType(const Vector2i& tilePosition) const
 {
   return tileChunkData[tilePosition.y][tilePosition.x];
 }
 
-void TileChunk::setTileType(const Vector2i& tilePosition,
+void
+TileChunk::setTileType(const Vector2i& tilePosition,
 			    const TILE_TYPE tileValue)
 {
   tileChunkData[tilePosition.y][tilePosition.x] = tileValue;
 }
 
-void TileMap::setTileType(WorldPosition& tileWorldPosition, const TILE_TYPE tileType)
+void
+TileMap::setTileType(WorldPosition& tileWorldPosition, const TILE_TYPE tileType)
 {
 
   tileWorldPosition.recanonicalize(tileChunkSize);
@@ -36,7 +39,8 @@ void TileMap::setTileType(WorldPosition& tileWorldPosition, const TILE_TYPE tile
   return tileChunkMap[tileWorldPosition.tileChunkPosition]->setTileType(tileWorldPosition.tilePosition, tileType);
 }
 
-TILE_TYPE TileMap::getTileType(WorldPosition& tileWorldPosition) 
+TILE_TYPE
+TileMap::getTileType(WorldPosition& tileWorldPosition) 
 {
   tileWorldPosition.recanonicalize(tileChunkSize);
   
@@ -52,12 +56,14 @@ TILE_TYPE TileMap::getTileType(WorldPosition& tileWorldPosition)
   
 }
 
-void TileMap::recanonicalize(EntityPosition& entityPosition) const
+void
+TileMap::recanonicalize(EntityPosition& entityPosition) const
 {
   entityPosition.recanonicalize(tileChunkSize);
 }
 
-bool TileMap::isRectangleOfTileType(WorldPosition startPosition,
+bool
+TileMap::isRectangleOfTileType(WorldPosition startPosition,
 				    Vector2i dimensions, TILE_TYPE tileType)
 {
   for(int y = 0; y < dimensions.y; y++)

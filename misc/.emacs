@@ -36,11 +36,12 @@
 (setq org-indent-mode t)
 
 ;; Imenu
+(require 'imenu)
 (setq imenu-auto-rescan t)
 (setq imenu-auto-rescan-maxout 500000)
 (setq make-backup-files nil)
 (setq version-control nil)
-(setq imenu-sort-function t)
+;;(setq imenu-sort-function t)
 
 ;; hide-show
 (add-hook 'prog-mode-hook 'hs-minor-mode)
@@ -102,7 +103,6 @@
 (require 'haskell-mode)
 (require 'ruby-mode)
 (require 'thingatpt)
-(require 'imenu)
 
 (defun my:add-semantic-to-autocomplete ()
   (add-to-list 'ac-sources 'ac-source-semantic)

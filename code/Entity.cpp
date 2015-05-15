@@ -8,7 +8,8 @@ Entity::Entity() : position(EntityPosition())
   position += Vector2f(2, 2);
 }
 
-void Entity::die()
+void
+Entity::die()
 {
   alive = false;
   
@@ -28,7 +29,8 @@ OverlayText::OverlayText(const EntityPosition& position, const OverlayTextData& 
   renderData.textFadeValue = 0;
 }
 
-void OverlayText::update(const float lastDelta)
+void
+OverlayText::update(const float lastDelta)
 {
   localTime += lastDelta;
   if(localTime >= overlayTextData.duration)
@@ -46,10 +48,11 @@ void OverlayText::update(const float lastDelta)
   position += textVelocity * lastDelta;
 }
 
-Vector2f Moveable::getPositionDeltaVector(const float lastDelta, const float fakeFrictionValue,
-					  const float accelerationModifier)
+Vector2f
+Moveable::getPositionDeltaVector(const float lastDelta, const float fakeFrictionValue,
+				 const float accelerationModifier)
 {
-
+  
   Vector2f positionDeltaVector;
   
   if(acceleration.x != 0 && acceleration.y != 0)
@@ -75,13 +78,15 @@ Vector2f Moveable::getPositionDeltaVector(const float lastDelta, const float fak
   return positionDeltaVector;
 }
 
-FloatRect Moveable::getCollisionRect() const
+FloatRect
+Moveable::getCollisionRect() const
 {
   static const float bottomPart = 0.3f;
   return FloatRect(0, dimensions.y *(1.0f - bottomPart), dimensions.x, dimensions.y * bottomPart);
 }
 
-Vector2f Moveable::getLocalCollisionCenter() const
+Vector2f
+Moveable::getLocalCollisionCenter() const
 {
   FloatRect collisionRect = getCollisionRect();
 
@@ -92,12 +97,14 @@ Vector2f Moveable::getLocalCollisionCenter() const
   return localCenter;
 }
 
-EntityPosition Moveable::getCollisionCenter() const
+EntityPosition
+Moveable::getCollisionCenter() const
 {
   return position + getLocalCollisionCenter(); 
 }
 
-Vector2f Moveable::getReflectedVelocity(COLLISION_PLANE collisionPlane, float speedIncrease) const 
+Vector2f
+Moveable::getReflectedVelocity(COLLISION_PLANE collisionPlane, float speedIncrease) const 
 {
   Vector2f reflectedVector = velocity;
   
@@ -113,8 +120,9 @@ Vector2f Moveable::getReflectedVelocity(COLLISION_PLANE collisionPlane, float sp
   return reflectedVector;
 }
 
-void Moveable::handleCollisionResult(EntityCollisionResult& collisionResult,
-				     const Vector2f& positionDeltaVector)
+void
+Moveable::handleCollisionResult(EntityCollisionResult& collisionResult,
+				const Vector2f& positionDeltaVector)
 {
   if(collisionResult.maxAllowedT != 1.0f)
   {
@@ -150,7 +158,8 @@ XpOrb::XpOrb(const EntityPosition& position, const Vector2f& initialVelocity, fl
   renderData.color = Vector3f(102 + rand()%20, 255 - rand()%30, 0);
 }
 
-void XpOrb::update(const float lastDelta)
+void
+XpOrb::update(const float lastDelta)
 {
   // Simulate Movement First
   
@@ -194,14 +203,16 @@ void XpOrb::update(const float lastDelta)
   handleCollisionResult(collisionResult, positionDeltaVector);
 }
 
-void XpOrb::onWorldCollision(COLLISION_PLANE collisionPlane)
+void
+XpOrb::onWorldCollision(COLLISION_PLANE collisionPlane)
 {
   static const float speedIncrease = 0.5f;
 
   velocity = getReflectedVelocity(collisionPlane, speedIncrease);
 }
 
-FloatRect XpOrb::getCollisionRect() const
+FloatRect
+XpOrb::getCollisionRect() const
 {
   return FloatRect(0, 0, dimensions.x, dimensions.y );
 }
@@ -224,7 +235,8 @@ Bullet::Bullet(const EntityPosition& position, const Vector2f& initialVelocity,
   renderData.color = Vector3f(rand()%256, rand()%256, rand()%256);
 }
 
-void Bullet::update(const float lastDelta)
+void
+Bullet::update(const float lastDelta)
 {
   
   Vector2f positionDeltaVector = getPositionDeltaVector(lastDelta, 0.001f);
@@ -235,7 +247,8 @@ void Bullet::update(const float lastDelta)
   handleCollisionResult(collisionResult, positionDeltaVector);
 }
 
-void Bullet::onWorldCollision(COLLISION_PLANE collisionPlane)
+void
+Bullet::onWorldCollision(COLLISION_PLANE collisionPlane)
 {
   if(numbOfBouncesLeft-- == 0) die();
   
@@ -243,13 +256,15 @@ void Bullet::onWorldCollision(COLLISION_PLANE collisionPlane)
   velocity = getReflectedVelocity(collisionPlane, speedIncrease);
 }
 
-FloatRect Bullet::getCollisionRect() const
+FloatRect
+Bullet::getCollisionRect() const
 {
   static const float bottomPart = 1.0f;
   return FloatRect(0, dimensions.y *(1.0f - bottomPart), dimensions.x, dimensions.y * bottomPart);
 }
 
-void Bullet::onEntityCollision(COLLISION_PLANE collisionPlane, Entity* entity)
+void
+Bullet::onEntityCollision(COLLISION_PLANE collisionPlane, Entity* entity)
 {
   static const float speedIncrease = 1.0f;
 
@@ -273,7 +288,8 @@ Item::Item(const EntityPosition& position, const float value)
   renderData.color = Vector3f(255.0f, 0, 0);
 }
 
-void Item::update(const float lastDelta)
+void
+Item::update(const float lastDelta)
 {
   Player* player = level->getPlayer();
   if(player)
@@ -299,11 +315,14 @@ void Item::update(const float lastDelta)
   }
 }
 
-FloatRect Item::getCollisionRect() const
+FloatRect
+Item::getCollisionRect() const
 {
   return FloatRect(0, 0, 1.0f, 1.0f);
 }
-void HealthItem::performItemAction(Entity* actionReceiver)
+
+void
+HealthItem::performItemAction(Entity* actionReceiver)
 {
   actionReceiver->addHealth(itemValue);
 }
@@ -314,7 +333,8 @@ Mob::Mob(const EntityPosition& position, int mobLevel, int health) : mobLevel(mo
   renderData.type = ER_MOB;
 }
 
-void Mob::addHealth(const float amount)
+void
+Mob::addHealth(const float amount)
 {
   health += amount;
   if(health > maxHealth) health = maxHealth;
@@ -339,13 +359,15 @@ void Mob::addHealth(const float amount)
   level->addOverlayEntity(EntityPtr(overlayText));
 }
 
-const EntityRenderData& Mob::getRenderData()
+const EntityRenderData&
+Mob::getRenderData()
 {
   renderData.life = health / maxHealth;
   return renderData;
 }
 
-void Mob::spawnXp(int xpToSpawn) const
+void
+Mob::spawnXp(int xpToSpawn) const
 {
   assert(!(xpToSpawn%10));
 
@@ -357,8 +379,9 @@ void Mob::spawnXp(int xpToSpawn) const
     // Getting Randomly valued experience orb (in range)
     // I assume that the xp is divisible by 10
     value = (((rand() % (xpToSpawn/10)) + 1) * 10) % (xpToSpawn + 10);
+    if(value > 50) value = 50;
     
-    Entity* entity = new XpOrb(position, Vector2f::directionVector() * 3.0f, value);
+    Entity* entity = new XpOrb(position, Vector2f::directionVector() * (1.0f + 0.25f * ((rand()%12) + 1)), value);
     level->addEntity(EntityPtr(entity));
 
     //std::cout << "Spawning: " << value << " xp \n";
@@ -381,7 +404,8 @@ Cannon::Cannon(const EntityPosition& position, int level) : Mob(position, level)
   damageValue = (level + 1.0f) / 5.0f;
 }
 
-void Cannon::update(const float lastDelta)
+void
+Cannon::update(const float lastDelta)
 {
   float shootPeriod = 5.0f / mobLevel;
   localTime += lastDelta;
@@ -419,7 +443,8 @@ void Cannon::update(const float lastDelta)
   } 
 }
 
-void Cannon::performDeathAction()
+void
+Cannon::performDeathAction()
 {
   int xpToSpawn = mobLevel * 20;
   spawnXp(xpToSpawn);
@@ -434,7 +459,8 @@ Player::Player(const EntityPosition& position) : Mob(position, 1, 1.0f)
   damageValue = 1.0f;
 }
 
-void Player::update(const float lastDelta)
+void
+Player::update(const float lastDelta)
 {
   EntityPosition collisionCenter = getCollisionCenter();
   float friction = level->getFrictionValueAtPosition(collisionCenter);
@@ -453,13 +479,15 @@ void Player::update(const float lastDelta)
   //std::cout << velocity.x << " " << velocity.y << std::endl;
 }
 
-void Player::onWorldCollision(COLLISION_PLANE collisionPlane)
+void
+Player::onWorldCollision(COLLISION_PLANE collisionPlane)
 {
   const float bounceFactor = 0.5f;
   velocity = getReflectedVelocity(collisionPlane, bounceFactor);
 }
 
-void Player::onEntityCollision(COLLISION_PLANE collisionPlane, Entity* entity)
+void
+Player::onEntityCollision(COLLISION_PLANE collisionPlane, Entity* entity)
 {
   static const float speedIncrease = 1.05f;
   entity->addVelocity(velocity * 0.01f);
@@ -467,22 +495,24 @@ void Player::onEntityCollision(COLLISION_PLANE collisionPlane, Entity* entity)
   velocity = getReflectedVelocity(collisionPlane, speedIncrease);
 }
 
-void Player::addXp(const float amount)
+void
+Player::addXp(const float amount)
 {
   xpAmount += amount;
+  
   OverlayTextData overlayTextData = {"", 2.0f, Vector3f(), 3.0f};
   std::stringstream tempText;
   tempText << std::fixed << std::setw(11) << std::setprecision(2);
-    
   tempText << amount << " Xp";
   overlayTextData.color = Vector3f(0, 200.0f, 0);
-  
   overlayTextData.text = tempText.str();
+  
   Entity* overlayText = new OverlayText(position, overlayTextData);
   level->addOverlayEntity(EntityPtr(overlayText));  
 }
 
-void Player::levelUp()
+void
+Player::levelUp()
 {
   mobLevel++;
   skillPointCount++;
@@ -497,7 +527,8 @@ void Player::levelUp()
   level->addOverlayEntity(EntityPtr(overlayText));
 }
 
-EventNameList Player::getEntityEvents()
+EventNameList
+Player::getEntityEvents()
 {
   EventNameList eventNameList;
   eventNameList.push_back("HelloThere");
@@ -505,7 +536,8 @@ EventNameList Player::getEntityEvents()
   return eventNameList;
 }
 
-void Player::handlePlayerInput(const PlayerInput& playerInput)
+void
+Player::handlePlayerInput(const PlayerInput& playerInput)
 {
 
   if(playerInput.up)
@@ -532,13 +564,11 @@ void Player::handlePlayerInput(const PlayerInput& playerInput)
   if(playerInput.actionUp || playerInput.actionRight ||
      playerInput.actionDown || playerInput.actionLeft)
   {
-    static const float bulletVelocity = 10.0f;
     float bulletRadius = 0.5f;
     
     static const float bulletDistance = 3.0f;
     Vector2f tempDirectionVector;
     
-
     if(playerInput.actionUp) tempDirectionVector = Vector2f(0, -1.0f);
     if(playerInput.actionRight) tempDirectionVector = Vector2f(1.0f, 0);
     if(playerInput.actionDown) tempDirectionVector = Vector2f(0, 1.0f);
@@ -565,7 +595,8 @@ void Player::handlePlayerInput(const PlayerInput& playerInput)
   }
 }
 
-void Player::onEvent(const std::string& eventName, EventArgumentDataMap eventDataMap)
+void
+Player::onEvent(const std::string& eventName, EventArgumentDataMap eventDataMap)
 {
   if(eventName == "HelloThere")
   {
@@ -578,13 +609,15 @@ void Player::onEvent(const std::string& eventName, EventArgumentDataMap eventDat
   }
 }
 
-void Player::performDeathAction()
+void
+Player::performDeathAction()
 {
   int xpToSpawn = mobLevel * 200 + xpAmount;
   spawnXp(xpToSpawn);
 }
 
-void Player::upgradeAbility(PLAYER_UPGRADE upgrade)
+void
+Player::upgradeAbility(PLAYER_UPGRADE upgrade)
 {
   switch(upgrade)
   {
@@ -604,7 +637,7 @@ void Player::upgradeAbility(PLAYER_UPGRADE upgrade)
     maxStamina *= 1.5f;
     break;
   case PU_BULLETSPEED:
-    
+    bulletVelocity *= 1.2f;
     break;
   }
 

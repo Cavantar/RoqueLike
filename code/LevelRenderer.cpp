@@ -7,7 +7,8 @@ LevelRenderer::LevelRenderer() : window(NULL), tileSizeInPixels(0)
   assert(loadedFont);
 }
 
-void LevelRenderer::renderLevel(const LevelPtr& level, EntityPosition& cameraPosition)
+void
+LevelRenderer::renderLevel(const LevelPtr& level, EntityPosition& cameraPosition)
 {
   assert(window);
 
@@ -22,7 +23,8 @@ void LevelRenderer::renderLevel(const LevelPtr& level, EntityPosition& cameraPos
 
 }
 
-void LevelRenderer::renderTileChunk(const TileChunkPtr& tileChunk, const Vector2f& screenChunkPosition,
+void
+LevelRenderer::renderTileChunk(const TileChunkPtr& tileChunk, const Vector2f& screenChunkPosition,
 				    const float tileSize)
 {
   sf::RectangleShape rectangleShape = sf::RectangleShape(sf::Vector2f(tileSize, tileSize));
@@ -100,7 +102,8 @@ void LevelRenderer::renderTileChunk(const TileChunkPtr& tileChunk, const Vector2
   }
 }
 
-void LevelRenderer::renderTileMap(const TileMapPtr& tileMap, EntityPosition& cameraPosition)
+void
+LevelRenderer::renderTileMap(const TileMapPtr& tileMap, EntityPosition& cameraPosition)
 {
   //sf::RenderWindow& window = *this->window;
   const sf::Vector2u windowDimensions = window->getSize();
@@ -174,7 +177,8 @@ void LevelRenderer::renderTileMap(const TileMapPtr& tileMap, EntityPosition& cam
   
 }
 
-void LevelRenderer::render(const EntityRenderData& entityRenderData, Vector2f entityPositionOnScreen)
+void
+LevelRenderer::render(const EntityRenderData& entityRenderData, Vector2f entityPositionOnScreen)
 {
   const sf::Vector2u windowDimensions = window->getSize();
   
@@ -331,8 +335,8 @@ void LevelRenderer::render(const EntityRenderData& entityRenderData, Vector2f en
   
 }
 
-
-void LevelRenderer::renderEntity(const EntityPtr& entity, EntityPosition& cameraPosition,
+void
+LevelRenderer::renderEntity(const EntityPtr& entity, EntityPosition& cameraPosition,
 				 const Vector2i& tileChunkSize)
 {
   const sf::Vector2u windowDimensions = window->getSize();
@@ -368,7 +372,8 @@ void LevelRenderer::renderEntity(const EntityPtr& entity, EntityPosition& camera
   render(entityRenderData, entityPositionOnScreen);
 }
 
-void LevelRenderer::renderEntities(const EntityList& entityList, EntityPosition& cameraPosition,
+void
+LevelRenderer::renderEntities(const EntityList& entityList, EntityPosition& cameraPosition,
 				   const Vector2i& tileChunkSize)
 {
   for(auto entityIt = entityList.begin(); entityIt != entityList.end(); entityIt++)

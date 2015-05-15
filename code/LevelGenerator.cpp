@@ -1,6 +1,7 @@
 #include "LevelGenerator.h"
 
-bool Room::isColliding(TileMapPtr tileMap)
+bool
+Room::isColliding(TileMapPtr tileMap)
 {
   bool result;
   
@@ -11,7 +12,8 @@ bool Room::isColliding(TileMapPtr tileMap)
   return result;
 }
 
-LevelPtr LevelGenerator::create(int seed)
+LevelPtr
+LevelGenerator::create(int seed)
 {
   if(seed == 0)
   {
@@ -30,12 +32,14 @@ LevelPtr LevelGenerator::create(int seed)
   return level;
 }
 
-void LevelGenerator::addEntity(EntityPtr entity)
+void
+LevelGenerator::addEntity(EntityPtr entity)
 {
   level->addEntity(entity);
 }
 
-void LevelGenerator::placeLine(WorldPosition startPosition, Vector2i deltaVector, TILE_TYPE tileType)
+void
+LevelGenerator::placeLine(WorldPosition startPosition, Vector2i deltaVector, TILE_TYPE tileType)
 {
   // TODO Implement Other Octants
 
@@ -82,7 +86,8 @@ void LevelGenerator::placeLine(WorldPosition startPosition, Vector2i deltaVector
 
 }
 
-void LevelGenerator::fillRectangle(WorldPosition startPosition, Vector2i dimensions, TILE_TYPE tileType)
+void
+LevelGenerator::fillRectangle(WorldPosition startPosition, Vector2i dimensions, TILE_TYPE tileType)
 {
   TileMapPtr tileMap = level->getTileMap();
   
@@ -95,7 +100,8 @@ void LevelGenerator::fillRectangle(WorldPosition startPosition, Vector2i dimensi
   }
 }
 
-void SimpleLevelGenerator::placeRoom(const Room& room)
+void
+SimpleLevelGenerator::placeRoom(const Room& room)
 {
   // Horizontal Walls
   placeLine(room.topLeftCorner, Vector2i(room.dimensions.x, 0), TILE_TYPE_WALL );
@@ -111,7 +117,8 @@ void SimpleLevelGenerator::placeRoom(const Room& room)
 		room.floorType);
 }
 
-void SimpleLevelGenerator::placeRoomEntities(const Room& room, bool immediateMode)
+void
+SimpleLevelGenerator::placeRoomEntities(const Room& room, bool immediateMode)
 {
   
   //std::list<WorldPosition> takenFields;  
@@ -156,7 +163,8 @@ void SimpleLevelGenerator::placeRoomEntities(const Room& room, bool immediateMod
   }
 }
 
-void SimpleLevelGenerator::placeRemainingEntities()
+void
+SimpleLevelGenerator::placeRemainingEntities()
 {
   
   for(auto roomIt = rooms.begin(); roomIt != rooms.end(); roomIt++)
@@ -166,7 +174,8 @@ void SimpleLevelGenerator::placeRemainingEntities()
   
 }
 
-int SimpleLevelGenerator::getMaxRoomDepth() const
+int
+SimpleLevelGenerator::getMaxRoomDepth() const
 {
   int maxDepth = rooms.begin()->depth;
   for(auto roomIt = rooms.begin(); roomIt != rooms.end(); roomIt++)
@@ -176,7 +185,8 @@ int SimpleLevelGenerator::getMaxRoomDepth() const
   return maxDepth;
 }
 
-void SimpleLevelGenerator::placeCorridor(const Room& srcRoom, const Room& dstRoom, const DIRECTION direction)
+void
+SimpleLevelGenerator::placeCorridor(const Room& srcRoom, const Room& dstRoom, const DIRECTION direction)
 {
   TileMapPtr tileMap = level->getTileMap();
   
@@ -231,7 +241,8 @@ void SimpleLevelGenerator::placeCorridor(const Room& srcRoom, const Room& dstRoo
   
 }
 
-void SimpleLevelGenerator::openWall(const Room& srcRoom, const Room& dstRoom, const DIRECTION direction)
+void
+SimpleLevelGenerator::openWall(const Room& srcRoom, const Room& dstRoom, const DIRECTION direction)
 {
   
   TileMapPtr tileMap = level->getTileMap();
@@ -292,9 +303,10 @@ void SimpleLevelGenerator::openWall(const Room& srcRoom, const Room& dstRoom, co
   
 }
 
-void SimpleLevelGenerator::generateRoom()
+void
+SimpleLevelGenerator::generateRoom()
 {
-    
+  
   TileMapPtr tileMap = level->getTileMap();
   Room potentialRoom;
   
@@ -404,7 +416,8 @@ void SimpleLevelGenerator::generateRoom()
   }
 }
 
-LevelPtr SimpleLevelGenerator::regenerate(int seed)
+LevelPtr
+SimpleLevelGenerator::regenerate(int seed)
 {
   if(seed != 0)
   {
@@ -428,7 +441,8 @@ LevelPtr SimpleLevelGenerator::regenerate(int seed)
   return level;
 }
 
-void SimpleLevelGenerator::generate()
+void
+SimpleLevelGenerator::generate()
 {
   srand(seed);
 
@@ -444,7 +458,8 @@ void SimpleLevelGenerator::generate()
   finishedGenerating = true;
 }
 
-void SimpleLevelGenerator::generateStep()
+void
+SimpleLevelGenerator::generateStep()
 {
   srand(seed++);
 
@@ -460,7 +475,8 @@ void SimpleLevelGenerator::generateStep()
   }
 }
 
-void SimpleLevelGenerator::renderAdditionalData(sf::RenderWindow& window,
+void
+SimpleLevelGenerator::renderAdditionalData(sf::RenderWindow& window,
 						EntityPosition& cameraPosition,
 						float tileSizeInPixels)
 {
