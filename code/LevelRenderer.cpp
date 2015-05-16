@@ -189,11 +189,11 @@ LevelRenderer::renderTileChunk(const TileChunkPtr& tileChunk, const Vector2f& sc
 	  float finalScale = tileSizeInPixels / 16.0f;
 	  
 	  WorldPosition tempWorldPosition(tileChunkPosition, Vector2i(x, y));
-	  char surroundingTiles = level->getSurroundingTileData(tempWorldPosition, TILE_TYPE_WALL);
-
 	  std::string spriteName = "wallTop1_";
-	  if(tileKind > 9) spriteName += char(tileKind/10 + '0');
-	  spriteName += char(tileKind%10 + '0');
+
+	  char surroundingTiles = level->getSurroundingTileData(tempWorldPosition, TILE_TYPE_WALL);
+	  spriteName += std::to_string(tileKind);
+	  
 	  tileSprite = spriteManager->getSprite(spriteName);
 	  
 	  tileSprite.setScale(finalScale, finalScale);
@@ -207,11 +207,11 @@ LevelRenderer::renderTileChunk(const TileChunkPtr& tileChunk, const Vector2f& sc
 	  if(!(surroundingTiles & ST_SOUTH))
 	  {
 	    std::string spriteName = "wall1_";
-	    int tileKind = ((x ^ y ^ (int)tileChunk.get()) % 7);
+	    int tileKind = ((x ^ y ^ (int)tileChunk.get()) % 6);
 	    tileKind = abs(tileKind);
 	    tileKind++;
 	    
-	    spriteName += char((tileKind%10) + '0');
+	    spriteName += std::to_string(tileKind);
 	    tileSprite = spriteManager->getSprite(spriteName);
 	    
 	    tileSprite.setScale(finalScale, finalScale);
@@ -232,16 +232,45 @@ LevelRenderer::renderTileChunk(const TileChunkPtr& tileChunk, const Vector2f& sc
 	{
 	  rectangleShape.setSize(sf::Vector2f(tileSizeInPixels, tileSizeInPixels));
 	  rectangleShape.setFillColor(sf::Color(128, 128, 128));
-	  
-	  int tileKind = ((x ^ y ^ (int)tileChunk.get()) % 60) ;
+
+	  int tileHash = x ^ y ^ (int)tileChunk.get();
+			  
+	  int tileKind = (tileHash % 60) ;
 	  tileKind = abs(tileKind);
+	  tileKind++;
 	  
 	  std::string spriteName = "floor1_";
-	  if((tileKind+1) > 9) spriteName += char(((tileKind+1)/10) + '0');
-	  spriteName += char(((tileKind+1)%10) + '0');
+	  
+	  WorldPosition tempWorldPosition(tileChunkPosition, Vector2i(x, y));
+	  int surroundingTiles = level->getSurroundingTileData(tempWorldPosition, TILE_TYPE_STONE_GROUND);
+	  
+	  if(level->isTileState(TS_CORNER_TOPLEFT, surroundingTiles))
+	    spriteName += '2';
+	  else if(level->isTileState(TS_CORNER_TOPRIGHT, surroundingTiles))
+	    spriteName += '3';
+	  else if(level->isTileState(TS_CORNER_BOTTOMLEFT, surroundingTiles))
+	    spriteName += '4';
+	  else if(level->isTileState(TS_CORNER_BOTTOMRIGHT, surroundingTiles))
+	    spriteName += '5';
+	  else if(level->isTileState(TS_WALL_LEFT, surroundingTiles))
+	    spriteName += std::to_string(6 + (tileHash % 3));
+	  else if(level->isTileState(TS_WALL_TOP, surroundingTiles))
+	    spriteName += std::to_string(9 + (tileHash % 3));
+	  else if(level->isTileState(TS_WALL_BOTTOM, surroundingTiles))
+	    spriteName += std::to_string(12 + (tileHash % 3));
+	  else if(level->isTileState(TS_WALL_RIGHT, surroundingTiles))
+	    spriteName += std::to_string(15 + (tileHash % 3));
+	  else if(level->isTileState(TS_PATH_HORIZONTAL, surroundingTiles))
+	    spriteName += std::to_string(23 + (tileHash % 2));
+	  else if(level->isTileState(TS_PATH_VERTICAL, surroundingTiles))
+	    spriteName += std::to_string(25 + (tileHash % 2));
+	  else
+	  {
+	    spriteName += std::to_string(tileKind);
+	  }
 	  
 	  sf::Sprite tileSprite = spriteManager->getSprite(spriteName);
-
+	  
 	  float finalScale = tileSizeInPixels / 16.0f;
 	  
 	  tileSprite.setScale(finalScale, finalScale);
@@ -521,6 +550,18 @@ LevelRenderer::renderEntity(const EntityRenderData& entityRenderData, Vector2f e
       
       window->draw(entityText);
 
+      
+    } break;
+  case ER_BASICSPRITE:
+    {
+      sf::Sprite mobSprite = spriteManager->getSprite(entityRenderData.basicSpriteName);
+
+      // CONSTANT ALERT !!!
+      float finalScale = tileSizeInPixels / 16.0f;
+      mobSprite.setScale(finalScale, finalScale);
+      mobSprite.setPosition(entityPositionOnScreen.x, entityPositionOnScreen.y);
+      
+      window->draw(mobSprite);
       
     } break;
   }

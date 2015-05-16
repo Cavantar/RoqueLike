@@ -34,7 +34,8 @@ enum MOB_DIRECTION{
 enum ENTITY_RENDER_DATA_TYPE{
   ER_OVERLAYTEXT,
   ER_PRIMITIVE,
-  ER_MOB
+  ER_MOB,
+  ER_BASICSPRITE
 };
 
 enum PRIMITIVE_TYPE{
@@ -66,6 +67,11 @@ struct EntityRenderData{
       float fontSize;
       Vector3f textColor;
       float textFadeValue;
+    };
+
+    struct{
+      // Basic Sprite
+      std::string basicSpriteName;
     };
   };
 };
@@ -215,7 +221,7 @@ protected:
 
 class HealthItem : public Item{
 public:
-  HealthItem(const EntityPosition& position, const float value) : Item(position, value) {}
+  HealthItem(const EntityPosition& position, const float value);  
   
 private:
   void performItemAction(Entity* actionReceiver);

@@ -167,10 +167,10 @@ Level::getAccelerationModifierAtPosition(EntityPosition& entityPosition) const
   return accelerationModifier;
 }
 
-char
+int
 Level::getSurroundingTileData(const WorldPosition& worldPosition, TILE_TYPE tileType)
 {
-  char result = 0;
+  int result = 0;
   
   if(tileMap->getTileType(worldPosition + Vector2i(0.0f, -1.0f)) == tileType)
     result |= ST_NORTH;
@@ -190,6 +190,18 @@ Level::getSurroundingTileData(const WorldPosition& worldPosition, TILE_TYPE tile
     result |= ST_NORTH_WEST;
   
   return result;
+}
+
+bool
+Level::isTileState(TILE_STATE tileState, int surroundingTiles)
+{
+  if((tileState & surroundingTiles) == tileState &&
+     (~tileState & surroundingTiles) == 0)
+  {
+    return true;
+  }
+  
+  return false;
 }
 
 TileList

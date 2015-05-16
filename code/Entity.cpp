@@ -281,11 +281,11 @@ Item::Item(const EntityPosition& position, const float value)
   this->position = position;
   itemValue = value;
   
-  renderData.type = ER_PRIMITIVE;
+  renderData.type = ER_BASICSPRITE;
   
-  renderData.primitiveType = PT_RECTANGLE;
-  renderData.dimensionsInTiles = Vector2f(1.0f, 1.0f);
-  renderData.color = Vector3f(255.0f, 0, 0);
+  //renderData.primitiveType = PT_RECTANGLE;
+  //renderData.dimensionsInTiles = Vector2f(1.0f, 1.0f);
+  //renderData.color = Vector3f(255.0f, 0, 0);
 }
 
 void
@@ -300,9 +300,9 @@ Item::update(const float lastDelta)
     
     FloatRect playerCollisionRect = player->getCollisionRect();
     playerCollisionRect += distanceVector;
-    
+
+    // If Player is close checking collisions
     float distance = distanceVector.getLength();
-    
     if(distance < 3)
     {
       FloatRect orbCollisionRect = getCollisionRect();
@@ -319,6 +319,11 @@ FloatRect
 Item::getCollisionRect() const
 {
   return FloatRect(0, 0, 1.0f, 1.0f);
+}
+
+HealthItem::HealthItem(const EntityPosition& position, const float value) : Item(position, value)
+{
+  renderData.basicSpriteName = "healthPotion";
 }
 
 void

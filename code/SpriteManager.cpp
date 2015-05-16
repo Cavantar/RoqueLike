@@ -13,6 +13,7 @@ SpriteManager::loadTexture(const std::string& filename)
     std::cout << "Couldn't locate file:" + filename + " \n\n";
     assert(0);
   }
+  std::cout << "Loaded File: " << filename << std::endl;
   textureVector.push_back(texture);
 }
 

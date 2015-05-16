@@ -129,6 +129,7 @@ void PlayGameState::enter(Game* game)
   spriteManager.loadSpriteSet("floor1_", IntRect(0, 16, 16, 16), 30, 30);
   spriteManager.loadSpriteSet("wall1_", IntRect(16, 16 * 4, 16, 32), 7);
   spriteManager.loadSpriteSet("wallTop1_", IntRect(0, 16 * 7, 16, 16), 30);
+  spriteManager.loadSprite("healthPotion", IntRect(0, 16 * 9, 16, 16));
   
   levelRenderer.setSpriteManager(&spriteManager);
 }  
