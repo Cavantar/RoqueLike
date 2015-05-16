@@ -126,6 +126,7 @@ void PlayGameState::enter(Game* game)
   spriteManager.loadSprite("playerBase", IntRect(0, 16 * 4, 16, 32));
   spriteManager.loadSprite("cannonBase", IntRect(0, 16 * 6, 16, 16));
   spriteManager.loadSpriteSet("floor1_", IntRect(0, 0, 16, 16), 30);
+  spriteManager.loadSpriteSet("floor1_", IntRect(0, 16, 16, 16), 30, 30);
   spriteManager.loadSpriteSet("wall1_", IntRect(16, 16 * 4, 16, 32), 7);
   spriteManager.loadSpriteSet("wallTop1_", IntRect(0, 16 * 7, 16, 16), 30);
   

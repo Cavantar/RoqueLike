@@ -1,9 +1,19 @@
 #include "LevelRenderer.h"
 #include <iostream>
 
-bool compareEntityRenderThing(const EntityRenderThing& ent1, const EntityRenderThing& ent2)
+void EntityRenderThing::render(LevelRenderer* levelRenderer)
 {
-  return (ent1.entityPositionOnScreen.y + ent1.dimensions.y) < (ent2.entityPositionOnScreen.y + ent2.dimensions.y);
+  levelRenderer->renderEntity(entityRenderData, entityPositionOnScreen);
+}
+
+void SpriteRenderThing::render(LevelRenderer* levelRenderer)
+{
+  levelRenderer->renderSprites(sprites);
+}
+
+bool compareEntityRenderThing(const RenderThingPtr& ent1, const RenderThingPtr& ent2)
+{
+  return ent1->bottomY < ent2->bottomY;
 }
 
 LevelRenderer::LevelRenderer() : window(NULL), tileSizeInPixels(0)
@@ -20,20 +30,25 @@ LevelRenderer::renderLevel(const LevelPtr& level, EntityPosition& cameraPosition
   this->level = level.get();
   
   const TileMapPtr& tileMap = level->getTileMap();
-  
-  entityListForRendering = getEntityListForRendering(level->getEntityList(0), cameraPosition,
-						     tileMap->getTileChunkSize());
-  entityListForRendering.sort(compareEntityRenderThing);
-  
-  renderTileMap(tileMap, cameraPosition);
 
-  entityListForRendering.clear();
+  EntityListForRendering entitiesForRendering = getEntityListForRendering(level->getEntityList(0), cameraPosition,
+									  tileMap->getTileChunkSize());
   
-  // std::cout << " front: " << entityListForRendering.front().bottomY << std::endl;
-  // std::cout << " back: " << entityListForRendering.back().bottomY << std::endl;
+  EntityListForRendering tilesForRendering = renderTileMap(tileMap, cameraPosition);
+
+
+  //std::cout << tilesForRendering.size() << std::endl;
   
-   renderEntities(level->getEntityList(0), cameraPosition,
-   		 tileMap->getTileChunkSize());
+  // Combining both lists
+  entitiesForRendering.splice(entitiesForRendering.end(), tilesForRendering);
+  
+  entitiesForRendering.sort(compareEntityRenderThing);
+  
+  renderSortedEntities(entitiesForRendering);
+  entitiesForRendering.clear();
+  
+  // renderEntities(level->getEntityList(0), cameraPosition,
+  // 		   tileMap->getTileChunkSize());
   
   renderEntities(level->getEntityList(1), cameraPosition,
 		 tileMap->getTileChunkSize());
@@ -79,43 +94,42 @@ LevelRenderer::getEntityListForRendering(const EntityList& entityList,
 				       EntityPosition& cameraPosition,
 				       const Vector2i& tileChunkSize)
 {
-  EntityListForRendering entityListForSorting;
-
+  EntityListForRendering resultEntityList;
+  
   for(auto entityIt = entityList.begin() ; entityIt != entityList.end() ; entityIt++)
   {
     const EntityRenderData& entityRenderData = (*entityIt)->getRenderData();
     Vector2f entityPositionOnScreen = getEntityPositionOnScreen(*entityIt, cameraPosition, tileChunkSize);
     Vector2f dimensions = (*entityIt)->getDimensions() * tileSizeInPixels;
+
     
-    EntityRenderThing entityRenderThing(entityRenderData, entityPositionOnScreen, dimensions);
-    entityListForSorting.push_back(entityRenderThing);
+    RenderThing* renderThing = new EntityRenderThing(entityPositionOnScreen.y + dimensions.y,
+						     entityRenderData, entityPositionOnScreen,
+						     dimensions);
+    
+    resultEntityList.push_back(RenderThingPtr(renderThing));
   }
   
-  return entityListForSorting;
+  return resultEntityList;
 }
 
 void
-LevelRenderer::renderEntitiesIfBelowBoundary(float boundaryY, FloatRect acceptedPositionBoundary)
+LevelRenderer::renderSortedEntities(EntityListForRendering& entityListForRendering)
 {
-  auto it = entityListForRendering.begin();
-  while(it != entityListForRendering.end())
+  
+  for(auto it = entityListForRendering.begin(); it != entityListForRendering.end(); it++)
   {
-    Vector2f testPosition = it->entityPositionOnScreen + it->dimensions;
-    
-    if(acceptedPositionBoundary.doesContain(testPosition) && boundaryY >= it->entityPositionOnScreen.y)
-    {
-      renderEntity(it->entityRenderData, it->entityPositionOnScreen);
-      
-      it = entityListForRendering.erase(it);
-    }
-    else it++;
+    (*it)->render(this);
   }
+  entityListForRendering.clear();
 }
 
-void
+EntityListForRendering
 LevelRenderer::renderTileChunk(const TileChunkPtr& tileChunk, const Vector2f& screenChunkPosition,
 			       const Vector3i& tileChunkPosition)
 {
+  EntityListForRendering tilesForSortedInChunk;
+  
   sf::RectangleShape rectangleShape = sf::RectangleShape(sf::Vector2f(tileSizeInPixels, tileSizeInPixels));
   
   const TileChunkData& tileChunkData = tileChunk->getTileChunkData();
@@ -165,42 +179,53 @@ LevelRenderer::renderTileChunk(const TileChunkPtr& tileChunk, const Vector2f& sc
       case TILE_TYPE_WALL:
 	{
 	  	  
-	  int tileKind = ((x ^ y ^ (int)tileChunk.get()) % 7) ;
+	  int tileKind = ((x ^ y ^ (int)tileChunk.get()) % 30) ;
 	  tileKind = abs(tileKind);
+	  tileKind++;
 	  
 	  screenTilePosition.y -= (wallHeight - 1.0f) * tileSizeInPixels;
-	  rectangleShape.setPosition(screenTilePosition);
 	  
-	  rectangleShape.setSize(sf::Vector2f(tileSizeInPixels, tileSizeInPixels * wallHeight));
-	  rectangleShape.setFillColor(sf::Color(150,150,150));
-
 	  sf::Sprite tileSprite;
-	  
 	  float finalScale = tileSizeInPixels / 16.0f;
 	  
 	  WorldPosition tempWorldPosition(tileChunkPosition, Vector2i(x, y));
 	  char surroundingTiles = level->getSurroundingTileData(tempWorldPosition, TILE_TYPE_WALL);
 
 	  std::string spriteName = "wallTop1_";
-	  spriteName += char(((tileKind+1)%10) + '0');
-	    
+	  if(tileKind > 9) spriteName += char(tileKind/10 + '0');
+	  spriteName += char(tileKind%10 + '0');
 	  tileSprite = spriteManager->getSprite(spriteName);
-	    
+	  
 	  tileSprite.setScale(finalScale, finalScale);
 	  tileSprite.setPosition(screenTilePosition - sf::Vector2f(0, tileSizeInPixels));
-	  window->draw(tileSprite);
 
+	  SpriteList spriteList;
+	  spriteList.push_back(tileSprite);
+	  
+	  //window->draw(tileSprite);
+	  
 	  if(!(surroundingTiles & ST_SOUTH))
 	  {
 	    std::string spriteName = "wall1_";
-	    spriteName += char(((tileKind+1)%10) + '0');
+	    int tileKind = ((x ^ y ^ (int)tileChunk.get()) % 7);
+	    tileKind = abs(tileKind);
+	    tileKind++;
+	    
+	    spriteName += char((tileKind%10) + '0');
 	    tileSprite = spriteManager->getSprite(spriteName);
 	    
 	    tileSprite.setScale(finalScale, finalScale);
 	    tileSprite.setPosition(screenTilePosition);
-	  
-	    window->draw(tileSprite);
+
+	    spriteList.push_back(tileSprite);
+	    
+	    //window->draw(tileSprite);
 	  }
+	  
+	  RenderThing* renderThing = new SpriteRenderThing(spriteList,
+							   screenTilePosition.y + tileSizeInPixels * 2);
+	  
+	  tilesForSortedInChunk.push_back(RenderThingPtr(renderThing));
 	  
 	} break;
       case TILE_TYPE_STONE_GROUND:
@@ -208,7 +233,7 @@ LevelRenderer::renderTileChunk(const TileChunkPtr& tileChunk, const Vector2f& sc
 	  rectangleShape.setSize(sf::Vector2f(tileSizeInPixels, tileSizeInPixels));
 	  rectangleShape.setFillColor(sf::Color(128, 128, 128));
 	  
-	  int tileKind = ((x ^ y ^ (int)tileChunk.get()) % 30) ;
+	  int tileKind = ((x ^ y ^ (int)tileChunk.get()) % 60) ;
 	  tileKind = abs(tileKind);
 	  
 	  std::string spriteName = "floor1_";
@@ -244,11 +269,15 @@ LevelRenderer::renderTileChunk(const TileChunkPtr& tileChunk, const Vector2f& sc
       } // switch
     }
   }
+  
+  return tilesForSortedInChunk;
 }
 
-void
+EntityListForRendering
 LevelRenderer::renderTileMap(const TileMapPtr& tileMap, EntityPosition& cameraPosition)
 {
+  EntityListForRendering tilesForSortedRendering;
+  
   //sf::RenderWindow& window = *this->window;
   const sf::Vector2u windowDimensions = window->getSize();
   const TileChunkMap& tileChunkMap = tileMap->getTileChunkMap();
@@ -314,11 +343,16 @@ LevelRenderer::renderTileMap(const TileMapPtr& tileMap, EntityPosition& cameraPo
       // If The Chunk Doesn't Exist We don't render anything
       if(tileChunkMap.count(tileChunkPosition))
       {
-	renderTileChunk(tileChunkMap.at(tileChunkPosition), screenChunkPosition, tileChunkPosition);
+	EntityListForRendering tilesForSortedInChunk = renderTileChunk(tileChunkMap.at(tileChunkPosition),
+								       screenChunkPosition, tileChunkPosition);
+
+	// It Moves Data 
+	tilesForSortedRendering.splice(tilesForSortedRendering.end(), tilesForSortedInChunk);
       }
     }
   }
   
+  return tilesForSortedRendering;
 }
 
 void
@@ -347,12 +381,13 @@ LevelRenderer::renderEntity(const EntityRenderData& entityRenderData, Vector2f e
       case PT_CIRCLE:
 	{
 	  sf::CircleShape circleShape;
-	  circleShape.setOutlineThickness(0);
+	  circleShape.setOutlineThickness(1.0f * (tileSizeInPixels / 40.0f));
 	  
 	  circleShape.setRadius(entityDimensions.x * tileSizeInPixels * 0.5f);
 	  circleShape.setScale(1.0f,
 			       (entityDimensions.y * tileSizeInPixels) / (entityDimensions.x * tileSizeInPixels));
 	  circleShape.setFillColor(entityColor);
+	  circleShape.setOutlineColor(sf::Color::Black);
 	  circleShape.setPosition(entityPositionOnScreen.x, entityPositionOnScreen.y);
 
 	  window->draw(circleShape);
@@ -503,3 +538,15 @@ LevelRenderer::renderEntities(const EntityList& entityList, EntityPosition& came
     renderEntity(entityRenderData, entityPositionOnScreen);
   }
 }
+
+void
+LevelRenderer::renderSprites(const SpriteList& spriteList)
+{
+  
+  for(auto i = spriteList.begin(); i != spriteList.end(); i++)
+  {
+    window->draw(*i);
+  }
+  
+}
+

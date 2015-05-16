@@ -4,35 +4,55 @@
 #include "Level.h"
 #include "SpriteManager.h"
 
+typedef std::list<sf::Sprite> SpriteList;
 
-class EntityRenderThing{
+class LevelRenderer;
+class RenderThing {
 public:
-  union {
-    struct{
-      const EntityRenderData& entityRenderData;
-      Vector2f entityPositionOnScreen;
-      Vector2f dimensions;
-    };
-    struct {
-      TILE_TYPE tileType;
-      Vector2f screenTilePosition;
-      void* helperPointer;
-    };
-  };  
-  EntityRenderThing(const EntityRenderData& entityRenderData,
-		    Vector2f entityPositionOnScreen,
-		    const Vector2f& dimensions) :
-    entityRenderData(entityRenderData),
-    entityPositionOnScreen(entityPositionOnScreen),
-    dimensions(dimensions) {}
+  RenderThing(bool entityThing, float bottomY) : entityThing(entityThing), bottomY(bottomY) {};
+  virtual ~RenderThing() {};
+  virtual bool isEntity() { return entityThing; }
+
+  virtual void render(LevelRenderer* levelRenderer) = 0;
+  
+  bool entityThing;
+  float bottomY;
 };
-typedef std::list<EntityRenderThing> EntityListForRendering;
+
+typedef std::shared_ptr<RenderThing> RenderThingPtr;
+
+class EntityRenderThing : public RenderThing {
+public:
+  const EntityRenderData& entityRenderData;
+  Vector2f entityPositionOnScreen;
+  Vector2f dimensions;
+
+  EntityRenderThing(float bottomY, const EntityRenderData& entityRenderData,
+		    Vector2f entityPositionOnScreen, Vector2f dimensions) :
+    RenderThing(true, bottomY), entityRenderData(entityRenderData),
+    entityPositionOnScreen(entityPositionOnScreen), dimensions(dimensions) {}
+
+  void render(LevelRenderer* levelRenderer);
+};
+
+class SpriteRenderThing : public RenderThing {
+public:
+  SpriteList sprites;
+  SpriteRenderThing(const SpriteList& sprites, float bottomY) :
+    RenderThing(false, bottomY), sprites(sprites) {}
+  
+  void render(LevelRenderer* levelRenderer);
+};
+typedef std::list<RenderThingPtr> EntityListForRendering;
 
 // Comparison function for sorting
-bool compareEntityRenderThing(const EntityRenderThing& ent1, const EntityRenderThing& ent2);
+bool compareEntityRenderThing(const RenderThingPtr& ent1, const RenderThingPtr& ent2);
 
 class LevelRenderer{
 public:
+  friend class EntityRenderThing;
+  friend class SpriteRenderThing;
+  
   LevelRenderer();
   
   void setWindow(sf::RenderWindow* window) { this->window = window; }
@@ -50,8 +70,6 @@ private:
   SpriteManager* spriteManager;
   Level* level;
   
-  EntityListForRendering entityListForRendering;
-  
   Vector2f getEntityPositionOnScreen(const EntityPtr& entity, EntityPosition& cameraPosition,
 				     const Vector2i& tileChunkSize) const;
   
@@ -62,18 +80,21 @@ private:
 						   const Vector2i& tileChunkSize);
   
   // Renders Entities that are in bounds of a chunk that is rendered
-  void renderEntitiesIfBelowBoundary(float boundaryY, FloatRect acceptedPositionBoundary);
+  void renderSortedEntities(EntityListForRendering& entityListForRendering);
+
+  // Returns List Of RenderObjects For Tiles that have to be sorted for rendering
+  EntityListForRendering renderTileChunk(const TileChunkPtr& tileChunk, const Vector2f& screenChunkPosition,
+					 const Vector3i& tileChunkPosition);
   
-  
-  void renderTileChunk(const TileChunkPtr& tileChunk, const Vector2f& screenChunkPosition,
-		       const Vector3i& tileChunkPosition);
-  
-  void renderTileMap(const TileMapPtr& tileMap, EntityPosition& cameraPosition);
+  EntityListForRendering renderTileMap(const TileMapPtr& tileMap, EntityPosition& cameraPosition);
   
   void renderEntity(const EntityRenderData& entityRenderData, Vector2f entityPositionOnScreen);
   
   void renderEntities(const EntityList& entityList, EntityPosition& cameraPosition,
 		      const Vector2i& tileChunkSize);
+
+  void renderSprites(const SpriteList& spriteList);
+
 
   
 };

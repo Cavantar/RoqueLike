@@ -1,0 +1,50 @@
+TARGET = "RoqueLike.exe"
+SrcDir = ../code/
+CC=cl
+
+SOURCES = main.cpp Game.cpp EntityPosition.cpp Event.cpp EventManager.cpp PlayerHud.cpp TileMap.cpp LevelGenerator.cpp Level.cpp Input.cpp Entity.cpp LevelRenderer.cpp
+
+# OBJECTS=$(SOURCES:.cpp=.obj)
+# FULLPATHSOURCES = $(patsubst %, $(SrcDir)%, $(SOURCES))
+
+LIBS = sfml-graphics-s.lib sfml-window-s.lib sfml-system-s.lib opengl32.lib winmm.lib gdi32.lib freetype.lib glew.lib jpeg.lib user32.lib Advapi32.lib 
+
+SfmlDirectory = D:/Libs/SFML-2.2-64
+IncludeDirectory = $SfmlDirectory/include
+LibraryDirectory = $SfmlDirectory/lib
+
+Defines = -DSFML_STATIC
+
+CompilerOptions = $Defines -FC -EHsc -MD -MP -wd4503 -Fe$TARGET -I$IncludeDirectory -c
+LinkerOptions = -LIBPATH:$LibraryDirectory
+
+CodeDirectory = ../code/
+BuildDirectory = ../build/
+
+#default RoqueLike
+
+msvc_deps_prefix = Note: including file:
+
+rule cc
+     deps = msvc
+     command = $CC $CompilerOptions /showIncludes /nologo /Fd../build/RoqueLike.pdb ../code/$in /Fo../build/$out
+    
+rule ll
+     command = link $LinkerOptions $LIBS /nologo /out:../build/RoqueLike.exe $in
+
+build ../build/main.obj : cc main.cpp
+build ../build/Game.obj : cc Game.cpp
+build ../build/EntityPosition.obj : cc EntityPosition.cpp
+build ../build/Event.obj : cc Event.cpp
+build ../build/EventManager.obj : cc EventManager.cpp
+build ../build/PlayerHud.obj : cc PlayerHud.cpp
+build ../build/TileMap.obj : cc TileMap.cpp
+build ../build/LevelGenerator.obj : cc LevelGenerator.cpp
+build ../build/Level.obj : cc Level.cpp
+build ../build/Input.obj : cc Input.cpp
+build ../build/Entity.obj : cc Entity.cpp
+build ../build/LevelRenderer.obj : cc LevelRenderer.cpp
+build ../build/SpriteManager.obj : cc SpriteManager.cpp
+
+build RoqueLike : ll ../build/main.obj ../build/Game.obj ../build/EntityPosition.obj ../build/Event.obj ../build/EventManager.obj ../build/PlayerHud.obj ../build/TileMap.obj ../build/LevelGenerator.obj ../build/Level.obj ../build/Input.obj ../build/Entity.obj ../build/LevelRenderer.obj ../build/SpriteManager.obj
+
