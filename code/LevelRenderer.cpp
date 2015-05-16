@@ -1,6 +1,11 @@
 #include "LevelRenderer.h"
 #include <iostream>
 
+bool compareEntityRenderThing(const EntityRenderThing& ent1, const EntityRenderThing& ent2)
+{
+  return (ent1.entityPositionOnScreen.y + ent1.dimensions.y) < (ent2.entityPositionOnScreen.y + ent2.dimensions.y);
+}
+
 LevelRenderer::LevelRenderer() : window(NULL), tileSizeInPixels(0)
 {
   bool loadedFont = font.loadFromFile("chiller.ttf");
@@ -11,29 +16,112 @@ void
 LevelRenderer::renderLevel(const LevelPtr& level, EntityPosition& cameraPosition)
 {
   assert(window);
-
+  
+  this->level = level.get();
+  
   const TileMapPtr& tileMap = level->getTileMap();
   
+  entityListForRendering = getEntityListForRendering(level->getEntityList(0), cameraPosition,
+						     tileMap->getTileChunkSize());
+  entityListForRendering.sort(compareEntityRenderThing);
+  
   renderTileMap(tileMap, cameraPosition);
-  renderEntities(level->getEntityList(0), cameraPosition,
-		 tileMap->getTileChunkSize());
+
+  entityListForRendering.clear();
+  
+  // std::cout << " front: " << entityListForRendering.front().bottomY << std::endl;
+  // std::cout << " back: " << entityListForRendering.back().bottomY << std::endl;
+  
+   renderEntities(level->getEntityList(0), cameraPosition,
+   		 tileMap->getTileChunkSize());
   
   renderEntities(level->getEntityList(1), cameraPosition,
 		 tileMap->getTileChunkSize());
+  
+}
 
+Vector2f
+LevelRenderer::getEntityPositionOnScreen(const EntityPtr& entity, EntityPosition& cameraPosition,
+					 const Vector2i& tileChunkSize) const
+{
+  const sf::Vector2u windowDimensions = window->getSize();
+  
+  float tileChunkWidthInPixels = (float)tileChunkSize.x * tileSizeInPixels;
+  float tileChunkHeightInPixels = (float)tileChunkSize.y * tileSizeInPixels;
+  
+  // cameraPosition identifies center of the viewport so we have to translate it
+  
+  float tilesPerScreenWidth = (float)windowDimensions.x/tileSizeInPixels;
+  float tilesPerScreenHeight = (float)windowDimensions.y/tileSizeInPixels;
+  
+  EntityPosition topLeftViewport = cameraPosition;
+  topLeftViewport.tileOffset.x -= tilesPerScreenWidth / 2.0f;
+  topLeftViewport.tileOffset.y -= tilesPerScreenHeight / 2.0f;
+  
+  topLeftViewport.recanonicalize(tileChunkSize);
+  
+  // CameraPosition in Pixels Inside The Chunk
+  Vector2f cameraOffset((float) topLeftViewport.worldPosition.tilePosition.x * tileSizeInPixels,
+			(float) topLeftViewport.worldPosition.tilePosition.y * tileSizeInPixels);
+  
+  const EntityPosition& position = entity->getPosition();
+  Vector2f entityPositionOnScreen = EntityPosition::calculateDistanceInTiles(topLeftViewport,
+									     position,
+									     tileChunkSize);
+  // Converting Position To Pixels
+  entityPositionOnScreen *= tileSizeInPixels;
+
+  return entityPositionOnScreen;
+}
+
+EntityListForRendering
+LevelRenderer::getEntityListForRendering(const EntityList& entityList,
+				       EntityPosition& cameraPosition,
+				       const Vector2i& tileChunkSize)
+{
+  EntityListForRendering entityListForSorting;
+
+  for(auto entityIt = entityList.begin() ; entityIt != entityList.end() ; entityIt++)
+  {
+    const EntityRenderData& entityRenderData = (*entityIt)->getRenderData();
+    Vector2f entityPositionOnScreen = getEntityPositionOnScreen(*entityIt, cameraPosition, tileChunkSize);
+    Vector2f dimensions = (*entityIt)->getDimensions() * tileSizeInPixels;
+    
+    EntityRenderThing entityRenderThing(entityRenderData, entityPositionOnScreen, dimensions);
+    entityListForSorting.push_back(entityRenderThing);
+  }
+  
+  return entityListForSorting;
+}
+
+void
+LevelRenderer::renderEntitiesIfBelowBoundary(float boundaryY, FloatRect acceptedPositionBoundary)
+{
+  auto it = entityListForRendering.begin();
+  while(it != entityListForRendering.end())
+  {
+    Vector2f testPosition = it->entityPositionOnScreen + it->dimensions;
+    
+    if(acceptedPositionBoundary.doesContain(testPosition) && boundaryY >= it->entityPositionOnScreen.y)
+    {
+      renderEntity(it->entityRenderData, it->entityPositionOnScreen);
+      
+      it = entityListForRendering.erase(it);
+    }
+    else it++;
+  }
 }
 
 void
 LevelRenderer::renderTileChunk(const TileChunkPtr& tileChunk, const Vector2f& screenChunkPosition,
-				    const float tileSize)
+			       const Vector3i& tileChunkPosition)
 {
-  sf::RectangleShape rectangleShape = sf::RectangleShape(sf::Vector2f(tileSize, tileSize));
-  //rectangleShape.setOutlineThickness(1.0f * (tileSize / 20.0f));
-
+  sf::RectangleShape rectangleShape = sf::RectangleShape(sf::Vector2f(tileSizeInPixels, tileSizeInPixels));
+  
   const TileChunkData& tileChunkData = tileChunk->getTileChunkData();
   const sf::Vector2u windowDimensions = window->getSize();
   
-  static const float wallHeight = 1.0f;
+  static const float wallHeight = 2.0f;
   
   int tileChunkHeight = tileChunkData.size();
   int tileChunkWidth = tileChunkData[0].size();
@@ -44,12 +132,14 @@ LevelRenderer::renderTileChunk(const TileChunkPtr& tileChunk, const Vector2f& sc
   int minY = 0;
   int maxY = tileChunkHeight;
 
-  if(screenChunkPosition.x < 0) minX = (-screenChunkPosition.x / tileSize);
-  if(screenChunkPosition.y < 0) minY = (-screenChunkPosition.y / tileSize);
+  if(screenChunkPosition.x < 0) minX = (-screenChunkPosition.x / tileSizeInPixels);
+  if(screenChunkPosition.y < 0) minY = (-screenChunkPosition.y / tileSizeInPixels);
   
-  if(screenChunkPosition.x > windowDimensions.x) maxX -= (screenChunkPosition.x - windowDimensions.x) / tileSize;
-  if(screenChunkPosition.y > windowDimensions.y) maxY -= (screenChunkPosition.y - windowDimensions.y) / tileSize;
+  if(screenChunkPosition.x > windowDimensions.x)
+    maxX -= (screenChunkPosition.x - windowDimensions.x) / tileSizeInPixels;
   
+  if(screenChunkPosition.y > windowDimensions.y)
+    maxY -= (screenChunkPosition.y - windowDimensions.y) / tileSizeInPixels;
   
   sf::Vector2f screenTilePosition = sf::Vector2f(screenChunkPosition.x, screenChunkPosition.y);
   rectangleShape.setPosition(screenTilePosition);
@@ -65,8 +155,8 @@ LevelRenderer::renderTileChunk(const TileChunkPtr& tileChunk, const Vector2f& sc
 	continue;
       }
 
-      screenTilePosition = sf::Vector2f(screenChunkPosition.x + (x * tileSize),
-					screenChunkPosition.y + (y * tileSize));
+      screenTilePosition = sf::Vector2f(screenChunkPosition.x + (x * tileSizeInPixels),
+					screenChunkPosition.y + (y * tileSizeInPixels));
       
       rectangleShape.setPosition(screenTilePosition);
       
@@ -74,30 +164,84 @@ LevelRenderer::renderTileChunk(const TileChunkPtr& tileChunk, const Vector2f& sc
       {
       case TILE_TYPE_WALL:
 	{
-	  screenTilePosition.y -= (wallHeight - 1.0f) * tileSize;
+	  	  
+	  int tileKind = ((x ^ y ^ (int)tileChunk.get()) % 7) ;
+	  tileKind = abs(tileKind);
+	  
+	  screenTilePosition.y -= (wallHeight - 1.0f) * tileSizeInPixels;
 	  rectangleShape.setPosition(screenTilePosition);
 	  
-	  rectangleShape.setSize(sf::Vector2f(tileSize, tileSize * wallHeight));
+	  rectangleShape.setSize(sf::Vector2f(tileSizeInPixels, tileSizeInPixels * wallHeight));
 	  rectangleShape.setFillColor(sf::Color(150,150,150));
+
+	  sf::Sprite tileSprite;
+	  
+	  float finalScale = tileSizeInPixels / 16.0f;
+	  
+	  WorldPosition tempWorldPosition(tileChunkPosition, Vector2i(x, y));
+	  char surroundingTiles = level->getSurroundingTileData(tempWorldPosition, TILE_TYPE_WALL);
+
+	  std::string spriteName = "wallTop1_";
+	  spriteName += char(((tileKind+1)%10) + '0');
+	    
+	  tileSprite = spriteManager->getSprite(spriteName);
+	    
+	  tileSprite.setScale(finalScale, finalScale);
+	  tileSprite.setPosition(screenTilePosition - sf::Vector2f(0, tileSizeInPixels));
+	  window->draw(tileSprite);
+
+	  if(!(surroundingTiles & ST_SOUTH))
+	  {
+	    std::string spriteName = "wall1_";
+	    spriteName += char(((tileKind+1)%10) + '0');
+	    tileSprite = spriteManager->getSprite(spriteName);
+	    
+	    tileSprite.setScale(finalScale, finalScale);
+	    tileSprite.setPosition(screenTilePosition);
+	  
+	    window->draw(tileSprite);
+	  }
+	  
 	} break;
       case TILE_TYPE_STONE_GROUND:
 	{
-	  rectangleShape.setSize(sf::Vector2f(tileSize, tileSize));
+	  rectangleShape.setSize(sf::Vector2f(tileSizeInPixels, tileSizeInPixels));
 	  rectangleShape.setFillColor(sf::Color(128, 128, 128));
+	  
+	  int tileKind = ((x ^ y ^ (int)tileChunk.get()) % 30) ;
+	  tileKind = abs(tileKind);
+	  
+	  std::string spriteName = "floor1_";
+	  if((tileKind+1) > 9) spriteName += char(((tileKind+1)/10) + '0');
+	  spriteName += char(((tileKind+1)%10) + '0');
+	  
+	  sf::Sprite tileSprite = spriteManager->getSprite(spriteName);
+
+	  float finalScale = tileSizeInPixels / 16.0f;
+	  
+	  tileSprite.setScale(finalScale, finalScale);
+	  tileSprite.setPosition(screenTilePosition);
+	  
+	  window->draw(tileSprite);
+	  
 	} break;
       case TILE_TYPE_ICE_GROUND:
 	{
-	  rectangleShape.setSize(sf::Vector2f(tileSize, tileSize));
+	  rectangleShape.setSize(sf::Vector2f(tileSizeInPixels, tileSizeInPixels));
 	  rectangleShape.setFillColor(sf::Color(165,242, 243));
+	  
+	  window->draw(rectangleShape);
+
 	} break;
       case TILE_TYPE_SPEED_GROUND:
 	{
-	  rectangleShape.setSize(sf::Vector2f(tileSize, tileSize));
+	  rectangleShape.setSize(sf::Vector2f(tileSizeInPixels, tileSizeInPixels));
 	  rectangleShape.setFillColor(sf::Color(250,128,114));
+	  
+	  window->draw(rectangleShape);
+	  
 	} break;
-      }
-      
-      window->draw(rectangleShape);
+      } // switch
     }
   }
 }
@@ -170,7 +314,7 @@ LevelRenderer::renderTileMap(const TileMapPtr& tileMap, EntityPosition& cameraPo
       // If The Chunk Doesn't Exist We don't render anything
       if(tileChunkMap.count(tileChunkPosition))
       {
-	renderTileChunk(tileChunkMap.at(tileChunkPosition), screenChunkPosition, tileSizeInPixels);
+	renderTileChunk(tileChunkMap.at(tileChunkPosition), screenChunkPosition, tileChunkPosition);
       }
     }
   }
@@ -178,7 +322,7 @@ LevelRenderer::renderTileMap(const TileMapPtr& tileMap, EntityPosition& cameraPo
 }
 
 void
-LevelRenderer::render(const EntityRenderData& entityRenderData, Vector2f entityPositionOnScreen)
+LevelRenderer::renderEntity(const EntityRenderData& entityRenderData, Vector2f entityPositionOnScreen)
 {
   const sf::Vector2u windowDimensions = window->getSize();
   
@@ -224,11 +368,24 @@ LevelRenderer::render(const EntityRenderData& entityRenderData, Vector2f entityP
       
       // this should be read from the sprite object
       sf::Vector2f entityDimensions;
-
-      // Temporarily
-      if(entityRenderData.spriteName == "Player") entityDimensions = sf::Vector2f(0.8f, 2.0f);
-      else entityDimensions = sf::Vector2f(1.0f, 1.0f);
       
+      sf::Sprite mobSprite = spriteManager->getSprite(entityRenderData.spriteName);
+      
+      // CONSTANT ALERT !!!
+      
+      float finalScale = tileSizeInPixels / 16.0f;
+      mobSprite.setScale(finalScale, finalScale);
+      mobSprite.setPosition(entityPositionOnScreen.x, entityPositionOnScreen.y);
+      
+      window->draw(mobSprite);
+      
+      entityDimensions = sf::Vector2f(mobSprite.getTextureRect().width / 16.0f,
+				      mobSprite.getTextureRect().height / 16.0f );
+      
+      // // Temporarily
+      // if(entityRenderData.spriteName == "Player") entityDimensions = sf::Vector2f(0.8f, 2.0f);
+      // else entityDimensions = sf::Vector2f(1.0f, 1.0f);
+	
       sf::Vector2f entityDimensionsInPixels = entityDimensions * tileSizeInPixels;
       
       if(entityPositionOnScreen.x + entityDimensionsInPixels.x < 0 ||
@@ -241,7 +398,7 @@ LevelRenderer::render(const EntityRenderData& entityRenderData, Vector2f entityP
       rectangleShape.setFillColor(sf::Color::Blue);
       rectangleShape.setPosition(entityPositionOnScreen.x, entityPositionOnScreen.y);
       
-      window->draw(rectangleShape);
+      //window->draw(rectangleShape);
       
       // Drawing Life Bar
       
@@ -336,48 +493,13 @@ LevelRenderer::render(const EntityRenderData& entityRenderData, Vector2f entityP
 }
 
 void
-LevelRenderer::renderEntity(const EntityPtr& entity, EntityPosition& cameraPosition,
-				 const Vector2i& tileChunkSize)
-{
-  const sf::Vector2u windowDimensions = window->getSize();
-  
-  float tileChunkWidthInPixels = (float)tileChunkSize.x * tileSizeInPixels;
-  float tileChunkHeightInPixels = (float)tileChunkSize.y * tileSizeInPixels;
-  
-  // cameraPosition identifies center of the viewport so we have to translate it
-  
-  float tilesPerScreenWidth = (float)windowDimensions.x/tileSizeInPixels;
-  float tilesPerScreenHeight = (float)windowDimensions.y/tileSizeInPixels;
-  
-  EntityPosition topLeftViewport = cameraPosition;
-  topLeftViewport.tileOffset.x -= tilesPerScreenWidth / 2.0f;
-  topLeftViewport.tileOffset.y -= tilesPerScreenHeight / 2.0f;
-  
-  topLeftViewport.recanonicalize(tileChunkSize);
-  
-  // CameraPosition in Pixels Inside The Chunk
-  Vector2f cameraOffset((float) topLeftViewport.worldPosition.tilePosition.x * tileSizeInPixels,
-			(float) topLeftViewport.worldPosition.tilePosition.y * tileSizeInPixels);
-
-  const EntityPosition& position = entity->getPosition();
-  Vector2f entityPositionOnScreen = EntityPosition::calculateDistanceInTiles(topLeftViewport,
-									     position,
-									     tileChunkSize);
-  
-  // Converting Position To Pixels
-  entityPositionOnScreen *= tileSizeInPixels;
-  
-  const EntityRenderData& entityRenderData = entity->getRenderData();
-  
-  render(entityRenderData, entityPositionOnScreen);
-}
-
-void
 LevelRenderer::renderEntities(const EntityList& entityList, EntityPosition& cameraPosition,
-				   const Vector2i& tileChunkSize)
+			      const Vector2i& tileChunkSize)
 {
   for(auto entityIt = entityList.begin(); entityIt != entityList.end(); entityIt++)
   {
-    renderEntity(*entityIt, cameraPosition, tileChunkSize);
+    Vector2f entityPositionOnScreen = getEntityPositionOnScreen(*entityIt, cameraPosition, tileChunkSize);
+    const EntityRenderData& entityRenderData = (*entityIt)->getRenderData();
+    renderEntity(entityRenderData, entityPositionOnScreen);
   }
 }

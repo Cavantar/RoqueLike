@@ -20,6 +20,17 @@ struct CollisionCheckData{
 
 const int numbOfEntityLayers = 2;
 
+enum SURROUNDING_TILE{
+  ST_NORTH = 1,
+  ST_NORTH_EAST = 2,
+  ST_EAST = 4,
+  ST_SOUTH_EAST = 8,
+  ST_SOUTH = 16,
+  ST_SOUTH_WEST = 32,
+  ST_WEST = 64,
+  ST_NORTH_WEST = 128
+};
+
 class Level : public ILevel{
 public:
   Level(); 
@@ -39,9 +50,11 @@ public:
   void removeDeadEntities();
 
   EntityCollisionResult checkCollisions(const Entity* entity, Vector2f deltaVector) const ;
-
+  
   float getFrictionValueAtPosition(EntityPosition& entityPosition) const; 
   float getAccelerationModifierAtPosition(EntityPosition& entityPosition) const; 
+  char getSurroundingTileData(const WorldPosition& worldPosition, TILE_TYPE tileType);
+
   
   // Event Operator
   EventNameList getEntityEvents();

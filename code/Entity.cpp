@@ -392,8 +392,7 @@ Mob::spawnXp(int xpToSpawn) const
 Cannon::Cannon(const EntityPosition& position, int level) : Mob(position, level)
 {
   dimensions = Vector2f(1.0f, 1.0f);
-  renderData.spriteName = "Cannon";
-  renderData.color = Vector3f();
+  renderData.spriteName = "cannonBase";
   
   std::stringstream caption;
   caption << "Cannon lvl: " << level;  
@@ -414,7 +413,7 @@ Cannon::update(const float lastDelta)
   {
     localTime = fmodf(localTime, shootPeriod);
     Player* player = level->getPlayer();
-
+    
     if(player)
     {
       EntityPosition playerPosition = player->getCollisionCenter();
@@ -452,10 +451,10 @@ Cannon::performDeathAction()
 
 Player::Player(const EntityPosition& position) : Mob(position, 1, 1.0f)
 {
-  dimensions = Vector2f(0.8f, 2.0f);
-  renderData.spriteName = "Player";
+  dimensions = Vector2f(1.0f, 2.0f);
+  renderData.spriteName = "playerBase";
   renderData.caption = "Player";
-
+  
   damageValue = 1.0f;
 }
 
@@ -494,6 +493,13 @@ Player::onEntityCollision(COLLISION_PLANE collisionPlane, Entity* entity)
   
   velocity = getReflectedVelocity(collisionPlane, speedIncrease);
 }
+FloatRect Player::getCollisionRect() const
+{
+  const float width = 0.5f;
+  const float height = 0.3f;
+  return FloatRect(width / 2.0f, 2.0f - height, width, height);
+}
+
 
 void
 Player::addXp(const float amount)

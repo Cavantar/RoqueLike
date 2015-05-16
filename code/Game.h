@@ -7,6 +7,7 @@
 #include "PlayerHud.h"
 #include "LevelRenderer.h" 
 #include "LevelGenerator.h"
+#include "SpriteManager.h"
 
 class Game;
 class GameState{
@@ -55,6 +56,7 @@ class PlayGameState : public GameState {
   
 private:
   EventManager eventManager;
+  SpriteManager spriteManager;
   LevelRenderer levelRenderer;
   LevelGenerator* levelGenerator;
   LevelPtr level;

@@ -87,6 +87,9 @@ public:
   
   virtual Vector2f getVelocity() const  { return Vector2f(); }
   virtual void addVelocity(Vector2f velocity) {}
+
+  // For Ordering During Rendering 
+  virtual Vector2f getDimensions() const { return Vector2f();}
   
   // Collision Stuff
   virtual FloatRect getCollisionRect() const { return FloatRect();}
@@ -136,8 +139,8 @@ private:
 
 class Moveable : public Entity {
  public:
-  const Vector2f& getDimensions() const { return dimensions; }
-  FloatRect getCollisionRect() const ;
+  Vector2f getDimensions() const { return dimensions; }
+  virtual FloatRect getCollisionRect() const ;
   
   Vector2f getVelocity() const { return velocity; }
   void addVelocity(Vector2f velocity) { this->velocity += velocity; }
@@ -147,6 +150,8 @@ class Moveable : public Entity {
   
   Vector2f getReflectedVelocity(COLLISION_PLANE collisionPlane, float speedIncrease) const ;
   float getMovementSpeed() const { return metersPerSecondSquared; }
+
+  float getBottomY() const { return dimensions.y; }
   
 protected:
   Vector2f dimensions;
@@ -264,6 +269,7 @@ class Player : public Mob {
   void update(const float lastDelta);
   void onWorldCollision(COLLISION_PLANE worldCollisionType);
   void onEntityCollision(COLLISION_PLANE worldCollisionType, Entity* entity);
+  FloatRect getCollisionRect() const;
   
   void handlePlayerInput(const PlayerInput& playerInput);
   void performDeathAction();

@@ -167,6 +167,31 @@ Level::getAccelerationModifierAtPosition(EntityPosition& entityPosition) const
   return accelerationModifier;
 }
 
+char
+Level::getSurroundingTileData(const WorldPosition& worldPosition, TILE_TYPE tileType)
+{
+  char result = 0;
+  
+  if(tileMap->getTileType(worldPosition + Vector2i(0.0f, -1.0f)) == tileType)
+    result |= ST_NORTH;
+  if(tileMap->getTileType(worldPosition + Vector2i(1.0f, -1.0f)) == tileType)
+    result |= ST_NORTH_EAST;
+  if(tileMap->getTileType(worldPosition + Vector2i(1.0f, 0.0f)) == tileType)
+    result |= ST_EAST;
+  if(tileMap->getTileType(worldPosition + Vector2i(1.0f, 1.0f)) == tileType)
+    result |= ST_SOUTH_EAST;
+  if(tileMap->getTileType(worldPosition + Vector2i(0.0f, 1.0f)) == tileType)
+    result |= ST_SOUTH;
+  if(tileMap->getTileType(worldPosition + Vector2i(-1.0f, 1.0f)) == tileType)
+    result |= ST_SOUTH_WEST;
+  if(tileMap->getTileType(worldPosition + Vector2i(-1.0f, 0.0f)) == tileType)
+    result |= ST_WEST;
+  if(tileMap->getTileType(worldPosition + Vector2i(-1.0f, -1.0f)) == tileType)
+    result |= ST_NORTH_WEST;
+  
+  return result;
+}
+
 TileList
 Level::getAffectedTiles(const CollisionCheckData& collisionCheckData) const
 {

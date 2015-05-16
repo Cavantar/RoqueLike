@@ -14,6 +14,7 @@
 #include "Level.cpp"
 #include "LevelRenderer.cpp"
 #include "LevelGenerator.cpp"
+#include "SpriteManager.cpp"
 
 #endif
 

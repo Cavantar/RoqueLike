@@ -79,7 +79,7 @@ void Game::start()
     window.clear();
     gameState->render(this);
     window.display();
-    
+
     // Time Handling
     lastDelta = clock.restart().asSeconds();
     setWindowTitleToFps();
@@ -101,7 +101,11 @@ void PlayGameState::render(Game* game)
   {
     playerHud.render(player);
   }
-  
+
+  sf::Sprite tempSprite = spriteManager.getSprite("playerBase");
+  float tempScale = 8.0f;
+  tempSprite.setScale(tempScale, tempScale);
+  game->window.draw(tempSprite);
 }
 
 void PlayGameState::enter(Game* game)
@@ -113,9 +117,19 @@ void PlayGameState::enter(Game* game)
   
   levelRenderer.setWindow(&game->window);
   levelRenderer.setTileSize(worldScale * baseTileSizeInPixels);
-
+  
   playerHud.setWindow(&game->window);
   playerHud.setFont(levelRenderer.getFont());
+  
+  spriteManager.loadTexture("myTileset.png");
+  spriteManager.loadSprite("first", IntRect(16, 16 * 4, 16, 16));
+  spriteManager.loadSprite("playerBase", IntRect(0, 16 * 4, 16, 32));
+  spriteManager.loadSprite("cannonBase", IntRect(0, 16 * 6, 16, 16));
+  spriteManager.loadSpriteSet("floor1_", IntRect(0, 0, 16, 16), 30);
+  spriteManager.loadSpriteSet("wall1_", IntRect(16, 16 * 4, 16, 32), 7);
+  spriteManager.loadSpriteSet("wallTop1_", IntRect(0, 16 * 7, 16, 16), 30);
+  
+  levelRenderer.setSpriteManager(&spriteManager);
 }  
 
 void PlayGameState::leave(Game* game)
@@ -150,7 +164,7 @@ GameState* PlayGameState::update(Game* game)
   }
   
   handleInput(game);
-
+  
   level->registerPendingEntities(eventManager);
   level->update(game->lastDelta);
   
@@ -163,6 +177,7 @@ GameState* PlayGameState::update(Game* game)
   eventManager.collectEvents();
   eventManager.dispatchEvents();
 
+  
   level->removeDeadEntities();
   
   return NULL;
