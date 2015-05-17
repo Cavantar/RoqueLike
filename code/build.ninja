@@ -2,12 +2,18 @@ TARGET = "RoqueLike.exe"
 SrcDir = ../code/
 CC=cl
 
-SOURCES = main.cpp Game.cpp EntityPosition.cpp Event.cpp EventManager.cpp PlayerHud.cpp TileMap.cpp LevelGenerator.cpp Level.cpp Input.cpp Entity.cpp LevelRenderer.cpp
-
-# OBJECTS=$(SOURCES:.cpp=.obj)
-# FULLPATHSOURCES = $(patsubst %, $(SrcDir)%, $(SOURCES))
-
-LIBS = sfml-graphics-s.lib sfml-window-s.lib sfml-system-s.lib opengl32.lib winmm.lib gdi32.lib freetype.lib glew.lib jpeg.lib user32.lib Advapi32.lib 
+LIBS = $
+sfml-graphics-s.lib $
+sfml-window-s.lib $
+sfml-system-s.lib $
+opengl32.lib $
+winmm.lib $
+gdi32.lib $
+freetype.lib $
+glew.lib $
+jpeg.lib $
+user32.lib $
+Advapi32.lib 
 
 SfmlDirectory = D:/Libs/SFML-2.2-64
 IncludeDirectory = $SfmlDirectory/include
@@ -46,5 +52,18 @@ build ../build/Entity.obj : cc Entity.cpp
 build ../build/LevelRenderer.obj : cc LevelRenderer.cpp
 build ../build/SpriteManager.obj : cc SpriteManager.cpp
 
-build RoqueLike : ll ../build/main.obj ../build/Game.obj ../build/EntityPosition.obj ../build/Event.obj ../build/EventManager.obj ../build/PlayerHud.obj ../build/TileMap.obj ../build/LevelGenerator.obj ../build/Level.obj ../build/Input.obj ../build/Entity.obj ../build/LevelRenderer.obj ../build/SpriteManager.obj
+build RoqueLike : ll $
+../build/main.obj $
+../build/Game.obj $
+../build/EntityPosition.obj $
+../build/Event.obj $
+../build/EventManager.obj $
+../build/PlayerHud.obj $
+../build/TileMap.obj $
+../build/LevelGenerator.obj $
+../build/Level.obj $
+../build/Input.obj $
+../build/Entity.obj $
+../build/LevelRenderer.obj $
+../build/SpriteManager.obj 
 

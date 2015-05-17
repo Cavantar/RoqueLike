@@ -1,5 +1,7 @@
 ;; Setting Up The Presentation
 
+(setq debug-on-error t)
+
 (load-theme 'tango-dark) 
 (tool-bar-mode -1)
 (menu-bar-mode -1)
@@ -10,7 +12,9 @@
 (visual-line-mode 1)
 
 (setq scroll-conservatively 10000)
+
 (split-window-right)
+
 (setq shift-select-mode nil)
 (display-time-mode 1)
 (delete-selection-mode 1)
@@ -20,10 +24,50 @@
 (electric-pair-mode 1)
 (setq show-paren-delay 0)
 
-(set-default-font "DejaVu Sans Mono")
-(set-face-attribute 'default nil :height 100)
+(set-default-font "DejaVu Sans Mono 10")
 (setq scroll-error-top-bottom t)
 (setq mark-ring-max 2)
+
+(global-visual-line-mode)
+
+;; Make It Split Horizontally by default
+
+(define-globalized-minor-mode 
+  global-text-scale-mode
+  text-scale-mode
+  (lambda () (text-scale-mode 1)))
+
+(defun global-text-scale-adjust (inc) (interactive)
+  (text-scale-set 1)
+  (kill-local-variable 'text-scale-mode-amount)
+  (setq-default text-scale-mode-amount (+ text-scale-mode-amount inc))
+  (global-text-scale-mode 1)
+  )
+
+(global-text-scale-adjust 0)
+(global-text-scale-adjust (- text-scale-mode-amount))
+(global-text-scale-adjust -1)
+
+;;(setq split-height-threshold 9999)
+;;(setq split-width-threshold nil)
+
+;; (defun split-horizontally-for-temp-buffers ()
+;;   "Split the window horizontally for temp buffers."
+;;   (when (one-window-p t) 
+;;     (split-window-horizontally)))
+
+;; (add-hook 'temp-buffer-setup-hook 'split-horizontally-for-temp-buffers)
+
+;; (defun split-window-prefer-horizonally (window)
+;;   "If there's only one window (excluding any possibly active
+;;          minibuffer), then split the current window horizontally."
+;;   (if (and (one-window-p t)
+;; 	   (not (active-minibuffer-window)))
+;;       (let ((split-height-threshold nil))
+;; 	(split-window-sensibly window))
+;;     (split-window-sensibly window)))
+
+;; (setq split-window-preferred-function 'split-window-prefer-horizonally)
 
 ;; CamelCase Stuff
 
@@ -74,9 +118,11 @@
 
 ;; Setting Up Code Stuff
 
-(setq jakub-makescript "build.bat")
-(setq jakub-exe "w:/RoqueLike/build/RoqueLike.exe")
 
+(require 'find-lisp)
+
+(setq makescript-name "build.bat")
+(setq exe-dir "../build/")
 
 (require 'package)
 (add-to-list 'package-archives '("melpa" . "http://melpa.milkbox.net/packages/"))
@@ -143,7 +189,7 @@
   (define-key c-mode-map key func)
   (define-key csharp-mode-map key func)
   (define-key emacs-lisp-mode-map key func)
-  (define-key org-mode-map key func)
+  ;;(define-key org-mode-map key func)
   (define-key ruby-mode-map key func)
   )
 
@@ -191,7 +237,9 @@
 
 (defun my:launch-build ()
   (interactive)
-  (start-process "main" "program_output" jakub-exe)
+  (setq exe-path  (car (find-lisp-find-files exe-dir "\\.exe$")))
+  
+  (start-process "main" "program_output" exe-path)
   
   (other-window -1)
   (switch-to-buffer "program_output")
@@ -238,14 +286,14 @@
   "Make the current build."
   (interactive)
   (save-buffer)
-  (compile jakub-makescript)
+  (compile makescript-name)
   )
 
 (defun ninja-make-without-asking ()
   "Make the current build."
   (interactive)
   (save-buffer)
-  (compile (concat jakub-makescript " ninja"))
+  (compile (concat makescript-name " ninja"))
   )
 
 (defun kill-buffer-other-window ()
