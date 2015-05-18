@@ -64,25 +64,36 @@ void Game::start()
 		"RoqueLike!");
   
   //window.setVerticalSyncEnabled(true);
-  window.setFramerateLimit(120);
+  //window.setFramerateLimit(120);
   
   gameState = new PlayGameState();
   gameState->enter(this);
 			   
   while (window.isOpen())
   {
+    SfmlProfiler::get()->startFrame();
     
+    SfmlProfiler::get()->start("Update");
     processEvents();
     updateGameState();
-    input.clearKeyStates();
+    SfmlProfiler::get()->end("Update");
+    
+    SfmlProfiler::get()->start("Render");
     
     window.clear();
     gameState->render(this);
     window.display();
-
+    
+    SfmlProfiler::get()->end("Render");
+    
     // Time Handling
     lastDelta = clock.restart().asSeconds();
     setWindowTitleToFps();
+
+    SfmlProfiler::get()->endFrame();
+    
+    if(input.isKeyPressed(sf::Keyboard::P)) SfmlProfiler::get()->showData();
+    input.clearKeyStates();
   }
   
 }

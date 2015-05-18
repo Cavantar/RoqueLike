@@ -8,6 +8,7 @@
 #include "LevelRenderer.h" 
 #include "LevelGenerator.h"
 #include "SpriteManager.h"
+#include "Profiler.h"
 
 class Game;
 class GameState{

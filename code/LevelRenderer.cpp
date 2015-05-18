@@ -1,5 +1,6 @@
 #include "LevelRenderer.h"
 #include <iostream>
+#include "Profiler.h"
 
 void EntityRenderThing::render(LevelRenderer* levelRenderer)
 {
@@ -33,18 +34,19 @@ LevelRenderer::renderLevel(const LevelPtr& level, EntityPosition& cameraPosition
 
   EntityListForRendering entitiesForRendering = getEntityListForRendering(level->getEntityList(0), cameraPosition,
 									  tileMap->getTileChunkSize());
-  
+
+  SfmlProfiler::get()->start("BasicTileRender");
   EntityListForRendering tilesForRendering = renderTileMap(tileMap, cameraPosition);
-
-
-  //std::cout << tilesForRendering.size() << std::endl;
+  SfmlProfiler::get()->end("BasicTileRender");
   
   // Combining both lists
   entitiesForRendering.splice(entitiesForRendering.end(), tilesForRendering);
-  
   entitiesForRendering.sort(compareEntityRenderThing);
   
+  SfmlProfiler::get()->start("SortRender");
   renderSortedEntities(entitiesForRendering);
+  SfmlProfiler::get()->end("SortRender");
+
   entitiesForRendering.clear();
   
   // renderEntities(level->getEntityList(0), cameraPosition,
@@ -157,7 +159,7 @@ LevelRenderer::renderTileChunk(const TileChunkPtr& tileChunk, const Vector2f& sc
   
   sf::Vector2f screenTilePosition = sf::Vector2f(screenChunkPosition.x, screenChunkPosition.y);
   rectangleShape.setPosition(screenTilePosition);
-  
+    
   for(int y = minY; y < maxY; ++y)
   {
     
@@ -168,7 +170,7 @@ LevelRenderer::renderTileChunk(const TileChunkPtr& tileChunk, const Vector2f& sc
       {
 	continue;
       }
-
+      
       screenTilePosition = sf::Vector2f(screenChunkPosition.x + (x * tileSizeInPixels),
 					screenChunkPosition.y + (y * tileSizeInPixels));
       
@@ -294,11 +296,11 @@ LevelRenderer::renderTileChunk(const TileChunkPtr& tileChunk, const Vector2f& sc
 	  
 	  window->draw(rectangleShape);
 	  
-	} break;
-      } // switch
-    }
-  }
-  
+	  } break;
+	  } // switch
+	  }
+	  }
+    
   return tilesForSortedInChunk;
 }
 
@@ -307,7 +309,6 @@ LevelRenderer::renderTileMap(const TileMapPtr& tileMap, EntityPosition& cameraPo
 {
   EntityListForRendering tilesForSortedRendering;
   
-  //sf::RenderWindow& window = *this->window;
   const sf::Vector2u windowDimensions = window->getSize();
   const TileChunkMap& tileChunkMap = tileMap->getTileChunkMap();
   
@@ -317,7 +318,6 @@ LevelRenderer::renderTileMap(const TileMapPtr& tileMap, EntityPosition& cameraPo
   tileChunkSizeInPixels *= tileSizeInPixels;
   
   // How many Chunks I have to render
-  
   float chunksPerScreenWidth = (float)windowDimensions.x/tileChunkSizeInPixels.x;
   float chunksPerScreenHeight = (float)windowDimensions.y/tileChunkSizeInPixels.y;
   

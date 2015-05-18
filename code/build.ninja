@@ -21,7 +21,7 @@ LibraryDirectory = $SfmlDirectory/lib
 
 Defines = -DSFML_STATIC
 
-CompilerOptions = $Defines -FC -EHsc -MD -MP -wd4503 -Fe$TARGET -I$IncludeDirectory -c
+CompilerOptions = $Defines -FC -O2 -EHsc -MD -MP -wd4503 -Fe$TARGET -I$IncludeDirectory -c
 LinkerOptions = -LIBPATH:$LibraryDirectory
 
 CodeDirectory = ../code/
@@ -51,6 +51,7 @@ build ../build/Input.obj : cc Input.cpp
 build ../build/Entity.obj : cc Entity.cpp
 build ../build/LevelRenderer.obj : cc LevelRenderer.cpp
 build ../build/SpriteManager.obj : cc SpriteManager.cpp
+build ../build/Profiler.obj : cc Profiler.cpp
 
 build RoqueLike : ll $
 ../build/main.obj $
@@ -65,5 +66,6 @@ build RoqueLike : ll $
 ../build/Input.obj $
 ../build/Entity.obj $
 ../build/LevelRenderer.obj $
-../build/SpriteManager.obj 
+../build/SpriteManager.obj $
+../build/Profiler.obj 
 
