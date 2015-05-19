@@ -37,6 +37,16 @@ OverlayText::update(const float lastDelta)
   {
     die();
   }
+  if(overlayTextData.text == "Leveled Up !")
+  {
+    static const Vector3f colorStart(102, 255, 0);
+    static const Vector3f colorEnd(255, 222, 0);
+    static const float numbOfColorCycles = 5.0f;
+    
+    float temp = fmodf((localTime / overlayTextData.duration) * numbOfColorCycles, 1.0f);
+    if(temp > 0.5f) temp = 1.0f - temp;
+    renderData.textColor = Vector3f::interpolate(colorStart, colorEnd, temp * 2.0f);
+  }
 
   float halfTime = overlayTextData.duration / 2.0f;
   if(localTime > halfTime)
@@ -158,7 +168,7 @@ XpOrb::XpOrb(const EntityPosition& position, const Vector2f& initialVelocity, fl
   renderData.dimensionsInTiles = Vector2f(radius, radius);
   renderData.color = Vector3f(102, 255, 0);
 
-  localTime = rand();
+  localTime = (float)(rand()%255) / 255.0f ;
 }
 
 void
@@ -167,24 +177,13 @@ XpOrb::update(const float lastDelta)
   // Simulate Movement First
   localTime += lastDelta;
 
-  static const float period = 2.0f;
-  static const float halfPeriod = period / 2.0f;
-  if(localTime > period)
-  {
-    localTime = fmodf(localTime, period); 
-  }
-
   static const Vector3f colorStart(102, 255, 0);
   static const Vector3f colorEnd(255, 222, 0);
-  
-  float currentColorTime = 0;  
-  if(localTime < halfPeriod)
-    currentColorTime = localTime / halfPeriod;
-  else
-    currentColorTime = 1.0f - ((localTime - halfPeriod) / halfPeriod);
-  
-  //std::cout << currentColorTime << std::endl;
-  renderData.color = Vector3f::interpolate(colorStart, colorEnd, currentColorTime);
+
+  static const float period = 1.0f;
+  float temp = fmodf(localTime / period, 1.0f);
+  if(temp > 0.5f) temp = 1.0f - temp;
+  renderData.color = Vector3f::interpolate(colorStart, colorEnd, temp * 2.0f);
   
   Player* player = level->getPlayer();
   if(player)
@@ -400,8 +399,8 @@ void
 Mob::spawnXp(int xpToSpawn) const
 {
   assert(!(xpToSpawn%10));
-
-  //xpToSpawn *= 10;
+  
+  //xpToSpawn *= 20;
   while(xpToSpawn)
   {
     float value = -1;
