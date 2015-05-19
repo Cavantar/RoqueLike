@@ -126,7 +126,7 @@ Moveable::getReflectedVelocity(COLLISION_PLANE collisionPlane, float speedIncrea
     reflectedVector.y *= -speedIncrease;
     break;
   }
-
+  
   return reflectedVector;
 }
 
@@ -188,7 +188,6 @@ XpOrb::update(const float lastDelta)
   Player* player = level->getPlayer();
   if(player)
   {
-    
     // Getting Direction To Accelerate Towards
     EntityPosition playerPosition = player->getCollisionCenter();
     Vector2f distanceVector = EntityPosition::calculateDistanceInTiles(position, playerPosition,
@@ -443,8 +442,9 @@ Cannon::update(const float lastDelta)
     localTime = fmodf(localTime, shootPeriod);
     Player* player = level->getPlayer();
     
-    if(player)
+    if(player && level->canSeeEachOther(this, player, 15.0f))
     {
+      
       EntityPosition playerPosition = player->getCollisionCenter();
       Vector2f distanceVector = EntityPosition::calculateDistanceInTiles(position, playerPosition,
 									 level->getTileMap()->getTileChunkSize());
@@ -498,7 +498,7 @@ Follower::update(const float lastDelta)
 {
 
   Player* player = level->getPlayer();
-  if(player)
+  if(player && level->canSeeEachOther(this, player, 15.0f))
   {
     EntityPosition playerPosition = player->getCollisionCenter();
     EntityPosition followerPosition = getCollisionCenter();

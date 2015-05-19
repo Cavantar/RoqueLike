@@ -41,6 +41,7 @@ public:
   void removeDeadEntities();
 
   EntityCollisionResult checkCollisions(const Entity* entity, Vector2f deltaVector) const ;
+  bool canSeeEachOther(const Entity* entity1, const Entity* entity2, float maxRange) const ; 
   
   float getFrictionValueAtPosition(EntityPosition& entityPosition) const; 
   float getAccelerationModifierAtPosition(EntityPosition& entityPosition) const; 

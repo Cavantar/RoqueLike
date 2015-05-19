@@ -99,6 +99,7 @@ public:
   
   // Collision Stuff
   virtual FloatRect getCollisionRect() const { return FloatRect();}
+  virtual EntityPosition getCollisionCenter() const { return position; }
   virtual void onWorldCollision(COLLISION_PLANE worldCollisionType) {}
   virtual void onEntityCollision(COLLISION_PLANE worldCollisionType, Entity* entity) {}
   

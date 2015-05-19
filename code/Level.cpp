@@ -132,6 +132,37 @@ Level::checkCollisions(const Entity* entity, Vector2f deltaVector) const
   return collisionCheckResult;
 }
 
+bool
+Level::canSeeEachOther(const Entity* entity1, const Entity* entity2, float maxRange) const
+{
+  EntityPosition pos1 = entity1->getCollisionCenter();
+  EntityPosition pos2 = entity2->getCollisionCenter();
+
+  Vector2f deltaVector =  EntityPosition::calculateDistanceInTiles(pos1, pos2, tileMap->getTileChunkSize());
+  
+  float deltaLength = deltaVector.getLength();
+  
+  if(deltaLength < maxRange)
+  {
+    Vector2f directionVector = deltaVector / deltaLength;
+    
+    // Distance Between Checked Points
+    // 0.5f because of diagonal
+    
+    float iterationRange = 0.3f;
+    int numbOfIterations = deltaLength / iterationRange;
+    
+    for(int i = 1; i <= numbOfIterations; i++)
+    {
+      pos1 += directionVector * iterationRange;
+      tileMap->recanonicalize(pos1);
+      TILE_TYPE tileType = tileMap->getTileType(pos1.worldPosition);
+      if(tileType == TILE_TYPE_WALL) return false;
+    }
+  }
+  return true;
+}
+
 float
 Level::getFrictionValueAtPosition(EntityPosition& entityPosition) const
 {
