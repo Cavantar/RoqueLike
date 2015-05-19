@@ -40,7 +40,6 @@ Level::updateEntities(const float lastDelta)
       (*entityPtr)->update(lastDelta);
     }
   }
-  
 }
 
 void
@@ -136,14 +135,14 @@ Level::checkCollisions(const Entity* entity, Vector2f deltaVector) const
 float
 Level::getFrictionValueAtPosition(EntityPosition& entityPosition) const
 {
-  float frictionValue = 1.3;
+  float frictionValue = 2.0;
   
   tileMap->recanonicalize(entityPosition);
   TILE_TYPE tileType = tileMap->getTileType(entityPosition.worldPosition);
   
   switch(tileType)
   {
-  case TILE_TYPE_ICE_GROUND:
+  case TILE_TYPE_STONE_ICE_GROUND:
     frictionValue = 0.1f;
     break;
   }
@@ -160,7 +159,7 @@ Level::getAccelerationModifierAtPosition(EntityPosition& entityPosition) const
   
   switch(tileType)
   {
-  case TILE_TYPE_SPEED_GROUND:
+  case TILE_TYPE_STONE_SPEED_GROUND:
     accelerationModifier = 2.0f;
     break;
   }
@@ -457,6 +456,10 @@ Level::killCollidingEntities()
   for(auto entityPtr = entityList[0].begin(); entityPtr != entityList[0].end(); entityPtr++)
   {
     Entity* entity = (*entityPtr).get();
-    if(isCollidingWithLevel(entity)) entity->die();
+    if(isCollidingWithLevel(entity))
+    {
+      std::cout << "Entity died a horrible death ! \n";
+      entity->die();
+    }
   }
 }

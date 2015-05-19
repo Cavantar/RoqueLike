@@ -186,6 +186,7 @@ public:
   
 private:
   float xpAmount;
+  float localTime;
 };
 
 class Bullet : public Moveable {
@@ -239,6 +240,7 @@ public:
   
   float getDamageValue() const { return damageValue; }
   void spawnXp(int xpToSpawn) const;
+  bool canGetHit() const { return true; }
   
 protected:
   int mobLevel = 0;
@@ -258,6 +260,18 @@ public:
 private:
   float localTime = 0;
 };
+
+class Follower : public Mob {
+public:
+  Follower(const EntityPosition& position, int level);
+  void update(const float lastDelta);
+  void performDeathAction();
+  FloatRect getCollisionRect() const;
+  
+  void onWorldCollision(COLLISION_PLANE worldCollisionType);
+  void onEntityCollision(COLLISION_PLANE worldCollisionType, Entity* entity);
+};
+
 
 enum PLAYER_UPGRADE {
   PU_HEALTH,

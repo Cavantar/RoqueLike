@@ -160,6 +160,15 @@ SimpleLevelGenerator::placeRoomEntities(const Room& room, bool immediateMode)
       entity = EntityPtr(new HealthItem(EntityPosition(entityPosition), roomDifficulty * 20.0f));
       addEntity(entity);
     }
+        
+    // Health Pack
+    if((rand()%11) < 2)
+    {
+      entityPosition = room.topLeftCorner + Vector2i(1, 1);
+      entityPosition += Vector2i(rand()%(room.dimensions.x-2), rand()%(room.dimensions.y-2));
+      entity = EntityPtr(new Follower(EntityPosition(entityPosition), roomDifficulty * 20.0f));
+      addEntity(entity);
+    }
   }
 }
 
@@ -361,8 +370,8 @@ SimpleLevelGenerator::generateRoom()
 	if(!potentialRoom.isColliding(tileMap))
 	{
 	  
-	  if(potentialRoom.depth > 15) potentialRoom.floorType = TILE_TYPE_ICE_GROUND;
-	  else if(potentialRoom.depth > 10) potentialRoom.floorType = TILE_TYPE_SPEED_GROUND;
+	  if(potentialRoom.depth > 15) potentialRoom.floorType = TILE_TYPE_STONE_ICE_GROUND;
+	  else if(potentialRoom.depth > 10) potentialRoom.floorType = TILE_TYPE_STONE_SPEED_GROUND;
 	  else potentialRoom.floorType = TILE_TYPE_STONE_GROUND;
 	  
 	  placeRoom(potentialRoom);

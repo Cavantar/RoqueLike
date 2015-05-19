@@ -72,24 +72,25 @@ void Game::start()
   while (window.isOpen())
   {
     SfmlProfiler::get()->startFrame();
-    
-    SfmlProfiler::get()->start("Update");
-    processEvents();
-    updateGameState();
-    SfmlProfiler::get()->end("Update");
-    
-    SfmlProfiler::get()->start("Render");
-    
-    window.clear();
-    gameState->render(this);
-    window.display();
-    
-    SfmlProfiler::get()->end("Render");
-    
-    // Time Handling
-    lastDelta = clock.restart().asSeconds();
-    setWindowTitleToFps();
-
+    {
+      SfmlProfiler::get()->start("Update");
+      {
+	processEvents();
+	updateGameState();
+      }
+      SfmlProfiler::get()->end("Update");
+      
+      SfmlProfiler::get()->start("Render");
+      {
+	window.clear();
+	gameState->render(this);
+	window.display();
+      }      
+      SfmlProfiler::get()->end("Render");
+      // Time Handling
+      lastDelta = clock.restart().asSeconds();
+      setWindowTitleToFps();
+    }
     SfmlProfiler::get()->endFrame();
     
     if(input.isKeyPressed(sf::Keyboard::P)) SfmlProfiler::get()->showData();

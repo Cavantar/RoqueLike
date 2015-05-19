@@ -96,7 +96,7 @@ Vector3<T> Vector3<T>::operator+(Vector3<T>& vector) const
 }
 
 template <typename T>
-Vector3<T> Vector3<T>::operator-(Vector3<T>& vector) const
+Vector3<T> Vector3<T>::operator-(const Vector3<T>& vector) const
 {
   return Vector3<T>(x - vector.x, y - vector.y, z - vector.z);
 }
@@ -156,6 +156,13 @@ float Vector3<T>::getLength() const
 {
   return sqrt(pow(x, 2) + pow(y, 2) + pow(z, 2));
 }
+
+template <typename T>
+Vector3<T> Vector3<T>::interpolate(const Vector3<T>& v1, const Vector3<T>& v2, float t)
+{
+  return v1 + (v2 - v1) * t ;
+}
+
 
 template <typename T>
 Vector2<T> normalize(const Vector2<T>& vector)

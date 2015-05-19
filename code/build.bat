@@ -1,6 +1,6 @@
 @echo off
 
-IF "%1" == "ninja" GOTO ninja
+IF "%1" == "ninja" GOTO NINJA
 
 if not exist ..\build mkdir ..\build
 pushd ..\build
@@ -47,6 +47,9 @@ set FilesToCompile= ^
     ..\code\Entity.cpp ^
     ..\code\LevelRenderer.cpp ^
     ..\code\SpriteManager.cpp ^
+    ..\code\Profiler.cpp ^
+    ..\code\Noise.cpp ^
+    ..\code\MiscFunctions.cpp ^
     ..\code\main.cpp
 )
 
@@ -63,11 +66,12 @@ REM start "" nmake
 
 popd
 
-GOTO end 
+GOTO END 
 
-:ninja
+:NINJA
+
 echo NinjaBuild
 ninja
 
-:end
+:END
 

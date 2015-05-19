@@ -43,7 +43,7 @@ class Vector3{
   Vector3<T>(const T x=0, const T y=0, const T z=0) : x(x), y(y), z(z) {}
   
   Vector3<T> operator+(Vector3<T>& vector) const ;
-  Vector3<T> operator-(Vector3<T>& vector) const ;
+  Vector3<T> operator-(const Vector3<T>& vector) const ;
   Vector3<T> operator*(const float scalar) const ;
   
   void operator+=(const Vector3<T>& vector);
@@ -53,8 +53,9 @@ class Vector3{
   
   bool operator==(const Vector3<T>& vector) const ;
   bool operator!=(const Vector3<T>& vector) const ;
-
+  
   float getLength() const ;
+  static Vector3<T> interpolate(const Vector3<T>& v1, const Vector3<T>& v2, float t);
 };
 
 typedef Vector3<int32> Vector3i;

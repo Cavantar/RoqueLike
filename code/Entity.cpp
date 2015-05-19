@@ -129,6 +129,7 @@ Moveable::handleCollisionResult(EntityCollisionResult& collisionResult,
     // Colliding With Entities
     if(collisionResult.collidedEntity != NULL)
     {
+      collisionResult.collidedEntity->onEntityCollision(collisionResult.collisionPlane, this);
       onEntityCollision(collisionResult.collisionPlane, collisionResult.collidedEntity);
     }
     // Colliding With Tiles
@@ -155,13 +156,35 @@ XpOrb::XpOrb(const EntityPosition& position, const Vector2f& initialVelocity, fl
   
   renderData.primitiveType = PT_CIRCLE;
   renderData.dimensionsInTiles = Vector2f(radius, radius);
-  renderData.color = Vector3f(102 + rand()%20, 255 - rand()%30, 0);
+  renderData.color = Vector3f(102, 255, 0);
+
+  localTime = rand();
 }
 
 void
 XpOrb::update(const float lastDelta)
 {
   // Simulate Movement First
+  localTime += lastDelta;
+
+  static const float period = 2.0f;
+  static const float halfPeriod = period / 2.0f;
+  if(localTime > period)
+  {
+    localTime = fmodf(localTime, period); 
+  }
+
+  static const Vector3f colorStart(102, 255, 0);
+  static const Vector3f colorEnd(255, 222, 0);
+  
+  float currentColorTime = 0;  
+  if(localTime < halfPeriod)
+    currentColorTime = localTime / halfPeriod;
+  else
+    currentColorTime = 1.0f - ((localTime - halfPeriod) / halfPeriod);
+  
+  //std::cout << currentColorTime << std::endl;
+  renderData.color = Vector3f::interpolate(colorStart, colorEnd, currentColorTime);
   
   Player* player = level->getPlayer();
   if(player)
@@ -268,6 +291,8 @@ Bullet::onEntityCollision(COLLISION_PLANE collisionPlane, Entity* entity)
 {
   static const float speedIncrease = 1.0f;
 
+  //std::cout << "Died with the entity\n";
+  
   entity->addHealth(-damageValue);
   entity->addVelocity(velocity * 0.5f);
   
@@ -344,11 +369,11 @@ Mob::addHealth(const float amount)
   health += amount;
   if(health > maxHealth) health = maxHealth;
   else if(health < 0) die();
-  
+      
   OverlayTextData overlayTextData = {"", 2.0f, Vector3f(), 3.0f};
   std::stringstream tempText;
   tempText << std::fixed << std::setw(11) << std::setprecision(2);
-    
+  
   tempText << amount << " Health";
   if(amount > 0)
   {
@@ -454,6 +479,86 @@ Cannon::performDeathAction()
   spawnXp(xpToSpawn);
 }
 
+
+Follower::Follower(const EntityPosition& position, int level) : Mob(position, level)
+{
+  dimensions = Vector2f(1.0f, 2.0f);
+  renderData.spriteName = "playerBase";
+  
+  std::stringstream caption;
+  caption << "Follower lvl: " << level;  
+  renderData.caption = caption.str();
+  
+  maxHealth = 5 + (level - 1) * 5;
+  health = maxHealth;
+  damageValue = (level + 1.0f) / 5.0f;
+}
+
+void
+Follower::update(const float lastDelta)
+{
+
+  Player* player = level->getPlayer();
+  if(player)
+  {
+    EntityPosition playerPosition = player->getCollisionCenter();
+    EntityPosition followerPosition = getCollisionCenter();
+    
+    Vector2f distanceVector = EntityPosition::calculateDistanceInTiles(followerPosition, playerPosition,
+								       level->getTileMap()->getTileChunkSize());
+    // If There's Player in Radius of given length 
+    if(distanceVector.getLength() < 15.0f)
+    {
+      distanceVector.normalize();
+      Vector2f directionVector = distanceVector;
+      acceleration = directionVector;
+    }
+  }
+
+  EntityPosition collisionCenter = getCollisionCenter();
+  float friction = level->getFrictionValueAtPosition(collisionCenter);
+  float accelerationModifier  = level->getAccelerationModifierAtPosition(collisionCenter);
+  
+  Vector2f positionDeltaVector = getPositionDeltaVector(lastDelta, friction, accelerationModifier);
+
+  EntityCollisionResult collisionResult = level->checkCollisions(this, positionDeltaVector);
+  handleCollisionResult(collisionResult, positionDeltaVector);
+}
+
+void
+Follower::performDeathAction()
+{
+  int xpToSpawn = mobLevel * 20;
+  spawnXp(xpToSpawn);
+}
+
+FloatRect
+Follower::getCollisionRect() const
+{
+  const float width = 0.5f;
+  const float height = 0.3f;
+  return FloatRect(width / 2.0f, 2.0f - height, width, height);
+}
+
+void
+Follower::onWorldCollision(COLLISION_PLANE collisionPlane)
+{
+  velocity = getReflectedVelocity(collisionPlane, 0.5f);
+}
+
+void
+Follower::onEntityCollision(COLLISION_PLANE collisionPlane, Entity* entity)
+{
+  if(entity->isPlayer())
+  {
+    entity->addHealth(-damageValue);
+    entity->addVelocity(velocity * 2.5f);
+  }
+  else entity->addVelocity(velocity * 0.5f);
+
+  velocity = getReflectedVelocity(collisionPlane, 0.5f);
+}
+
 Player::Player(const EntityPosition& position) : Mob(position, 1, 1.0f)
 {
   dimensions = Vector2f(1.0f, 2.0f);
@@ -479,8 +584,6 @@ Player::update(const float lastDelta)
   
   stamina += (lastDelta / 5.0f) * maxStamina;
   if(stamina >= maxStamina) stamina = maxStamina;
-
-  //std::cout << velocity.x << " " << velocity.y << std::endl;
 }
 
 void
@@ -498,7 +601,8 @@ Player::onEntityCollision(COLLISION_PLANE collisionPlane, Entity* entity)
   
   velocity = getReflectedVelocity(collisionPlane, speedIncrease);
 }
-FloatRect Player::getCollisionRect() const
+FloatRect
+Player::getCollisionRect() const
 {
   const float width = 0.5f;
   const float height = 0.3f;

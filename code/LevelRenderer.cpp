@@ -294,8 +294,10 @@ LevelRenderer::renderTileChunk(const TileChunkPtr& tileChunk, const Vector2f& sc
 	  
       int tileHash = (int)(floatHash * 100.0f);
       tileHash = abs(tileHash);
+
+      TILE_TYPE tileType = tileChunkData[y][x];
       
-      switch(tileChunkData[y][x])
+      switch(tileType)
       {
       case TILE_TYPE_WALL:
 	{
@@ -331,9 +333,24 @@ LevelRenderer::renderTileChunk(const TileChunkPtr& tileChunk, const Vector2f& sc
 	  if(!(tileState & ST_SOUTH))
 	  {
 	    std::string spriteName = "wall1_";
-	    int tileKind = ((x ^ y ^ (int)tileChunk.get()) % 6);
+	    
+	    float ordinaryWallPercentage = 70.0f;
+	    
+	    int tileKind = ((x ^ y ^ (int)tileChunk.get()));
 	    tileKind = abs(tileKind);
-	    tileKind++;
+	    
+	    if(tileHash < ordinaryWallPercentage)
+	    {
+	      // 2, 4, 5
+	      tileKind = 2 + ((tileHash) % 3);
+	      if(tileKind != 2) tileKind ++;
+	    }
+	    else 
+	    {
+	      tileKind = 3;
+	      //if(tileKind == 2) tileKind = 6;
+	      //if(tileKind == 3) tileKind = 7;
+	    }
 	    
 	    spriteName += std::to_string(tileKind);
 	    tileSprite = spriteManager->getSprite(spriteName);
@@ -352,6 +369,8 @@ LevelRenderer::renderTileChunk(const TileChunkPtr& tileChunk, const Vector2f& sc
 	  tilesForSortedInChunk.push_back(RenderThingPtr(renderThing));
 	  
 	} break;
+      case TILE_TYPE_STONE_SPEED_GROUND:
+      case TILE_TYPE_STONE_ICE_GROUND:
       case TILE_TYPE_STONE_GROUND:
 	{
 	  rectangleShape.setSize(sf::Vector2f(tileSizeInPixels, tileSizeInPixels));
@@ -366,13 +385,11 @@ LevelRenderer::renderTileChunk(const TileChunkPtr& tileChunk, const Vector2f& sc
 	    int tileHash = (x * p1) ^ (y * p2) ^ ((int)tileChunk.get() * p3);
 	    
 	  */	  
-
+	  
 	  std::string spriteName = "floor1_";
-	  
 	  WorldPosition tempWorldPosition(tileChunkPosition, Vector2i(x, y));
-	  int surroundingTiles = level->getSurroundingTileData(tempWorldPosition, TILE_TYPE_STONE_GROUND);
-	  TILE_STATE tileState = (TILE_STATE)surroundingTiles;
 	  
+	  TILE_STATE tileState = (TILE_STATE)level->getSurroundingTileData(tempWorldPosition, tileType);
 	  int spriteIndex = -1;
 	  if(tileState != TS_SURROUNDED_BY_SELF)
 	  {
@@ -394,13 +411,15 @@ LevelRenderer::renderTileChunk(const TileChunkPtr& tileChunk, const Vector2f& sc
 	  
 	  spriteName += std::to_string(spriteIndex);
 	  sf::Sprite tileSprite = spriteManager->getSprite(spriteName);
+
+	  if(tileType == TILE_TYPE_STONE_ICE_GROUND) tileSprite.setColor(sf::Color(165, 242, 243));
+	  if(tileType == TILE_TYPE_STONE_SPEED_GROUND) tileSprite.setColor(sf::Color(250,128,114));
 	  
 	  sf::Color maxColor = sf::Color::Red;
 	  sf::Color minColor = sf::Color::Green;
 	  
 	  // if(tileHash > 60) tileSprite.setColor(maxColor);
 	  // else tileSprite.setColor(minColor);
-	  
 	  
 	  float finalScale = tileSizeInPixels / 16.0f;
 	  
@@ -410,26 +429,27 @@ LevelRenderer::renderTileChunk(const TileChunkPtr& tileChunk, const Vector2f& sc
 	  window->draw(tileSprite);
 	  
 	} break;
-      case TILE_TYPE_ICE_GROUND:
-	{
-	  rectangleShape.setSize(sf::Vector2f(tileSizeInPixels, tileSizeInPixels));
-	  rectangleShape.setFillColor(sf::Color(165,242, 243));
-	  
-	  window->draw(rectangleShape);
-
-	} break;
-      case TILE_TYPE_SPEED_GROUND:
-	{
-	  rectangleShape.setSize(sf::Vector2f(tileSizeInPixels, tileSizeInPixels));
-	  rectangleShape.setFillColor(sf::Color(250,128,114));
-	  
-	  window->draw(rectangleShape);
-	  
-	  } break;
-	  } // switch
-	  }
-	  }
-    
+	
+	// case TILE_TYPE_ICE_GROUND:
+	// 	{
+	// 	  rectangleShape.setSize(sf::Vector2f(tileSizeInPixels, tileSizeInPixels));
+	// 	  rectangleShape.setFillColor(sf::Color(165,242, 243));
+	
+	// 	  window->draw(rectangleShape);
+	
+	// 	} break;
+	// case TILE_TYPE_SPEED_GROUND:
+	// 	{
+	// 	  rectangleShape.setSize(sf::Vector2f(tileSizeInPixels, tileSizeInPixels));
+	// 	  rectangleShape.setFillColor(sf::Color(250,128,114));
+	
+	// 	  window->draw(rectangleShape);
+	
+	// 	} break;
+      } // switch
+    }
+  }
+  
   return tilesForSortedInChunk;
 }
 
