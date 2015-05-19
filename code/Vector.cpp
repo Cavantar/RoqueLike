@@ -158,6 +158,15 @@ float Vector3<T>::getLength() const
 }
 
 template <typename T>
+Vector2<T> normalize(const Vector2<T>& vector)
+{
+  Vector2<T> resultVector;
+  float length = vector.getLength();
+  resultVector = vector / length; 
+  return resultVector;
+}
+
+template <typename T>
 Vector2<T> Rect<T>::getCorner(const int cornerIndex) const
 {
   Vector2<T> corner;

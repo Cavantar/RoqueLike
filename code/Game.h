@@ -68,7 +68,7 @@ private:
   bool cameraBoundToPlayer = true;
   
   float baseTileSizeInPixels = 20.0f;
-  double worldScale = 1.0f;
+  double worldScale = 2.0f;
   
   void handleInput(Game* game);
 };

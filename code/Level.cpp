@@ -192,18 +192,6 @@ Level::getSurroundingTileData(const WorldPosition& worldPosition, TILE_TYPE tile
   return result;
 }
 
-bool
-Level::isTileState(TILE_STATE tileState, int surroundingTiles)
-{
-  if((tileState & surroundingTiles) == tileState &&
-     (~tileState & surroundingTiles) == 0)
-  {
-    return true;
-  }
-  
-  return false;
-}
-
 TileList
 Level::getAffectedTiles(const CollisionCheckData& collisionCheckData) const
 {

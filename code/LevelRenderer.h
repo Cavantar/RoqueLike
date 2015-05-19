@@ -62,6 +62,8 @@ public:
   void renderLevel(const LevelPtr& level, EntityPosition& cameraPosition);
   sf::Font* getFont() { return &font;}
   
+  int getSpriteIndex(TILE_STATE tileState, int tileHash);
+  
 private:
   sf::Font font;
   

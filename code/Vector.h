@@ -60,6 +60,9 @@ class Vector3{
 typedef Vector3<int32> Vector3i;
 typedef Vector3<float> Vector3f;
 
+template <typename T>
+Vector2<T> normalize(const Vector2<T>& vector);
+
 namespace std {
   
   template <> struct hash<Vector3i>

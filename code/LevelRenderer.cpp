@@ -1,6 +1,7 @@
 #include "LevelRenderer.h"
 #include <iostream>
 #include "Profiler.h"
+#include "Noise.h"
 
 void EntityRenderThing::render(LevelRenderer* levelRenderer)
 {
@@ -55,6 +56,113 @@ LevelRenderer::renderLevel(const LevelPtr& level, EntityPosition& cameraPosition
   renderEntities(level->getEntityList(1), cameraPosition,
 		 tileMap->getTileChunkSize());
   
+}
+
+int LevelRenderer::getSpriteIndex(TILE_STATE tileState, int tileHash)
+{
+  int spriteIndex;
+  
+  switch(tileState)
+  {
+  case TS_CORNER_TOPLEFT:
+    spriteIndex = 2;
+    break;
+  case TS_CORNER_TOPRIGHT:
+    spriteIndex = 3;
+    break;
+  case TS_CORNER_BOTTOMLEFT:
+    spriteIndex = 4;
+    break;
+  case TS_CORNER_BOTTOMRIGHT:
+    spriteIndex = 5;
+    break;
+  case TS_WALL_LEFT:
+    spriteIndex = 6 + (tileHash % 3);
+    break;
+  case TS_WALL_TOP:
+    spriteIndex = 9 + (tileHash % 3);
+    break;
+  case TS_WALL_BOTTOM:
+    spriteIndex = 12 + (tileHash % 3);
+    break;
+  case TS_WALL_RIGHT:
+    spriteIndex = 15 + (tileHash % 3);
+    break;
+  case TS_ONE_WAY_LEFT:
+    spriteIndex = 18;
+    break;
+  case TS_ONE_WAY_UP:
+    spriteIndex = 19;
+    break;
+  case TS_ONE_WAY_RIGHT:
+    spriteIndex = 20;
+    break;
+  case TS_ONE_WAY_DOWN:
+    spriteIndex = 21;
+    break;
+  case TS_PATH_HORIZONTAL:
+    spriteIndex = 22 + (tileHash % 2);
+    break;
+  case TS_PATH_VERTICAL:
+    spriteIndex = 24 + (tileHash % 2);
+    break;
+  case TS_SURROUNDED_BY_OTHERS:
+    spriteIndex = 26;
+    break;
+  case TS_CORNER_EDGE_TOPLEFT:
+    spriteIndex = 27;
+    break;
+  case TS_CORNER_EDGE_TOPRIGHT:
+    spriteIndex = 28;
+    break;
+  case TS_CORNER_EDGE_BOTTOMLEFT:
+    spriteIndex = 29;
+    break;
+  case TS_CORNER_EDGE_BOTTOMRIGHT:
+    spriteIndex = 30;
+    break;
+  case TS_CORNERP_EDGE_TOPLEFT:
+    spriteIndex = 31;
+    break;
+  case TS_CORNERP_EDGE_TOPRIGHT:
+    spriteIndex = 32;
+    break;
+  case TS_CORNERP_EDGE_BOTTOMLEFT:
+    spriteIndex = 33;
+    break;
+  case TS_CORNERP_EDGE_BOTTOMRIGHT:
+    spriteIndex = 34;
+    break;
+  case TS_CORNERT_DOWN:
+    spriteIndex = 39;
+    break;
+  case TS_CORNERT_RIGHT:
+    spriteIndex = 40;
+    break;
+  case TS_CORNERT_LEFT:
+    spriteIndex = 41;
+    break;
+  case TS_CORNERT_UP:
+    spriteIndex = 42;
+    break;
+  case TS_SURROUNDED_BY_SELF:
+    {      
+      assert(0);
+    } break;
+  default:
+
+    // Path Variation 
+    if(tileState & TS_PATH_HORIZONTAL && !(tileState & TS_PATH_VERTICAL) && (tileState & ST_CORNERS))
+    {
+      spriteIndex = 22 + (tileHash % 2);
+    }
+    else if(tileState & TS_PATH_VERTICAL && !(tileState & TS_PATH_HORIZONTAL) && (tileState & ST_CORNERS))
+    {
+      spriteIndex = 24 + (tileHash % 2);
+    }
+    else spriteIndex  = 1;//(rand() % 5) + 1;
+  }
+  return spriteIndex;
 }
 
 Vector2f
@@ -175,16 +283,23 @@ LevelRenderer::renderTileChunk(const TileChunkPtr& tileChunk, const Vector2f& sc
 					screenChunkPosition.y + (y * tileSizeInPixels));
       
       rectangleShape.setPosition(screenTilePosition);
+
+      	  
+      NoiseParams noiseParams = {0.05, 3, 2.0f, 0.5f};
+      Vector2f globalTilePosition(x + tileChunkPosition.x * tileChunkWidth,
+				  y + tileChunkPosition.y * tileChunkHeight);
+	  
+      float floatHash = Noise::sumPerlin(globalTilePosition, noiseParams);
+      floatHash = (floatHash + 1.0f) / 2.0f;
+	  
+      int tileHash = (int)(floatHash * 100.0f);
+      tileHash = abs(tileHash);
       
       switch(tileChunkData[y][x])
       {
       case TILE_TYPE_WALL:
 	{
-	  	  
-	  int tileKind = ((x ^ y ^ (int)tileChunk.get()) % 30) ;
-	  tileKind = abs(tileKind);
-	  tileKind++;
-	  
+
 	  screenTilePosition.y -= (wallHeight - 1.0f) * tileSizeInPixels;
 	  
 	  sf::Sprite tileSprite;
@@ -192,10 +307,17 @@ LevelRenderer::renderTileChunk(const TileChunkPtr& tileChunk, const Vector2f& sc
 	  
 	  WorldPosition tempWorldPosition(tileChunkPosition, Vector2i(x, y));
 	  std::string spriteName = "wallTop1_";
-
-	  char surroundingTiles = level->getSurroundingTileData(tempWorldPosition, TILE_TYPE_WALL);
-	  spriteName += std::to_string(tileKind);
 	  
+	  TILE_STATE tileState = (TILE_STATE)level->getSurroundingTileData(tempWorldPosition, TILE_TYPE_WALL);
+	  
+	  int spriteIndex = -1;
+	  if(tileState != TS_SURROUNDED_BY_SELF)
+	  {
+	    spriteIndex = getSpriteIndex(tileState, tileHash);
+	  }
+	  else spriteIndex = 1;
+	  
+	  spriteName += std::to_string(spriteIndex);
 	  tileSprite = spriteManager->getSprite(spriteName);
 	  
 	  tileSprite.setScale(finalScale, finalScale);
@@ -206,7 +328,7 @@ LevelRenderer::renderTileChunk(const TileChunkPtr& tileChunk, const Vector2f& sc
 	  
 	  //window->draw(tileSprite);
 	  
-	  if(!(surroundingTiles & ST_SOUTH))
+	  if(!(tileState & ST_SOUTH))
 	  {
 	    std::string spriteName = "wall1_";
 	    int tileKind = ((x ^ y ^ (int)tileChunk.get()) % 6);
@@ -218,7 +340,7 @@ LevelRenderer::renderTileChunk(const TileChunkPtr& tileChunk, const Vector2f& sc
 	    
 	    tileSprite.setScale(finalScale, finalScale);
 	    tileSprite.setPosition(screenTilePosition);
-
+	    
 	    spriteList.push_back(tileSprite);
 	    
 	    //window->draw(tileSprite);
@@ -234,44 +356,51 @@ LevelRenderer::renderTileChunk(const TileChunkPtr& tileChunk, const Vector2f& sc
 	{
 	  rectangleShape.setSize(sf::Vector2f(tileSizeInPixels, tileSizeInPixels));
 	  rectangleShape.setFillColor(sf::Color(128, 128, 128));
-
-	  int tileHash = x ^ y ^ (int)tileChunk.get();
-			  
-	  int tileKind = (tileHash % 60) ;
-	  tileKind = abs(tileKind);
-	  tileKind++;
 	  
+	  /*
+	    
+	    static const int p1 = 73856093;
+	    static const int p2 = 19349663;
+	    static const int p3 = 83492791;
+	    
+	    int tileHash = (x * p1) ^ (y * p2) ^ ((int)tileChunk.get() * p3);
+	    
+	  */	  
+
 	  std::string spriteName = "floor1_";
 	  
 	  WorldPosition tempWorldPosition(tileChunkPosition, Vector2i(x, y));
 	  int surroundingTiles = level->getSurroundingTileData(tempWorldPosition, TILE_TYPE_STONE_GROUND);
+	  TILE_STATE tileState = (TILE_STATE)surroundingTiles;
 	  
-	  if(level->isTileState(TS_CORNER_TOPLEFT, surroundingTiles))
-	    spriteName += '2';
-	  else if(level->isTileState(TS_CORNER_TOPRIGHT, surroundingTiles))
-	    spriteName += '3';
-	  else if(level->isTileState(TS_CORNER_BOTTOMLEFT, surroundingTiles))
-	    spriteName += '4';
-	  else if(level->isTileState(TS_CORNER_BOTTOMRIGHT, surroundingTiles))
-	    spriteName += '5';
-	  else if(level->isTileState(TS_WALL_LEFT, surroundingTiles))
-	    spriteName += std::to_string(6 + (tileHash % 3));
-	  else if(level->isTileState(TS_WALL_TOP, surroundingTiles))
-	    spriteName += std::to_string(9 + (tileHash % 3));
-	  else if(level->isTileState(TS_WALL_BOTTOM, surroundingTiles))
-	    spriteName += std::to_string(12 + (tileHash % 3));
-	  else if(level->isTileState(TS_WALL_RIGHT, surroundingTiles))
-	    spriteName += std::to_string(15 + (tileHash % 3));
-	  else if(level->isTileState(TS_PATH_HORIZONTAL, surroundingTiles))
-	    spriteName += std::to_string(23 + (tileHash % 2));
-	  else if(level->isTileState(TS_PATH_VERTICAL, surroundingTiles))
-	    spriteName += std::to_string(25 + (tileHash % 2));
+	  int spriteIndex = -1;
+	  if(tileState != TS_SURROUNDED_BY_SELF)
+	  {
+	    spriteIndex = getSpriteIndex(tileState, tileHash);
+	  }
 	  else
 	  {
-	    spriteName += std::to_string(tileKind);
+	    // Common Tile Occurence Chance
+	    static const float commonTileChance = 65.0f;
+	    if(tileHash >  commonTileChance && ((x ^ y ^ (int)tileChunk.get()) % 3) == 0)
+	    {
+	      spriteIndex = 66 + (tileHash % 4);
+	    }
+	    else
+	    {
+	      spriteIndex = 62 + (tileHash % 4);
+	    }
 	  }
 	  
+	  spriteName += std::to_string(spriteIndex);
 	  sf::Sprite tileSprite = spriteManager->getSprite(spriteName);
+	  
+	  sf::Color maxColor = sf::Color::Red;
+	  sf::Color minColor = sf::Color::Green;
+	  
+	  // if(tileHash > 60) tileSprite.setColor(maxColor);
+	  // else tileSprite.setColor(minColor);
+	  
 	  
 	  float finalScale = tileSizeInPixels / 16.0f;
 	  

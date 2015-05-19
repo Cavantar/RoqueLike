@@ -52,6 +52,8 @@ build ../build/Entity.obj : cc Entity.cpp
 build ../build/LevelRenderer.obj : cc LevelRenderer.cpp
 build ../build/SpriteManager.obj : cc SpriteManager.cpp
 build ../build/Profiler.obj : cc Profiler.cpp
+build ../build/Noise.obj : cc Noise.cpp
+build ../build/MiscFunctions.obj : cc MiscFunctions.cpp
 
 build RoqueLike : ll $
 ../build/main.obj $
@@ -67,5 +69,7 @@ build RoqueLike : ll $
 ../build/Entity.obj $
 ../build/LevelRenderer.obj $
 ../build/SpriteManager.obj $
-../build/Profiler.obj 
+../build/Profiler.obj $
+../build/Noise.obj $
+../build/MiscFunctions.obj 
 
