@@ -1,4 +1,5 @@
 #include "LevelGenerator.h"
+#include <iostream>
 
 bool
 Room::isColliding(TileMapPtr tileMap)
@@ -21,21 +22,16 @@ LevelGenerator::create(int seed)
   }
 
   this->seed = seed;
+  startSeed = seed;
   
   level = LevelPtr(new Level());
   
   Player* player = new Player(EntityPosition(WorldPosition(), Vector2f(2.0f,2.0f)));
   EntityPtr playerPtr = EntityPtr(player);
-  addEntity(playerPtr);
+  level->addEntity(playerPtr);
   level->setPlayer(player);
   
   return level;
-}
-
-void
-LevelGenerator::addEntity(EntityPtr entity)
-{
-  level->addEntity(entity);
 }
 
 void
@@ -136,7 +132,7 @@ SimpleLevelGenerator::placeRoomEntities(const Room& room, bool immediateMode)
       entityPosition = room.topLeftCorner + Vector2i(1, 1);
       entityPosition += Vector2i(rand()%(room.dimensions.x-2), rand()%(room.dimensions.y-2));
       entity = EntityPtr(new HealthItem(EntityPosition(entityPosition), (float)room.depth / 15));
-      addEntity(entity);
+      level->addEntity(entity);
     }
   }
   else {
@@ -149,7 +145,7 @@ SimpleLevelGenerator::placeRoomEntities(const Room& room, bool immediateMode)
       entityPosition += Vector2i(rand()%(room.dimensions.x-2), rand()%(room.dimensions.y-2));
       
       entity = EntityPtr(new Cannon(EntityPosition(entityPosition), (roomDifficulty*10.0f) + 1));
-      addEntity(entity);
+      level->addEntity(entity);
     }
     
     // Health Pack
@@ -158,7 +154,7 @@ SimpleLevelGenerator::placeRoomEntities(const Room& room, bool immediateMode)
       entityPosition = room.topLeftCorner + Vector2i(1, 1);
       entityPosition += Vector2i(rand()%(room.dimensions.x-2), rand()%(room.dimensions.y-2));
       entity = EntityPtr(new HealthItem(EntityPosition(entityPosition), roomDifficulty * 20.0f));
-      addEntity(entity);
+      level->addEntity(entity);
     }
         
     // Health Pack
@@ -167,7 +163,7 @@ SimpleLevelGenerator::placeRoomEntities(const Room& room, bool immediateMode)
       entityPosition = room.topLeftCorner + Vector2i(1, 1);
       entityPosition += Vector2i(rand()%(room.dimensions.x-2), rand()%(room.dimensions.y-2));
       entity = EntityPtr(new Follower(EntityPosition(entityPosition), roomDifficulty * 20.0f));
-      addEntity(entity);
+      level->addEntity(entity);
     }
   }
 }
@@ -315,7 +311,6 @@ SimpleLevelGenerator::openWall(const Room& srcRoom, const Room& dstRoom, const D
 void
 SimpleLevelGenerator::generateRoom()
 {
-  
   TileMapPtr tileMap = level->getTileMap();
   Room potentialRoom;
   
@@ -428,11 +423,14 @@ SimpleLevelGenerator::generateRoom()
 LevelPtr
 SimpleLevelGenerator::regenerate(int seed)
 {
+  
   if(seed != 0)
   {
+    startSeed = seed;
     this->seed = seed;
   }
-
+  else this->seed = startSeed;
+  
   finishedGenerating = false;
 
   rooms.clear();
@@ -444,7 +442,7 @@ SimpleLevelGenerator::regenerate(int seed)
   
   Player* player = new Player(EntityPosition(WorldPosition(), Vector2f(2.0f,2.0f)));
   EntityPtr playerPtr = EntityPtr(player);
-  addEntity(playerPtr);
+  level->addEntity(playerPtr);
   level->setPlayer(player);
   
   return level;
@@ -454,9 +452,10 @@ void
 SimpleLevelGenerator::generate()
 {
   srand(seed);
-
-  TileMapPtr tileMap = level->getTileMap();
   
+  TileMapPtr tileMap = level->getTileMap();
+
+  int i = 0;
   while(placedRooms != numbOfRoomsToGenerate)
   {
     generateRoom();

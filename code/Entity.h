@@ -89,9 +89,10 @@ public:
   
   // Position / Movement
   const EntityPosition& getPosition() const { return position; }
-  void setPosition(const EntityPosition& position) { this->position = position;}
-  
+  void setPosition(const EntityPosition& position) { this->position = position; }
+
   virtual Vector2f getVelocity() const  { return Vector2f(); }
+  // Applies given velocity to an entity (Useful when pushing)
   virtual void addVelocity(Vector2f velocity) {}
 
   // For Ordering During Rendering 
@@ -100,9 +101,12 @@ public:
   // Collision Stuff
   virtual FloatRect getCollisionRect() const { return FloatRect();}
   virtual EntityPosition getCollisionCenter() const { return position; }
+
+  // Both are usually called by handleCollisionResults
   virtual void onWorldCollision(COLLISION_PLANE worldCollisionType) {}
   virtual void onEntityCollision(COLLISION_PLANE worldCollisionType, Entity* entity) {}
-  
+
+  // Is called when entity is removed from the map
   virtual void performDeathAction() {}
   
   // PlayerStuff
@@ -120,6 +124,7 @@ public:
   void die();
   
 protected:
+  // Hold pointer to the level it's on
   ILevel* level;
   EntityRenderData renderData;
   EntityPosition position;
@@ -152,9 +157,11 @@ class Moveable : public Entity {
   Vector2f getVelocity() const { return velocity; }
   void addVelocity(Vector2f velocity) { this->velocity += velocity; }
 
+  // Returns vector indicating center of collision region starting in reference to EntityPosition(top Left)  
   Vector2f getLocalCollisionCenter() const ;
   EntityPosition getCollisionCenter() const ;
-  
+
+  // Returns reflected velocity depending on collisionPlane
   Vector2f getReflectedVelocity(COLLISION_PLANE collisionPlane, float speedIncrease) const ;
   float getMovementSpeed() const { return metersPerSecondSquared; }
 
@@ -167,10 +174,12 @@ protected:
   Vector2f acceleration;
   
   float metersPerSecondSquared = 25;
-  
+
+  // Calculates deltaVector based on the velocity acceleration and passed fakeFrictionValue
   Vector2f getPositionDeltaVector(const float lastDelta, const float fakeFrictionValue,
 				  const float accelerationModifier = 1.0f);
-    
+
+  // Handles Collision Result calls onEntityCollision, onWorldCollision.
   void handleCollisionResult(EntityCollisionResult& collisionResult,
 			     const Vector2f& positionDeltaVector);
 };
@@ -292,6 +301,7 @@ class Player : public Mob {
   void onEntityCollision(COLLISION_PLANE worldCollisionType, Entity* entity);
   FloatRect getCollisionRect() const;
   
+  // Reacts to the player Input state
   void handlePlayerInput(const PlayerInput& playerInput);
   void performDeathAction();
   
@@ -299,8 +309,6 @@ class Player : public Mob {
   bool isPlayer() const { return true; }
   
   void addXp(const float amount);
-  void levelUp();
-  
   float getShieldValue() const { return shieldValue; } 
   
   float getStamina() const { return stamina; }
@@ -330,4 +338,5 @@ private:
   MOB_DIRECTION direction;
 
   void upgradeAbility(PLAYER_UPGRADE upgrade);
+  void levelUp();
 };

@@ -21,18 +21,21 @@ struct CollisionCheckData{
 
 const int numbOfEntityLayers = 2;
 
-
 class Level : public ILevel{
 public:
   Level(); 
   void update(const float lastDelta);
+
+  // Registers entities in eventManager and puts them in list of ordinary entities
   void registerPendingEntities(EventManager& eventManager);
-  
+
   const TileMapPtr& getTileMap() const { return tileMap; }
   const EntityList& getEntityList(int layerIndex = 0) const { return entityList[layerIndex];}
   
   bool addEntity(EntityPtr& entityPtr);
+  
   // Overlay Entities Won't be registered with EventManager
+  // Adds to the second layer of entities 
   void addOverlayEntity(EntityPtr& entityPtr);
   
   Player* getPlayer() const { return player; }
@@ -40,11 +43,14 @@ public:
   
   void removeDeadEntities();
 
+  // Checks collision between two entities and returns collision results 
   EntityCollisionResult checkCollisions(const Entity* entity, Vector2f deltaVector) const ;
   bool canSeeEachOther(const Entity* entity1, const Entity* entity2, float maxRange) const ; 
-  
+
   float getFrictionValueAtPosition(EntityPosition& entityPosition) const; 
-  float getAccelerationModifierAtPosition(EntityPosition& entityPosition) const; 
+  float getAccelerationModifierAtPosition(EntityPosition& entityPosition) const;
+
+  // Returns state of the tile value where 
   int getSurroundingTileData(const WorldPosition& worldPosition, TILE_TYPE tileType);
   
   // Event Operator
@@ -60,17 +66,22 @@ private:
   Player* player;
   
   void updateEntities(const float lastDelta);
+
+  // Returns the list of tiles that are affected depending on collisionCheckData
   TileList getAffectedTiles(const CollisionCheckData& collisionCheckData) const;
-  
+
   WorldCollisionResult checkCollisionsWithTiles(TileList& tiles,
 						const CollisionCheckData& collisionCheckData) const;
   
   WorldCollisionResult checkWorldCollision(const CollisionCheckData& collisionCheckData) const;
-  
+
+  // Checks Collisions with the whole level 
   EntityCollisionResult checkEntityCollision(const Entity* entity,
 					     const CollisionCheckData& collisionCheckData) const;
   
   bool isCollidingWithLevel(Entity* entity) const;
+
+  // For Debugging purposes - when testing collision checks 
   void killCollidingEntities();
 };
 

@@ -38,9 +38,9 @@ class TileMap{
   friend class LevelGenerator;
   friend class SimpleLevelGenerator;
   
- public:
- TileMap(const Vector2i tileChunkSize) :
-  tileChunkSize(tileChunkSize) {}
+public:
+  TileMap(const Vector2i tileChunkSize) :
+    tileChunkSize(tileChunkSize) {}
   
   void setTileType(WorldPosition& tileWorldPosition, const TILE_TYPE tileType);
   bool isRectangleOfTileType(WorldPosition startPosition, Vector2i dimensions, TILE_TYPE tileType); 
@@ -48,14 +48,13 @@ class TileMap{
   // Can't Be const because of hashmap,
   TILE_TYPE getTileType(WorldPosition& tileWorldPosition);
   const TileChunkMap& getTileChunkMap() const { return tileChunkMap; }
-
+  
   void recanonicalize(EntityPosition& entityPosition) const;
   
   const Vector2i& getTileChunkSize() const { return tileChunkSize; }
   
- private:
+private:
   Vector2i tileChunkSize;
-
   TileChunkMap tileChunkMap;
 };
 

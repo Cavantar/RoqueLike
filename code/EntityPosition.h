@@ -18,7 +18,8 @@ class WorldPosition{
 
   // Changes both tileChunkPosition as well as tilePosition when tilePosition bounds are left
   void recanonicalize(const Vector2i tileChunkSize);
-  
+
+  // Calculates tile distance including those at both ends
   static Vector2i calculateDistanceInTilesInclusive(const WorldPosition& srcPosition,
 						    const WorldPosition& dstPosition,
 						    const Vector2i& tileChunkDimensions);
@@ -45,7 +46,6 @@ class EntityPosition{
   
   // Changes both tileChunkPosition as well as tilePosition when tilePosition bounds are left
   // Based on tileOffset
-  
   void recanonicalize(const Vector2i tileChunkSize);
   static Vector2f calculateDistanceInTiles(const EntityPosition& srcPosition,
 					   const EntityPosition& dstPosition,

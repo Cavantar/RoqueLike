@@ -13,7 +13,7 @@ class Input{
   void handleKeyPress(const sf::Keyboard::Key keyIdentifier);
   void handleKeyRelease(const sf::Keyboard::Key keyIdentifier);
 
-  // TODO: Is This Safe ? 
+  // TODO: Is This Safe ?
   bool isKeyPressed(const sf::Keyboard::Key keyIdentifier) const {return keysPressed[keyIdentifier];}
   bool isKeyReleased(const sf::Keyboard::Key keyIdentifier) const {return keysReleased[keyIdentifier];}
   bool isKeyDown(const sf::Keyboard::Key keyIdentifier) const {return keysDown[keyIdentifier];}

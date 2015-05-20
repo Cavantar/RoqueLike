@@ -30,29 +30,31 @@ class LevelGenerator{
  LevelGenerator() : finishedGenerating(false){}
   
   virtual ~LevelGenerator() {}
+
+  // Creates the level based on seed and returns reference
+  // Doesn't generate level yet'
   LevelPtr create(int seed = 0);
   
   virtual void generate() = 0;
   virtual LevelPtr regenerate(int seed = 0) = 0;
-  
-  virtual void generateStep() {};
 
+  // Does one step of generation
+  virtual void generateStep() {};
+  
+  // Renders additional debug data prefferably during generation
   virtual void renderAdditionalData(sf::RenderWindow& window,
 				    EntityPosition& cameraPosition,
 				    float tileSizeInPixels) {}
-  
   bool isGenerationFinished() { return finishedGenerating;}
   
 protected:
   LevelPtr level;
+  int startSeed;
   int seed;
   bool finishedGenerating;
-
-  void addEntity(EntityPtr entity);
   
   void placeLine(WorldPosition startPosition, Vector2i deltaVector, TILE_TYPE tileType);
   void fillRectangle(WorldPosition startPosition, Vector2i dimensions, TILE_TYPE tileType);
-  
 };
 
 class SimpleLevelGenerator : public LevelGenerator{
@@ -61,9 +63,7 @@ class SimpleLevelGenerator : public LevelGenerator{
   numbOfRoomsToGenerate(numbOfRoomsToGenerate) {}
   
   void generate();
-
   // If The seed is 0 we regenerate the same level
-  
   LevelPtr regenerate(int seed = 0);
   void generateStep();
   
@@ -83,7 +83,8 @@ class SimpleLevelGenerator : public LevelGenerator{
   
   void placeRoom(const Room& room);
   void placeRoomEntities(const Room& room, bool immediateMode = true);
-  
+
+  // Places Room entities in non immediate modein all
   void placeRemainingEntities();
   void generateRoom();
   

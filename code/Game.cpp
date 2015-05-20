@@ -194,7 +194,6 @@ GameState* PlayGameState::update(Game* game)
   
   eventManager.collectEvents();
   eventManager.dispatchEvents();
-
   
   level->removeDeadEntities();
   
@@ -237,31 +236,37 @@ void PlayGameState::handleInput(Game* game)
   if(input.isKeyPressed(sf::Keyboard::Q)) cameraPosition.worldPosition.tileChunkPosition.z = 1;
   if(input.isKeyPressed(sf::Keyboard::E)) cameraPosition.worldPosition.tileChunkPosition.z = 0;
   
-  if(input.isKeyPressed(sf::Keyboard::R) && !input.isKeyDown(sf::Keyboard::LShift))
+  if(input.isKeyPressed(sf::Keyboard::R))
   {
-    eventManager.reset();
+    if(input.isKeyDown(sf::Keyboard::LShift) || input.isKeyDown(sf::Keyboard::LAlt))
+    {
+      int seed = 0;
+      if(input.isKeyDown(sf::Keyboard::LShift)) seed = (int)time(NULL);
+      eventManager.reset();
+      
+      level = levelGenerator->regenerate(seed);
+      levelGenerator->generate();
+      levelRenderer.setTileSize(worldScale * baseTileSizeInPixels);
+      
+      eventManager.registerListener(level.get());
+    }
+    else
+    {
+      eventManager.reset();
+
+      int seed = time(NULL);
+      if(input.isKeyDown(sf::Keyboard::LControl)) seed = 0;
+      level = levelGenerator->regenerate(seed);
+      levelRenderer.setTileSize(worldScale * baseTileSizeInPixels);
     
-    level = levelGenerator->regenerate(time(NULL));
-    eventManager.registerListener(level.get());
-    levelRenderer.setTileSize(worldScale * baseTileSizeInPixels);
+      eventManager.registerListener(level.get());
+    }
     
   };
   
-  if(input.isKeyPressed(sf::Keyboard::R) && input.isKeyDown(sf::Keyboard::LShift))
-  {
-    eventManager.reset();
-    
-    level = levelGenerator->regenerate(time(NULL));
-    levelGenerator->generate();
-    levelRenderer.setTileSize(worldScale * baseTileSizeInPixels);
-    
-    eventManager.registerListener(level.get());
-  };
-
   Player* player = level->getPlayer();
   if(player)
   {
-
     PlayerInput playerInput = {};
     
     if(input.isKeyDown(sf::Keyboard::W)) playerInput.up = true;
