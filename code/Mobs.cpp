@@ -47,13 +47,6 @@ Mob::addHealth(float amount)
   level->addOverlayEntity(EntityPtr(overlayText));
 }
 
-const EntityRenderData&
-Mob::getRenderData()
-{
-  renderData.life = health / maxHealth;
-  return renderData;
-}
-
 void
 Mob::spawnXp(int xpToSpawn) const
 {
@@ -82,6 +75,13 @@ Mob::performDeathAction()
 {
   int xpToSpawn = mobLevel * 20;
   spawnXp(xpToSpawn);
+}
+
+const EntityRenderData*
+Mob::getRenderData()
+{
+  renderData.life = health / maxHealth;
+  return &renderData;
 }
 
 Cannon::Cannon(const EntityPosition& position, int level) : Mob(position, level)
@@ -453,15 +453,8 @@ Player::onWorldCollision(COLLISION_PLANE collisionPlane)
 {
   const float bounceFactor = 0.5f;
   velocity = getReflectedVelocity(collisionPlane, bounceFactor);
-                
-  EntityPosition particlePosition = getCollisionCenter();
   
-  for(int i = 0; i < 10; i++)
-  {
-    Entity* particle = new PrimitiveParticle(particlePosition, Vector2f::directionVector((rand()%8) * 45.0f) * 2.0f, 2.0f);
-    level->addEntity(EntityPtr(particle));
-  }
-  
+  spawnDustParticles(getCollisionCenter(), 10, 2);
 }
 
 void
@@ -562,10 +555,12 @@ Player::handlePlayerInput(const PlayerInput& playerInput)
     
     EntityPosition bulletPosition = position + getLocalCollisionCenter() +
       tempDirectionVector * bulletDistance;
-
+    
     bulletPosition -=Vector2f(0, bulletRadius);
+    
     if(playerInput.actionRight || playerInput.actionLeft)
       bulletPosition -= Vector2f(0, 1.0f);
+    
     Entity* bullet = new Bullet(bulletPosition,
 				velocity + tempDirectionVector * bulletVelocity,
 				Vector2f(bulletRadius, bulletRadius),
@@ -573,15 +568,7 @@ Player::handlePlayerInput(const PlayerInput& playerInput)
       
     if(stamina > 20 && level->addEntity(EntityPtr(bullet))) stamina -= 20;
 
-        
-    EntityPosition particlePosition = position;
-    
-    for(int i = 0; i < 2; i++)
-    {
-      Entity* particle = new PrimitiveParticle(particlePosition, Vector2f::directionVector((rand()%8) * 45.0f) * 10.0f, 2.0f);
-      level->addEntity(EntityPtr(particle));
-    }
-    
+    //spawnDustParticles(getCollisionCenter(), 10, 10);
   }
 
   if(skillPointCount > 0)

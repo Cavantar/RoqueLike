@@ -33,8 +33,8 @@ enum MOB_DIRECTION{
 };
 
 enum ENTITY_RENDER_DATA_TYPE{
-  ER_OVERLAYTEXT,
   ER_PRIMITIVE,
+  ER_OVERLAYTEXT,
   ER_MOB,
   ER_BASICSPRITE
 };
@@ -44,38 +44,49 @@ enum PRIMITIVE_TYPE{
   PT_CIRCLE
 };
 
-struct EntityRenderData{
+class EntityRenderData {
+public:
+  EntityRenderData(ENTITY_RENDER_DATA_TYPE type) : type(type) {}
+  virtual ~EntityRenderData() {};
+  
   ENTITY_RENDER_DATA_TYPE type;
+};
 
-  union{
-    // Primitive
-    struct{
-      PRIMITIVE_TYPE primitiveType;
-      Vector2f dimensionsInTiles;
-      Vector3f color;
-      float colorAlpha;
-    };
-    
-    // Mob
-    struct{
-      std::string spriteName;
-      std::string caption;
-      float life;
-    };
-    
-    // OverlayText
-    struct{
-      std::string text;
-      float fontSize;
-      Vector3f textColor;
-      float textFadeValue;
-    };
-    
-    struct{
-      // Basic Sprite
-      std::string basicSpriteName;
-    };
-  };
+class PrimitiveRenderData : public EntityRenderData {
+public:
+  PrimitiveRenderData() : EntityRenderData(ER_PRIMITIVE), colorAlpha(1.0f), outlineThickness(0) {}
+  
+  PRIMITIVE_TYPE primitiveType;
+  Vector2f dimensionsInTiles;
+  Vector3f color;
+  float colorAlpha;
+  float outlineThickness; 
+};
+
+class MobRenderData : public EntityRenderData {
+public:
+  MobRenderData() : EntityRenderData(ER_MOB) {}
+  
+  std::string spriteName;
+  std::string caption;
+  float life;
+};
+
+class OverlayTextRenderData : public EntityRenderData {
+public:
+  OverlayTextRenderData() : EntityRenderData(ER_OVERLAYTEXT) {}
+  
+  std::string text;
+  float fontSize;
+  Vector3f textColor;
+  float textFadeValue;
+};
+
+class BasicSpriteRenderData : public EntityRenderData {
+public:
+  
+  BasicSpriteRenderData() : EntityRenderData(ER_BASICSPRITE) {}
+  std::string basicSpriteName;
 };
 
 class Entity : public EventOperator {
@@ -107,7 +118,7 @@ public:
   // Both are usually called by handleCollisionResults
   virtual void onWorldCollision(COLLISION_PLANE worldCollisionType) {}
   virtual void onEntityCollision(COLLISION_PLANE worldCollisionType, Entity* entity) {}
-
+  
   // Is called when entity is removed from the map
   virtual void performDeathAction() {}
   
@@ -121,14 +132,15 @@ public:
   virtual bool isPlayer() const { return false; }
   virtual bool canCollideWithEntities() const { return true; }
   
-  virtual const EntityRenderData& getRenderData() { return renderData; }
+  virtual const EntityRenderData* getRenderData() = 0;
   virtual bool isAlive() { return alive; }
   void die();
+  
+  void spawnDustParticles(const EntityPosition& position, int amount, float speed);
   
 protected:
   // Hold pointer to the level it's on
   ILevel* level;
-  EntityRenderData renderData;
   EntityPosition position;
   bool alive = true; 
 };
@@ -146,8 +158,10 @@ public:
   OverlayText(const EntityPosition& position, const OverlayTextData& overlayTextData);
   void update(const float lastDelta);
   
+  const EntityRenderData* getRenderData() { return &renderData; }
 private:
   OverlayTextData overlayTextData;
+  OverlayTextRenderData renderData;
   float localTime;
 };
 
@@ -194,8 +208,11 @@ public:
   void onWorldCollision(COLLISION_PLANE worldCollisionType);
   FloatRect getCollisionRect() const;
   bool canCollideWithEntities() const { return false; }
-  
+
+  const EntityRenderData* getRenderData() { return &renderData;}
 private:
+  PrimitiveRenderData renderData;
+  
   float localTime;
   const float lifeTime;
 };
@@ -209,8 +226,11 @@ public:
   void onWorldCollision(COLLISION_PLANE worldCollisionType);
   FloatRect getCollisionRect() const;
   bool canCollideWithEntities() const { return false; }
-  
+
+  const EntityRenderData* getRenderData() { return &renderData;}
 private:
+  PrimitiveRenderData renderData;
+  
   float xpAmount;
   float localTime;
 };
@@ -226,7 +246,10 @@ public:
   
   FloatRect getCollisionRect() const;
 
+  const EntityRenderData* getRenderData() { return &renderData;}
 private:
+  PrimitiveRenderData renderData;
+  
   int numbOfBouncesLeft = 0;
   float damageValue; 
 };
@@ -240,9 +263,10 @@ class Item : public Entity {
   
   bool isPlayerItem() const { return true; }
   bool canCollideWithEntities() const { return false; }
+  const EntityRenderData* getRenderData() { return &renderData;}
 protected:
   float itemValue;
-  
+  BasicSpriteRenderData renderData;
   virtual void performItemAction(Entity* entity) = 0;
 };
 

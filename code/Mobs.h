@@ -5,7 +5,6 @@ class Mob: public Moveable {
 public:
   Mob(const EntityPosition& position, int level, int life = 1.0f);
   void addHealth(float amount);
-  const EntityRenderData& getRenderData();
   
   int getMobLevel() const { return mobLevel; }
   float getHealth() const { return health; }
@@ -15,7 +14,8 @@ public:
   float getShieldValue() const { return 0;} 
   void spawnXp(int xpToSpawn) const;
   bool canGetHit() const { return true; }
-  
+
+  const EntityRenderData* getRenderData();
   virtual void performDeathAction();
 protected:
   int mobLevel = 0;
@@ -24,6 +24,8 @@ protected:
   float maxHealth = 10.0f;
 
   float damageValue = 0;
+  
+  MobRenderData renderData;
 };
 
 class Cannon : public Mob {

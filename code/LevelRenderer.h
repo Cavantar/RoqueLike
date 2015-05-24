@@ -27,11 +27,11 @@ typedef std::shared_ptr<RenderThing> RenderThingPtr;
 
 class EntityRenderThing : public RenderThing {
 public:
-  const EntityRenderData& entityRenderData;
+  const EntityRenderData* entityRenderData;
   Vector2f entityPositionOnScreen;
   Vector2f dimensions;
   
-  EntityRenderThing(float bottomY, const EntityRenderData& entityRenderData,
+  EntityRenderThing(float bottomY, const EntityRenderData* entityRenderData,
 		    Vector2f entityPositionOnScreen, Vector2f dimensions) :
     RenderThing(true, bottomY), entityRenderData(entityRenderData),
     entityPositionOnScreen(entityPositionOnScreen), dimensions(dimensions) {}
@@ -99,7 +99,7 @@ private:
   
   EntityListForRendering renderTileMap(const TileMapPtr& tileMap, EntityPosition& cameraPosition);
   
-  void renderEntity(const EntityRenderData& entityRenderData, Vector2f entityPositionOnScreen);
+  void renderEntity(const EntityRenderData* entityRenderData, Vector2f entityPositionOnScreen);
   void renderEntities(const EntityList& entityList, EntityPosition& cameraPosition,
 		      const Vector2i& tileChunkSize);
 

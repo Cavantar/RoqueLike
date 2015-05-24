@@ -209,7 +209,7 @@ LevelRenderer::getEntityListForRendering(const EntityList& entityList,
   
   for(auto entityIt = entityList.begin() ; entityIt != entityList.end() ; entityIt++)
   {
-    const EntityRenderData& entityRenderData = (*entityIt)->getRenderData();
+    const EntityRenderData* entityRenderData = (*entityIt)->getRenderData();
     Vector2f entityPositionOnScreen = getEntityPositionOnScreen(*entityIt, cameraPosition, tileChunkSize);
     Vector2f dimensions = (*entityIt)->getDimensions() * tileSizeInPixels;
 
@@ -521,24 +521,30 @@ LevelRenderer::renderTileMap(const TileMapPtr& tileMap, EntityPosition& cameraPo
 }
 
 void
-LevelRenderer::renderEntity(const EntityRenderData& entityRenderData, Vector2f entityPositionOnScreen)
+LevelRenderer::renderEntity(const EntityRenderData* entityRenderData, Vector2f entityPositionOnScreen)
 {
   const sf::Vector2u windowDimensions = window->getSize();
   
-  switch(entityRenderData.type) {
+  switch(entityRenderData->type) {
   case ER_PRIMITIVE:
     {
-      const Vector2f& entityDimensions = entityRenderData.dimensionsInTiles;
-      const sf::Color entityColor(entityRenderData.color.x, entityRenderData.color.y, entityRenderData.color.z,
-				  entityRenderData.colorAlpha * 255.0f);
+      const PrimitiveRenderData& primitiveRenderData = *((PrimitiveRenderData*)entityRenderData);
       
-      switch(entityRenderData.primitiveType) {
+      const Vector2f& entityDimensions = primitiveRenderData.dimensionsInTiles;
+      const sf::Color entityColor(primitiveRenderData.color.x, primitiveRenderData.color.y, primitiveRenderData.color.z,
+				  primitiveRenderData.colorAlpha * 255.0f);
+
+      float outlineThickness = primitiveRenderData.outlineThickness;
+      
+      switch(primitiveRenderData.primitiveType) {
       case PT_RECTANGLE:
 	{
 	  sf::RectangleShape rectangleShape;
-	  rectangleShape.setOutlineThickness(0);
+	  
+	  rectangleShape.setOutlineThickness(outlineThickness * (tileSizeInPixels / 40.0f));
 	  rectangleShape.setSize(sf::Vector2f(entityDimensions.x * tileSizeInPixels,
 					      entityDimensions.y * tileSizeInPixels));
+	  
 	  rectangleShape.setFillColor(entityColor);
 	  rectangleShape.setPosition(entityPositionOnScreen.x, entityPositionOnScreen.y);
 	  
@@ -547,7 +553,8 @@ LevelRenderer::renderEntity(const EntityRenderData& entityRenderData, Vector2f e
       case PT_CIRCLE:
 	{
 	  sf::CircleShape circleShape;
-	  circleShape.setOutlineThickness(1.0f * (tileSizeInPixels / 40.0f));
+	  
+	  circleShape.setOutlineThickness(outlineThickness * (tileSizeInPixels / 40.0f));
 	  
 	  circleShape.setRadius(entityDimensions.x * tileSizeInPixels * 0.5f);
 	  circleShape.setScale(1.0f,
@@ -562,6 +569,8 @@ LevelRenderer::renderEntity(const EntityRenderData& entityRenderData, Vector2f e
     } break;
   case ER_MOB:
     {
+      const MobRenderData& mobRenderData = *((MobRenderData*)entityRenderData);
+      
       sf::RectangleShape rectangleShape;
       rectangleShape.setOutlineThickness(0);
       
@@ -570,7 +579,7 @@ LevelRenderer::renderEntity(const EntityRenderData& entityRenderData, Vector2f e
       // this should be read from the sprite object
       sf::Vector2f entityDimensions;
       
-      sf::Sprite mobSprite = spriteManager->getSprite(entityRenderData.spriteName);
+      sf::Sprite mobSprite = spriteManager->getSprite(mobRenderData.spriteName);
       
       // CONSTANT ALERT !!!
       
@@ -584,7 +593,7 @@ LevelRenderer::renderEntity(const EntityRenderData& entityRenderData, Vector2f e
 				      mobSprite.getTextureRect().height / 16.0f );
       
       // // Temporarily
-      // if(entityRenderData.spriteName == "Player") entityDimensions = sf::Vector2f(0.8f, 2.0f);
+      // if(mobRenderData.spriteName == "Player") entityDimensions = sf::Vector2f(0.8f, 2.0f);
       // else entityDimensions = sf::Vector2f(1.0f, 1.0f);
 	
       sf::Vector2f entityDimensionsInPixels = entityDimensions * tileSizeInPixels;
@@ -625,10 +634,10 @@ LevelRenderer::renderEntity(const EntityRenderData& entityRenderData, Vector2f e
       
       // Drawing Actual Life - Colored
       
-      lifeBarSize.x *= entityRenderData.life;
+      lifeBarSize.x *= mobRenderData.life;
       
       rectangleShape.setSize(lifeBarSize);
-      rectangleShape.setFillColor(sf::Color((1.0f - entityRenderData.life) * 255, entityRenderData.life * 255, 0));
+      rectangleShape.setFillColor(sf::Color((1.0f - mobRenderData.life) * 255, mobRenderData.life * 255, 0));
       
       window->draw(rectangleShape);
       
@@ -639,7 +648,7 @@ LevelRenderer::renderEntity(const EntityRenderData& entityRenderData, Vector2f e
 	
       sf::Text entityText;
       entityText.setFont(font);
-      entityText.setString(entityRenderData.caption);
+      entityText.setString(mobRenderData.caption);
       entityText.setCharacterSize(textHeightInTiles * tileSizeInPixels);
 
       sf::FloatRect localTextBounds = entityText.getLocalBounds();
@@ -655,6 +664,8 @@ LevelRenderer::renderEntity(const EntityRenderData& entityRenderData, Vector2f e
     } break;
   case ER_OVERLAYTEXT:
     {
+      const OverlayTextRenderData& overlayTextRenderData = *((OverlayTextRenderData*)entityRenderData);
+
       sf::RectangleShape rectangleShape;
       rectangleShape.setOutlineThickness(0);
       
@@ -672,14 +683,14 @@ LevelRenderer::renderEntity(const EntityRenderData& entityRenderData, Vector2f e
       
       sf::Text entityText;
       entityText.setFont(font);
-      entityText.setString(entityRenderData.text);
-      float textHeightInTiles = entityRenderData.fontSize;
+      entityText.setString(overlayTextRenderData.text);
+      float textHeightInTiles = overlayTextRenderData.fontSize;
       entityText.setCharacterSize(textHeightInTiles * tileSizeInPixels);
 
-      sf::Color textColor = sf::Color(entityRenderData.textColor.x,
-				      entityRenderData.textColor.y,
-				      entityRenderData.textColor.z,
-				      255 - entityRenderData.textFadeValue);
+      sf::Color textColor = sf::Color(overlayTextRenderData.textColor.x,
+				      overlayTextRenderData.textColor.y,
+				      overlayTextRenderData.textColor.z,
+				      255 - overlayTextRenderData.textFadeValue);
       
       sf::FloatRect localTextBounds = entityText.getLocalBounds();
       entityText.setPosition(entityPositionOnScreen.x, entityPositionOnScreen.y);
@@ -691,8 +702,10 @@ LevelRenderer::renderEntity(const EntityRenderData& entityRenderData, Vector2f e
     } break;
   case ER_BASICSPRITE:
     {
-      sf::Sprite mobSprite = spriteManager->getSprite(entityRenderData.basicSpriteName);
-
+      const BasicSpriteRenderData& basicSpriteRenderData = *((BasicSpriteRenderData*)entityRenderData);
+      
+      sf::Sprite mobSprite = spriteManager->getSprite(basicSpriteRenderData.basicSpriteName);
+      
       // CONSTANT ALERT !!!
       float finalScale = tileSizeInPixels / 16.0f;
       mobSprite.setScale(finalScale, finalScale);
@@ -712,7 +725,7 @@ LevelRenderer::renderEntities(const EntityList& entityList, EntityPosition& came
   for(auto entityIt = entityList.begin(); entityIt != entityList.end(); entityIt++)
   {
     Vector2f entityPositionOnScreen = getEntityPositionOnScreen(*entityIt, cameraPosition, tileChunkSize);
-    const EntityRenderData& entityRenderData = (*entityIt)->getRenderData();
+    const EntityRenderData* entityRenderData = (*entityIt)->getRenderData();
     renderEntity(entityRenderData, entityPositionOnScreen);
   }
 }

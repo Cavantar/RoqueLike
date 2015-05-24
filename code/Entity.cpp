@@ -21,6 +21,17 @@ Entity::die()
   queueEvent("EntityRemoved", eventArgumentDataMap);
 }
 
+void
+Entity::spawnDustParticles(const EntityPosition& position, int amount, float speed)
+{
+  for(int i = 0; i < amount; i++)
+  {
+    Entity* particle = new PrimitiveParticle(position, Vector2f::directionVector((rand()%8) * 45.0f) * speed,
+					     1.0f + ((rand()%10) * 0.1f));
+    level->addEntity(EntityPtr(particle));
+  }
+}
+
 OverlayText::OverlayText(const EntityPosition& position, const OverlayTextData& overlayTextData) :
   Entity(position), overlayTextData(overlayTextData), localTime(0)
 {
@@ -164,12 +175,9 @@ PrimitiveParticle::PrimitiveParticle(const EntityPosition& position, const Vecto
   float radius = 0.3f;  
   dimensions = Vector2f(radius, radius);
   
-  renderData.type = ER_PRIMITIVE;
-  
   renderData.primitiveType = PT_CIRCLE;
   renderData.dimensionsInTiles = Vector2f(radius, radius);
   renderData.color = Vector3f(102, 102, 102);
-  //renderData.colorAlpha = Vector3f(102, 102, 102);
   
   localTime = (float)(rand()%255) / 255.0f ;
 }
@@ -187,6 +195,8 @@ PrimitiveParticle::update(const float lastDelta)
   if(localTime > lifeTime) die();
   
   Vector2f positionDeltaVector = getPositionDeltaVector(lastDelta, 0.5f);
+  
+  renderData.colorAlpha = 1.0f - (localTime / lifeTime);
   
   EntityCollisionResult collisionResult = level->checkCollisions(this, positionDeltaVector);
   handleCollisionResult(collisionResult, positionDeltaVector);
@@ -213,6 +223,8 @@ XpOrb::XpOrb(const EntityPosition& position, const Vector2f& initialVelocity, fl
   renderData.primitiveType = PT_CIRCLE;
   renderData.dimensionsInTiles = Vector2f(radius, radius);
   renderData.color = Vector3f(102, 255, 0);
+  renderData.colorAlpha = 1.0f;
+  renderData.outlineThickness = 1.0f;
 
   localTime = (float)(rand()%255) / 255.0f ;
 }
@@ -295,12 +307,10 @@ Bullet::Bullet(const EntityPosition& position, const Vector2f& initialVelocity,
   
   this->damageValue = damageValue; 
   
-  renderData.type = ER_PRIMITIVE;
-  
   renderData.primitiveType = PT_CIRCLE;
   renderData.dimensionsInTiles = dimensions;
   renderData.color = Vector3f(rand()%256, rand()%256, rand()%256);
-  //renderData.colorAlpha = 1.0f;
+  renderData.colorAlpha = 1.0f;
 }
 
 void
@@ -318,7 +328,11 @@ Bullet::update(const float lastDelta)
 void
 Bullet::onWorldCollision(COLLISION_PLANE collisionPlane)
 {
-  if(numbOfBouncesLeft-- == 0) die();
+  if(numbOfBouncesLeft-- == 0)
+  {
+    spawnDustParticles(getCollisionCenter(), 10, velocity.getLength() / 4.0f);
+    die();
+  }
   
   static const float speedIncrease = 1.0f;
   velocity = getReflectedVelocity(collisionPlane, speedIncrease);
@@ -343,6 +357,7 @@ Bullet::onEntityCollision(COLLISION_PLANE collisionPlane, Entity* entity)
   
   velocity = getReflectedVelocity(collisionPlane, speedIncrease);
   
+  spawnDustParticles(getCollisionCenter(), 10, velocity.getLength() / 4.0f);
   die();
 }
 
@@ -352,10 +367,6 @@ Item::Item(const EntityPosition& position, const float value)
   itemValue = value;
   
   renderData.type = ER_BASICSPRITE;
-  
-  //renderData.primitiveType = PT_RECTANGLE;
-  //renderData.dimensionsInTiles = Vector2f(1.0f, 1.0f);
-  //renderData.color = Vector3f(255.0f, 0, 0);
 }
 
 void

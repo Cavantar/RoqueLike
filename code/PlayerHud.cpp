@@ -7,7 +7,7 @@ void PlayerHud::render(const Player* player)
 {
   const sf::Vector2u windowDimensions = window->getSize();
 
-  Vector2f panelDimensions(windowDimensions.x * 0.20f, windowDimensions.y * 0.5f);
+  Vector2f panelDimensions(windowDimensions.x * 0.20f, windowDimensions.y * 0.55f);
   Vector2f panelPosition(windowDimensions.x - panelDimensions.x - 2.0f, 2.0f);
   
   sf::RectangleShape rectangleShape(sf::Vector2f(panelDimensions.x, panelDimensions.y));
