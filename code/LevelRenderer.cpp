@@ -163,6 +163,7 @@ int LevelRenderer::getSpriteIndex(TILE_STATE tileState, int tileHash)
     else spriteIndex  = 1;//(rand() % 5) + 1;
   }
   return spriteIndex;
+  
 }
 
 Vector2f
@@ -418,7 +419,7 @@ LevelRenderer::renderTileChunk(const TileChunkPtr& tileChunk, const Vector2f& sc
 	  sf::Color maxColor = sf::Color::Red;
 	  sf::Color minColor = sf::Color::Green;
 	  
-	  // if(tileHash > 60) tileSprite.setColor(maxColor);
+	  // if(tileHash > 65) tileSprite.setColor(maxColor);
 	  // else tileSprite.setColor(minColor);
 	  
 	  float finalScale = tileSizeInPixels / 16.0f;
@@ -430,22 +431,6 @@ LevelRenderer::renderTileChunk(const TileChunkPtr& tileChunk, const Vector2f& sc
 	  
 	} break;
 	
-	// case TILE_TYPE_ICE_GROUND:
-	// 	{
-	// 	  rectangleShape.setSize(sf::Vector2f(tileSizeInPixels, tileSizeInPixels));
-	// 	  rectangleShape.setFillColor(sf::Color(165,242, 243));
-	
-	// 	  window->draw(rectangleShape);
-	
-	// 	} break;
-	// case TILE_TYPE_SPEED_GROUND:
-	// 	{
-	// 	  rectangleShape.setSize(sf::Vector2f(tileSizeInPixels, tileSizeInPixels));
-	// 	  rectangleShape.setFillColor(sf::Color(250,128,114));
-	
-	// 	  window->draw(rectangleShape);
-	
-	// 	} break;
       } // switch
     }
   }
@@ -461,7 +446,7 @@ LevelRenderer::renderTileMap(const TileMapPtr& tileMap, EntityPosition& cameraPo
   const sf::Vector2u windowDimensions = window->getSize();
   const TileChunkMap& tileChunkMap = tileMap->getTileChunkMap();
   
-  // To Determine How many Chunks I have to render, I have to know it's width in pixels
+  // To Determine How many Chunks I have to render, I have to know their width in pixels
   Vector2i tileChunkSize = tileMap->getTileChunkSize();
   Vector2f tileChunkSizeInPixels(tileChunkSize.x, tileChunkSize.y);
   tileChunkSizeInPixels *= tileSizeInPixels;
@@ -490,6 +475,8 @@ LevelRenderer::renderTileMap(const TileMapPtr& tileMap, EntityPosition& cameraPo
   Vector3i topLeftChunkPosition = topLeftViewport.worldPosition.tileChunkPosition;
   Vector3i bottomRightChunkPosition = topLeftChunkPosition +
     Vector3i(ceil(chunksPerScreenWidth) + 1, ceil(chunksPerScreenHeight) + 1, 0);
+
+  //Vector2f cameraPositionInPixels = 
   
   for(int y = topLeftChunkPosition.y; y < bottomRightChunkPosition.y; y++)
   {

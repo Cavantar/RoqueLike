@@ -34,8 +34,12 @@ class LevelGenerator{
   // Creates the level based on seed and returns reference
   // Doesn't generate level yet'
   LevelPtr create(int seed = 0);
-  
+
+  // Generates completely
   virtual void generate() = 0;
+
+  // Issues regeneration but doesn't generate anything
+  // To generate stuff afterwords use generate or generateStep
   virtual LevelPtr regenerate(int seed = 0) = 0;
 
   // Does one step of generation

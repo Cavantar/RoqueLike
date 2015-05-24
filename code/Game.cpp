@@ -1,14 +1,16 @@
 #include <sstream>
 #include "Game.h"
 
-void Game::updateGameState()
+//PlayGameState Game::playGameState;
+
+void
+Game::updateGameState()
 {
   
   GameState* newGameState = gameState->update(this);
   if(newGameState != NULL)
   {
     gameState->leave(this);
-
     
     delete gameState;
     gameState = newGameState;
@@ -17,7 +19,8 @@ void Game::updateGameState()
   
 }
 
-void Game::processEvents()
+void
+Game::processEvents()
 {
   sf::Event event;
   while(window.pollEvent(event))
@@ -39,7 +42,8 @@ void Game::processEvents()
   }
 }
 
-void Game::setWindowTitleToFps()
+void
+Game::setWindowTitleToFps()
 {
   static float cumulativeTime = 0;
   const float titleChangeTimePeriod = 1.0f;
@@ -56,16 +60,18 @@ void Game::setWindowTitleToFps()
   }
 }
 
-void Game::start()
+void
+Game::start()
 {
   Vector2i screenResolution(1280, 720);
   
   window.create(sf::VideoMode(screenResolution.x, screenResolution.y),
 		"RoqueLike!");
   
-  //window.setVerticalSyncEnabled(true);
+  window.setVerticalSyncEnabled(true);
   //window.setFramerateLimit(120);
   
+  //gameState = &playGameState;
   gameState = new PlayGameState();
   gameState->enter(this);
 			   
@@ -96,10 +102,11 @@ void Game::start()
     if(input.isKeyPressed(sf::Keyboard::P)) SfmlProfiler::get()->showData();
     input.clearKeyStates();
   }
-  
+  gameState->leave(this);
 }
 
-void PlayGameState::render(Game* game)
+void
+PlayGameState::render(Game* game)
 {
   levelRenderer.renderLevel(level, cameraPosition);
   
@@ -120,7 +127,8 @@ void PlayGameState::render(Game* game)
   game->window.draw(tempSprite);
 }
 
-void PlayGameState::enter(Game* game)
+void
+PlayGameState::enter(Game* game)
 {
   levelGenerator = new SimpleLevelGenerator(150);
   
@@ -150,12 +158,14 @@ void PlayGameState::enter(Game* game)
   levelRenderer.setSpriteManager(&spriteManager);
 }  
 
-void PlayGameState::leave(Game* game)
+void
+PlayGameState::leave(Game* game)
 {
   delete levelGenerator;
 }
 
-GameState* PlayGameState::update(Game* game)
+GameState*
+PlayGameState::update(Game* game)
 {
   if(!levelGenerator->isGenerationFinished())
   {
@@ -200,7 +210,8 @@ GameState* PlayGameState::update(Game* game)
   return NULL;
 }
 
-void PlayGameState::handleInput(Game* game)
+void
+PlayGameState::handleInput(Game* game)
 {
   
   Input& input = game->input;

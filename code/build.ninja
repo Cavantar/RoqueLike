@@ -21,7 +21,7 @@ LibraryDirectory = $SfmlDirectory/lib
 
 Defines = -DSFML_STATIC
 
-CompilerOptions = $Defines -FC -O2 -EHsc -MD -MP -wd4503 -Fe$TARGET -I$IncludeDirectory -c
+CompilerOptions = $Defines -FC -O2x -EHsc -MD -MP -wd4503 -Fe$TARGET -I$IncludeDirectory -c
 LinkerOptions = -LIBPATH:$LibraryDirectory
 
 CodeDirectory = ../code/

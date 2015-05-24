@@ -74,7 +74,7 @@ private:
 						const CollisionCheckData& collisionCheckData) const;
   
   WorldCollisionResult checkWorldCollision(const CollisionCheckData& collisionCheckData) const;
-
+  
   // Checks Collisions with the whole level 
   EntityCollisionResult checkEntityCollision(const Entity* entity,
 					     const CollisionCheckData& collisionCheckData) const;

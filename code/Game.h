@@ -33,9 +33,8 @@ class Game {
   sf::RenderWindow window;
   Input input;
   GameState* gameState;
-  
   sf::Clock clock;
-
+  
   // lastDelta In Seconds
   float lastDelta;
 
@@ -45,6 +44,8 @@ class Game {
   void updateGameState();
   
   void render();
+
+  //static PlayGameState playGameState;
 };
 
 class PlayGameState : public GameState {
