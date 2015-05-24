@@ -7,6 +7,7 @@
 
 #include "ILevel.h"
 #include "Entity.h"
+#include "Mobs.h"
 #include "TileMap.h"
 #include "TileState.h"
 
@@ -45,7 +46,8 @@ public:
 
   // Checks collision between two entities and returns collision results 
   EntityCollisionResult checkCollisions(const Entity* entity, Vector2f deltaVector) const ;
-  bool canSeeEachOther(const Entity* entity1, const Entity* entity2, float maxRange) const ; 
+  bool canSeeEachOther(const Entity* entity1, const Entity* entity2, float maxRange) const ;
+  Vector2f canSeeEachOtherCardinal(const Entity* entity1, const Entity* entity2, float maxRange) const ; 
 
   float getFrictionValueAtPosition(EntityPosition& entityPosition) const; 
   float getAccelerationModifierAtPosition(EntityPosition& entityPosition) const;

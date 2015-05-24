@@ -1,4 +1,5 @@
 #include "PlayerHud.h"
+#include "Mobs.h"
 #include <sstream>
 #include <iomanip>
 
@@ -39,6 +40,21 @@ void PlayerHud::render(const Player* player)
   tempText.str(""); 
   tempText << "MoveSpeed: " << player->getMovementSpeed();
   if(skillPoints) tempText << " (3 - ^)";
+  textPos = renderText(tempText.str(), textPos, sf::Color::Black);
+    
+  tempText.str(""); 
+  tempText << "BulletSpeed: " << player->getBulletVelocity();
+  if(skillPoints) tempText << " (4 - ^)";
+  textPos = renderText(tempText.str(), textPos, sf::Color::Black);
+      
+  tempText.str(""); 
+  tempText << "Health: " << player->getHealth();
+  if(skillPoints) tempText << " (5 - ^)";
+  textPos = renderText(tempText.str(), textPos, sf::Color::Black);
+        
+  tempText.str(""); 
+  tempText << "Stamina: " << player->getStamina();
+  if(skillPoints) tempText << " (6 - ^)";
   textPos = renderText(tempText.str(), textPos, sf::Color::Black);
   
   if(skillPoints != 0)

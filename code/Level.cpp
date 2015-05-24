@@ -160,7 +160,105 @@ Level::canSeeEachOther(const Entity* entity1, const Entity* entity2, float maxRa
       if(tileType == TILE_TYPE_WALL) return false;
     }
   }
+  
   return true;
+}
+
+Vector2f 
+Level::canSeeEachOtherCardinal(const Entity* entity1, const Entity* entity2, float maxRange) const
+{
+
+  EntityPosition pos1 = entity1->getCollisionCenter();
+  EntityPosition pos2 = entity2->getCollisionCenter();
+
+  Vector2f deltaVector =  EntityPosition::calculateDistanceInTiles(pos1, pos2, tileMap->getTileChunkSize());
+  Vector2f directionVector;
+  float iterationRange = 0.1f;
+  
+  float deltaLength = 0;
+  
+  // Y Axis Delta
+  Vector2f yAxisDelta(0, deltaVector.y);
+  deltaLength = yAxisDelta.getLength();
+  
+  directionVector = yAxisDelta;
+  directionVector.normalize();
+  
+  EntityPosition checkPosition = pos1;
+  if(deltaLength < maxRange)
+  {
+    int numbOfIterations = deltaLength / iterationRange;
+    
+    for(int i = 1; i <= numbOfIterations; i++)
+    {
+      checkPosition += directionVector * iterationRange;
+      tileMap->recanonicalize(checkPosition);
+      TILE_TYPE tileType = tileMap->getTileType(checkPosition.worldPosition);
+      if(tileType == TILE_TYPE_WALL) break;
+      
+      // If checkPosition is inside collision rect of entity 2 then return directionVector
+      FloatRect collisionRect = entity2->getCollisionRect();
+
+      Vector2f relativeDistance = EntityPosition::calculateDistanceInTiles(checkPosition,
+									   pos2,
+									   tileMap->getTileChunkSize());
+
+      // Because Relative Distance is offst from the collision Center
+      relativeDistance += Vector2f(collisionRect.width / 2.0f, collisionRect.height / 2.0f);
+
+      // To normalize collision rect
+      collisionRect.left = 0;
+      collisionRect.top = 0;
+      
+      if(collisionRect.doesContain(relativeDistance))
+      {
+	return directionVector;
+      }
+    }
+  }
+
+  // X Axis Delta
+  
+  Vector2f xAxisDelta(deltaVector.x, 0);
+  deltaLength = xAxisDelta.getLength();
+  
+  directionVector = xAxisDelta;
+  directionVector.normalize();
+  
+  checkPosition = pos1;
+  if(deltaLength < maxRange)
+  {
+    int numbOfIterations = deltaLength / iterationRange;
+    
+    for(int i = 1; i <= numbOfIterations; i++)
+    {
+      checkPosition += directionVector * iterationRange;
+      tileMap->recanonicalize(checkPosition);
+      TILE_TYPE tileType = tileMap->getTileType(checkPosition.worldPosition);
+      if(tileType == TILE_TYPE_WALL) break;
+            
+      // If checkPosition is inside collision rect of entity 2 then return directionVector
+      FloatRect collisionRect = entity2->getCollisionRect();
+      Vector2f relativeDistance = EntityPosition::calculateDistanceInTiles(checkPosition,
+									   pos2,
+									   tileMap->getTileChunkSize());
+      
+      // Because Relative Distance is offst from the collision Center
+      relativeDistance += Vector2f(collisionRect.width / 2.0f, collisionRect.height / 2.0f);
+
+      // To normalize collision rect
+      collisionRect.left = 0;
+      collisionRect.top = 0;
+      
+      if(collisionRect.doesContain(relativeDistance))
+      {
+	return directionVector;
+      }
+      
+    }
+  }
+
+  return Vector2f();
 }
 
 float

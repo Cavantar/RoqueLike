@@ -4,6 +4,13 @@
 
 #define M_PI 3.14159265358979323846
 
+enum CARDINAL_DIRECTION{
+  CD_UP,
+  CD_RIGHT,
+  CD_DOWN,
+  CD_LEFT
+};
+
 template <typename T>
 class Vector2{
  public:
@@ -28,6 +35,9 @@ class Vector2{
   float getLength() const ;
   void normalize();
   static Vector2<T> directionVector(float angle = rand()%360);
+  static Vector2<T> cardinalDirection(CARDINAL_DIRECTION cardinalDirection);
+  
+  void showData() const;
 };
 
 typedef Vector2<int32> Vector2i;

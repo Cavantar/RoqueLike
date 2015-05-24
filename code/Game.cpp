@@ -142,19 +142,26 @@ PlayGameState::enter(Game* game)
   playerHud.setFont(levelRenderer.getFont());
   
   spriteManager.loadTexture("myTileset.png");
-  spriteManager.loadSprite("first", IntRect(16, 16 * 4, 16, 16));
-  spriteManager.loadSprite("playerBase", IntRect(0, 16 * 4, 16, 32));
-  spriteManager.loadSprite("cannonBase", IntRect(0, 16 * 6, 16, 16));
+    
   spriteManager.loadSpriteSet("floor1_", IntRect(0, 0, 16, 16), 30);
   spriteManager.loadSpriteSet("floor1_", IntRect(0, 16, 16, 16), 30, 30);
-  spriteManager.loadSpriteSet("floor1_", IntRect(0, 32, 16, 16), 9, 60);
+  spriteManager.loadSpriteSet("floor1_", IntRect(0, 16 * 2, 16, 16), 9, 60);
   
-  spriteManager.loadSpriteSet("wall1_", IntRect(16, 16 * 4, 16, 32), 7);
+  spriteManager.loadSpriteSet("wallTop1_", IntRect(0, 16 * 3, 16, 16), 30);
+  spriteManager.loadSpriteSet("wallTop1_", IntRect(0, 16 * 4, 16, 16), 29, 30);
   
-  spriteManager.loadSpriteSet("wallTop1_", IntRect(0, 16 * 7, 16, 16), 30);
-  spriteManager.loadSpriteSet("wallTop1_", IntRect(0, 16 * 8, 16, 16), 29, 30);
+  spriteManager.loadSpriteSet("wall1_", IntRect(0, 16 * 5, 16, 32), 7);
+  
+  spriteManager.loadSprite("first", IntRect(16, 16 * 4, 16, 16));
   spriteManager.loadSprite("healthPotion", IntRect(0, 16 * 9, 16, 16));
+  spriteManager.loadSprite("playerBase", IntRect(0, 16 * 10, 16, 32));
+  spriteManager.loadSprite("followerBase", IntRect(16, 16 * 10, 16, 32));
+  spriteManager.loadSprite("cannonBase", IntRect(0, 16 * 12, 16, 16));
+  spriteManager.loadSprite("ratBase", IntRect(16, 16 * 12, 16, 16));
+  spriteManager.loadSprite("snakeBase", IntRect(16 * 2, 16 * 12, 16, 16));
   
+  spriteManager.loadSpriteSet("goblin_", IntRect(16 * 2, 16 * 13, 16, 16), 4);
+    
   levelRenderer.setSpriteManager(&spriteManager);
 }  
 
@@ -295,6 +302,7 @@ PlayGameState::handleInput(Game* game)
     if(input.isKeyPressed(sf::Keyboard::Num3)) playerInput.playerKey3 = true;
     if(input.isKeyPressed(sf::Keyboard::Num4)) playerInput.playerKey4 = true;
     if(input.isKeyPressed(sf::Keyboard::Num5)) playerInput.playerKey5 = true;
+    if(input.isKeyPressed(sf::Keyboard::Num6)) playerInput.playerKey6 = true;
     
     player->handlePlayerInput(playerInput);
   }

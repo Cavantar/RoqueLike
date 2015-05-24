@@ -54,6 +54,7 @@ build ../build/SpriteManager.obj : cc SpriteManager.cpp
 build ../build/Profiler.obj : cc Profiler.cpp
 build ../build/Noise.obj : cc Noise.cpp
 build ../build/MiscFunctions.obj : cc MiscFunctions.cpp
+build ../build/Mobs.obj : cc Mobs.cpp
 
 build RoqueLike : ll $
 ../build/main.obj $
@@ -71,5 +72,6 @@ build RoqueLike : ll $
 ../build/SpriteManager.obj $
 ../build/Profiler.obj $
 ../build/Noise.obj $
-../build/MiscFunctions.obj 
+../build/MiscFunctions.obj $
+../build/Mobs.obj 
 

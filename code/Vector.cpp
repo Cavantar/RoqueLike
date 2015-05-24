@@ -86,6 +86,37 @@ Vector2<T> Vector2<T>::directionVector(float angle)
   return Vector2<T>(cos(radAng), -sin(radAng));
 }
 
+template <typename T>
+Vector2<T> Vector2<T>::cardinalDirection(CARDINAL_DIRECTION cardinalDirection)
+{
+  Vector2f result;
+  
+  switch(cardinalDirection)
+  {
+  case CD_UP:
+    result = Vector2<T>(0, (T)-1);
+    break;
+  case CD_RIGHT:
+    result = Vector2<T>((T)1, 0);
+    break;
+  case CD_DOWN:
+    result = Vector2<T>(0, (T)1);
+    break;
+  case CD_LEFT:
+    result = Vector2<T>((T)-1, 0);
+    break;
+  default:
+    std::cout << "Incorrect direction \n";
+  }
+  
+  return result;
+}
+
+template <typename T>
+void Vector2<T>::showData() const
+{
+  std::cout << "x: " << x << " y: " << y << std::endl;
+}
 
 // Vector3
 

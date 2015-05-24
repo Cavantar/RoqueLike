@@ -22,6 +22,7 @@ struct PlayerInput {
   bool playerKey3;
   bool playerKey4;
   bool playerKey5;
+  bool playerKey6;
 };
   
 enum MOB_DIRECTION{
@@ -111,7 +112,7 @@ public:
   
   // PlayerStuff
   virtual void addXp(const float amount) {} 
-  virtual void addHealth(const float amount) {}
+  virtual void addHealth(float amount) {}
   
   // Flag Stuff
   virtual bool canReceiveItems() const { return false; }
@@ -236,107 +237,4 @@ public:
   
 private:
   void performItemAction(Entity* actionReceiver);
-};
-
-class Mob: public Moveable {
-public:
-  Mob(const EntityPosition& position, int level, int life = 1.0f);
-  void addHealth(const float amount);
-  const EntityRenderData& getRenderData();
-  
-  int getMobLevel() const { return mobLevel; }
-  float getHealth() const { return health; }
-  float getMaxHealth() const { return maxHealth; }
-  
-  float getDamageValue() const { return damageValue; }
-  void spawnXp(int xpToSpawn) const;
-  bool canGetHit() const { return true; }
-  
-protected:
-  int mobLevel = 0;
-  
-  float health = 3.0f;
-  float maxHealth = 10.0f;
-
-  float damageValue = 0;
-};
-
-class Cannon : public Mob {
-public:
-  Cannon(const EntityPosition& position, int level);
-  void update(const float lastDelta);
-  void performDeathAction();
-  
-private:
-  float localTime = 0;
-};
-
-class Follower : public Mob {
-public:
-  Follower(const EntityPosition& position, int level);
-  void update(const float lastDelta);
-  void performDeathAction();
-  FloatRect getCollisionRect() const;
-  
-  void onWorldCollision(COLLISION_PLANE worldCollisionType);
-  void onEntityCollision(COLLISION_PLANE worldCollisionType, Entity* entity);
-};
-
-
-enum PLAYER_UPGRADE {
-  PU_HEALTH,
-  PU_SHIELD,
-  PU_MOVESPEED,
-  PU_DAMAGE,
-  PU_STAMINA,
-  PU_BULLETSPEED
-};
-
-class Player : public Mob {
- public:
-  Player(const EntityPosition& position);
-  
-  void update(const float lastDelta);
-  void onWorldCollision(COLLISION_PLANE worldCollisionType);
-  void onEntityCollision(COLLISION_PLANE worldCollisionType, Entity* entity);
-  FloatRect getCollisionRect() const;
-  
-  // Reacts to the player Input state
-  void handlePlayerInput(const PlayerInput& playerInput);
-  void performDeathAction();
-  
-  bool canReceiveItems() const { return true; }
-  bool isPlayer() const { return true; }
-  
-  void addXp(const float amount);
-  float getShieldValue() const { return shieldValue; } 
-  
-  float getStamina() const { return stamina; }
-  float getMaxStamina() const { return maxStamina; }
-  
-  float getXp() const { return xpAmount; }
-  float getCurrentLevelXp() const { return (mobLevel - 1) * 100; } 
-  float getNextLevelXp() const { return mobLevel * 100; }
-  
-  int getSkillPoints() const { return skillPointCount; } 
-  
-  // Events and Stuff
-  EventNameList getEntityEvents();
-  void onEvent(const std::string& eventName, EventArgumentDataMap eventDataMap);
-  
-private:
-  float xpAmount = 0;
-  float shieldValue = 0.5f;
-  
-  float bulletVelocity = 10.0f;
-  
-  float stamina = 100;
-  float maxStamina = 100;
-
-  int skillPointCount = 0;
-  
-  MOB_DIRECTION direction;
-
-  void upgradeAbility(PLAYER_UPGRADE upgrade);
-  void levelUp();
 };

@@ -139,32 +139,46 @@ SimpleLevelGenerator::placeRoomEntities(const Room& room, bool immediateMode)
     
     float roomDifficulty = (float)room.depth / (float)maxRoomDepth;
     
-    if((rand()%11) < 2)
-    {
-      entityPosition = room.topLeftCorner + Vector2i(1, 1);
-      entityPosition += Vector2i(rand()%(room.dimensions.x-2), rand()%(room.dimensions.y-2));
+    // if((rand()%11) < 2)
+    // {
+    //   entityPosition = room.topLeftCorner + Vector2i(1, 1);
+    //   entityPosition += Vector2i(rand()%(room.dimensions.x-2), rand()%(room.dimensions.y-2));
       
-      entity = EntityPtr(new Cannon(EntityPosition(entityPosition), (roomDifficulty*10.0f) + 1));
-      level->addEntity(entity);
-    }
+    //   entity = EntityPtr(new Cannon(EntityPosition(entityPosition), (roomDifficulty*10.0f) + 1));
+    //   level->addEntity(entity);
+    // }
     
-    // Health Pack
-    if((rand()%11) < 4)
-    {
-      entityPosition = room.topLeftCorner + Vector2i(1, 1);
-      entityPosition += Vector2i(rand()%(room.dimensions.x-2), rand()%(room.dimensions.y-2));
-      entity = EntityPtr(new HealthItem(EntityPosition(entityPosition), roomDifficulty * 20.0f));
-      level->addEntity(entity);
-    }
+    // // Health Pack
+    // if((rand()%11) < 4)
+    // {
+    //   entityPosition = room.topLeftCorner + Vector2i(1, 1);
+    //   entityPosition += Vector2i(rand()%(room.dimensions.x-2), rand()%(room.dimensions.y-2));
+    //   entity = EntityPtr(new HealthItem(EntityPosition(entityPosition), roomDifficulty * 20.0f));
+    //   level->addEntity(entity);
+    // }
         
-    // Health Pack
-    if((rand()%11) < 2)
+    // // Follower
+    // if((rand()%11) < 2)
+    // {
+    //   entityPosition = room.topLeftCorner + Vector2i(1, 1);
+    //   entityPosition += Vector2i(rand()%(room.dimensions.x-2), rand()%(room.dimensions.y-2));
+    //   entity = EntityPtr(new Follower(EntityPosition(entityPosition), (roomDifficulty * 20.0f) + 1));
+    //   level->addEntity(entity);
+    // }
+
+    // static bool spawnedTest = false;
+    
+    // Follower
+    if((rand()%11) < 2)// && !spawnedTest)
     {
       entityPosition = room.topLeftCorner + Vector2i(1, 1);
       entityPosition += Vector2i(rand()%(room.dimensions.x-2), rand()%(room.dimensions.y-2));
-      entity = EntityPtr(new Follower(EntityPosition(entityPosition), roomDifficulty * 20.0f));
+      entity = EntityPtr(new Rat(EntityPosition(entityPosition), (roomDifficulty * 20.0f) + 1));
       level->addEntity(entity);
+      //spawnedTest = true;
     }
+
+    
   }
 }
 

@@ -52,7 +52,9 @@ public:
   virtual void removeDeadEntities() = 0;
   virtual EntityCollisionResult checkCollisions(const Entity* entity, Vector2f deltaVector) const  = 0;
   
-  virtual bool canSeeEachOther(const Entity* entity1, const Entity* entity2, float maxRange) const = 0; 
+  virtual bool canSeeEachOther(const Entity* entity1, const Entity* entity2, float maxRange) const = 0;
+  virtual Vector2f canSeeEachOtherCardinal(const Entity* entity1, const Entity* entity2, float maxRange) const = 0; 
+
   
   virtual float getFrictionValueAtPosition(EntityPosition& entityPosition) const = 0; 
   virtual float getAccelerationModifierAtPosition(EntityPosition& entityPosition) const = 0;
