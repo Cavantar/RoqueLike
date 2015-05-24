@@ -155,6 +155,49 @@ Moveable::handleCollisionResult(EntityCollisionResult& collisionResult,
   position += positionDeltaVector * collisionResult.maxAllowedT;
 }
 
+PrimitiveParticle::PrimitiveParticle(const EntityPosition& position, const Vector2f& initialVelocity, float lifeTime) :
+  lifeTime(lifeTime)
+{
+  this->position = position;
+  velocity = initialVelocity;
+  
+  float radius = 0.3f;  
+  dimensions = Vector2f(radius, radius);
+  
+  renderData.type = ER_PRIMITIVE;
+  
+  renderData.primitiveType = PT_CIRCLE;
+  renderData.dimensionsInTiles = Vector2f(radius, radius);
+  renderData.color = Vector3f(102, 102, 102);
+  //renderData.colorAlpha = Vector3f(102, 102, 102);
+  
+  localTime = (float)(rand()%255) / 255.0f ;
+}
+
+FloatRect
+PrimitiveParticle::getCollisionRect() const
+{
+  return FloatRect(0, 0, dimensions.x, dimensions.y);
+}
+
+void
+PrimitiveParticle::update(const float lastDelta)
+{
+  localTime += lastDelta;
+  if(localTime > lifeTime) die();
+  
+  Vector2f positionDeltaVector = getPositionDeltaVector(lastDelta, 0.5f);
+  
+  EntityCollisionResult collisionResult = level->checkCollisions(this, positionDeltaVector);
+  handleCollisionResult(collisionResult, positionDeltaVector);
+}
+
+void
+PrimitiveParticle::onWorldCollision(COLLISION_PLANE collisionPlane)
+{
+  velocity = getReflectedVelocity(collisionPlane, 1.0f);
+}
+
 XpOrb::XpOrb(const EntityPosition& position, const Vector2f& initialVelocity, float xpAmount)
 {
   this->position = position;
@@ -257,6 +300,7 @@ Bullet::Bullet(const EntityPosition& position, const Vector2f& initialVelocity,
   renderData.primitiveType = PT_CIRCLE;
   renderData.dimensionsInTiles = dimensions;
   renderData.color = Vector3f(rand()%256, rand()%256, rand()%256);
+  //renderData.colorAlpha = 1.0f;
 }
 
 void

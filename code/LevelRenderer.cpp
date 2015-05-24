@@ -529,7 +529,8 @@ LevelRenderer::renderEntity(const EntityRenderData& entityRenderData, Vector2f e
   case ER_PRIMITIVE:
     {
       const Vector2f& entityDimensions = entityRenderData.dimensionsInTiles;
-      const sf::Color entityColor(entityRenderData.color.x, entityRenderData.color.y, entityRenderData.color.z);
+      const sf::Color entityColor(entityRenderData.color.x, entityRenderData.color.y, entityRenderData.color.z,
+				  entityRenderData.colorAlpha * 255.0f);
       
       switch(entityRenderData.primitiveType) {
       case PT_RECTANGLE:

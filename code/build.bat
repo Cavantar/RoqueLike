@@ -50,6 +50,7 @@ set FilesToCompile= ^
     ..\code\Profiler.cpp ^
     ..\code\Noise.cpp ^
     ..\code\MiscFunctions.cpp ^
+    ..\code\Mobs.cpp ^
     ..\code\main.cpp
 )
 

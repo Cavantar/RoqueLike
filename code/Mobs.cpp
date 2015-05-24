@@ -453,6 +453,15 @@ Player::onWorldCollision(COLLISION_PLANE collisionPlane)
 {
   const float bounceFactor = 0.5f;
   velocity = getReflectedVelocity(collisionPlane, bounceFactor);
+                
+  EntityPosition particlePosition = getCollisionCenter();
+  
+  for(int i = 0; i < 10; i++)
+  {
+    Entity* particle = new PrimitiveParticle(particlePosition, Vector2f::directionVector((rand()%8) * 45.0f) * 2.0f, 2.0f);
+    level->addEntity(EntityPtr(particle));
+  }
+  
 }
 
 void
@@ -563,6 +572,16 @@ Player::handlePlayerInput(const PlayerInput& playerInput)
 				damageValue);
       
     if(stamina > 20 && level->addEntity(EntityPtr(bullet))) stamina -= 20;
+
+        
+    EntityPosition particlePosition = position;
+    
+    for(int i = 0; i < 2; i++)
+    {
+      Entity* particle = new PrimitiveParticle(particlePosition, Vector2f::directionVector((rand()%8) * 45.0f) * 10.0f, 2.0f);
+      level->addEntity(EntityPtr(particle));
+    }
+    
   }
 
   if(skillPointCount > 0)

@@ -53,6 +53,7 @@ struct EntityRenderData{
       PRIMITIVE_TYPE primitiveType;
       Vector2f dimensionsInTiles;
       Vector3f color;
+      float colorAlpha;
     };
     
     // Mob
@@ -69,7 +70,7 @@ struct EntityRenderData{
       Vector3f textColor;
       float textFadeValue;
     };
-
+    
     struct{
       // Basic Sprite
       std::string basicSpriteName;
@@ -183,6 +184,20 @@ protected:
   // Handles Collision Result calls onEntityCollision, onWorldCollision.
   void handleCollisionResult(EntityCollisionResult& collisionResult,
 			     const Vector2f& positionDeltaVector);
+};
+
+class PrimitiveParticle : public Moveable {
+public:
+  PrimitiveParticle(const EntityPosition& position, const Vector2f& initialVelocity, float lifeTime);
+  void update(const float lastDelta);
+  
+  void onWorldCollision(COLLISION_PLANE worldCollisionType);
+  FloatRect getCollisionRect() const;
+  bool canCollideWithEntities() const { return false; }
+  
+private:
+  float localTime;
+  const float lifeTime;
 };
 
 class XpOrb : public Moveable {
