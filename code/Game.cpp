@@ -90,7 +90,9 @@ Game::start()
       {
 	window.clear();
 	gameState->render(this);
+	SfmlProfiler::get()->start("BufferFlip");
 	window.display();
+	SfmlProfiler::get()->end("BufferFlip");
       }      
       SfmlProfiler::get()->end("Render");
       // Time Handling
@@ -108,7 +110,9 @@ Game::start()
 void
 PlayGameState::render(Game* game)
 {
+  SfmlProfiler::get()->start("LevelRender");
   levelRenderer.renderLevel(level, cameraPosition);
+  SfmlProfiler::get()->end("LevelRender");
   
   if(!levelGenerator->isGenerationFinished())
   {

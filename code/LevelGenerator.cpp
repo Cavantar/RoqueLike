@@ -120,24 +120,72 @@ SimpleLevelGenerator::placeRoomEntities(const Room& room, bool immediateMode)
   //std::list<WorldPosition> takenFields;  
   
   WorldPosition entityPosition;
-  EntityPtr entity;
+  Entity* entity;
 
   //static bool placedCannon = false;
   
   if(immediateMode)
   {
+    
     // Health Pack
     if((rand()%11) < 3)
     {
       entityPosition = room.topLeftCorner + Vector2i(1, 1);
       entityPosition += Vector2i(rand()%(room.dimensions.x-2), rand()%(room.dimensions.y-2));
-      entity = EntityPtr(new HealthItem(EntityPosition(entityPosition), (float)room.depth / 15));
-      level->addEntity(entity);
+      entity = new HealthItem(EntityPosition(entityPosition), (float)room.depth / 15);
+      level->addEntity(EntityPtr(entity));
     }
+    
   }
   else {
     
     float roomDifficulty = (float)room.depth / (float)maxRoomDepth;
+
+    WorldPosition topLeftFloor = room.topLeftCorner + Vector2i(1, 1);
+    Vector2i dimensions = room.dimensions - Vector2i(2, 2);
+
+          
+    for(int y = 0; y < dimensions.y; y++)
+    {
+      for(int x = 0; x < dimensions.x; x++)
+      {
+	WorldPosition entityPosition = room.topLeftCorner + Vector2i(x, y);
+	
+	if(roomDifficulty < 0.2f)
+	{
+	  // Spawn Any Entity
+	  if(rand()%100 < 2)
+	  {
+	    if(rand()%10 || roomDifficulty < 0.1f)
+	    {
+	      
+	      if(rand()%5)
+		entity = new Rat(EntityPosition(entityPosition), (roomDifficulty * 20.0f) + 1);
+	      else
+		entity = new HealthItem(EntityPosition(entityPosition), roomDifficulty * 20.0f + 0.01f);
+	    }
+	    else
+	    {
+	      entity = new Snake(EntityPosition(entityPosition), (roomDifficulty * 20.0f) + 1);
+	    }
+	    
+	    level->addEntity(EntityPtr(entity));
+	  }
+	  
+	}
+      }
+      
+      // // Follower
+      // if((rand()%11) < 2)// && !spawnedTest)
+      // {
+      // 	entityPosition = room.topLeftCorner + Vector2i(1, 1);
+      // 	entityPosition += Vector2i(rand()%(room.dimensions.x-2), rand()%(room.dimensions.y-2));
+      // 	entity = EntityPtr(new Rat(EntityPosition(entityPosition), (roomDifficulty * 20.0f) + 1));
+      // 	level->addEntity(entity);
+      // }
+      
+    }
+    
     
     // if((rand()%11) < 2)
     // {
@@ -167,17 +215,6 @@ SimpleLevelGenerator::placeRoomEntities(const Room& room, bool immediateMode)
     // }
 
     // static bool spawnedTest = false;
-    
-    // Follower
-    if((rand()%11) < 2)// && !spawnedTest)
-    {
-      entityPosition = room.topLeftCorner + Vector2i(1, 1);
-      entityPosition += Vector2i(rand()%(room.dimensions.x-2), rand()%(room.dimensions.y-2));
-      entity = EntityPtr(new Rat(EntityPosition(entityPosition), (roomDifficulty * 20.0f) + 1));
-      level->addEntity(entity);
-      //spawnedTest = true;
-    }
-
     
   }
 }
@@ -353,7 +390,7 @@ SimpleLevelGenerator::generateRoom()
       // Getting The last room from the current branch
       Room currentRoom = currentRoomPath.back();
       
-      int numbOfTries = 1;
+      int numbOfTries = 2;
       while(numbOfTries)
       {
 	potentialRoom.topLeftCorner = currentRoom.topLeftCorner;

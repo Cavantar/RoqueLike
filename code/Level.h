@@ -68,10 +68,10 @@ private:
   Player* player;
   
   void updateEntities(const float lastDelta);
-
+  
   // Returns the list of tiles that are affected depending on collisionCheckData
   TileList getAffectedTiles(const CollisionCheckData& collisionCheckData) const;
-
+  
   WorldCollisionResult checkCollisionsWithTiles(TileList& tiles,
 						const CollisionCheckData& collisionCheckData) const;
   

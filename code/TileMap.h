@@ -15,14 +15,13 @@ enum TILE_TYPE{
 };
 
 // TileChunkData[y][x] accessor order
-
 typedef std::vector<std::vector<TILE_TYPE>> TileChunkData;
 
 class TileChunk{
  private:
   TileChunkData tileChunkData;
   
- public:
+public:
   TileChunk(const uint32 width, const uint32 height);
   
   TILE_TYPE getTileType(const Vector2i& tilePosition) const;

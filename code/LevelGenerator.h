@@ -32,7 +32,7 @@ class LevelGenerator{
   virtual ~LevelGenerator() {}
 
   // Creates the level based on seed and returns reference
-  // Doesn't generate level yet'
+  // Doesn't generate level yet
   LevelPtr create(int seed = 0);
 
   // Generates completely

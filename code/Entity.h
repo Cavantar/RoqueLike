@@ -109,7 +109,7 @@ public:
   virtual void addVelocity(Vector2f velocity) {}
 
   // For Ordering During Rendering 
-  virtual Vector2f getDimensions() const { return Vector2f();}
+  virtual Vector2f getDimensions() const { return Vector2f(1.0f, 1.0f);}
   
   // Collision Stuff
   virtual FloatRect getCollisionRect() const { return FloatRect();}

@@ -26,7 +26,7 @@ Entity::spawnDustParticles(const EntityPosition& position, int amount, float spe
 {
   for(int i = 0; i < amount; i++)
   {
-    Entity* particle = new PrimitiveParticle(position, Vector2f::directionVector((rand()%8) * 45.0f) * speed,
+    Entity* particle = new PrimitiveParticle(position, Vector2f::directionVector((rand()%16) * 22.5f) * speed,
 					     1.0f + ((rand()%10) * 0.1f));
     level->addEntity(EntityPtr(particle));
   }

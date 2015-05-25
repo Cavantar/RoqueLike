@@ -33,8 +33,10 @@ LevelRenderer::renderLevel(const LevelPtr& level, EntityPosition& cameraPosition
   
   const TileMapPtr& tileMap = level->getTileMap();
 
+  SfmlProfiler::get()->start("GettingEntityListForRender");
   EntityListForRendering entitiesForRendering = getEntityListForRendering(level->getEntityList(0), cameraPosition,
 									  tileMap->getTileChunkSize());
+  SfmlProfiler::get()->end("GettingEntityListForRender");
 
   SfmlProfiler::get()->start("BasicTileRender");
   EntityListForRendering tilesForRendering = renderTileMap(tileMap, cameraPosition);
@@ -50,12 +52,11 @@ LevelRenderer::renderLevel(const LevelPtr& level, EntityPosition& cameraPosition
 
   entitiesForRendering.clear();
   
-  // renderEntities(level->getEntityList(0), cameraPosition,
-  // 		   tileMap->getTileChunkSize());
-  
+  // Overlay Layer
+  SfmlProfiler::get()->start("OverlayRender");
   renderEntities(level->getEntityList(1), cameraPosition,
 		 tileMap->getTileChunkSize());
-  
+  SfmlProfiler::get()->end("OverlayRender");
 }
 
 int LevelRenderer::getSpriteIndex(TILE_STATE tileState, int tileHash)
@@ -196,24 +197,31 @@ LevelRenderer::getEntityPositionOnScreen(const EntityPtr& entity, EntityPosition
 									     tileChunkSize);
   // Converting Position To Pixels
   entityPositionOnScreen *= tileSizeInPixels;
-
+  
   return entityPositionOnScreen;
 }
 
 EntityListForRendering
 LevelRenderer::getEntityListForRendering(const EntityList& entityList,
-				       EntityPosition& cameraPosition,
-				       const Vector2i& tileChunkSize)
+					 EntityPosition& cameraPosition,
+					 const Vector2i& tileChunkSize)
 {
   EntityListForRendering resultEntityList;
+  
+  const sf::Vector2u windowDimensions = window->getSize();
   
   for(auto entityIt = entityList.begin() ; entityIt != entityList.end() ; entityIt++)
   {
     const EntityRenderData* entityRenderData = (*entityIt)->getRenderData();
     Vector2f entityPositionOnScreen = getEntityPositionOnScreen(*entityIt, cameraPosition, tileChunkSize);
     Vector2f dimensions = (*entityIt)->getDimensions() * tileSizeInPixels;
-
     
+    if(entityPositionOnScreen.y > windowDimensions.y || entityPositionOnScreen.x > windowDimensions.x ||
+       entityPositionOnScreen.y + (dimensions.y * tileSizeInPixels) < 0 ||
+       entityPositionOnScreen.x + (dimensions.x * tileSizeInPixels) < 0)
+    {
+      continue;
+    }
     RenderThing* renderThing = new EntityRenderThing(entityPositionOnScreen.y + dimensions.y,
 						     entityRenderData, entityPositionOnScreen,
 						     dimensions);
@@ -534,6 +542,14 @@ LevelRenderer::renderEntity(const EntityRenderData* entityRenderData, Vector2f e
       const sf::Color entityColor(primitiveRenderData.color.x, primitiveRenderData.color.y, primitiveRenderData.color.z,
 				  primitiveRenderData.colorAlpha * 255.0f);
 
+      
+      if(entityPositionOnScreen.x < 0 || entityPositionOnScreen.y < 0 ||
+	 (entityPositionOnScreen.x + entityDimensions.x) > windowDimensions.x ||
+	 (entityPositionOnScreen.y + entityDimensions.y) > windowDimensions.x )
+      {
+	return;
+      }
+
       float outlineThickness = primitiveRenderData.outlineThickness;
       
       switch(primitiveRenderData.primitiveType) {
@@ -696,8 +712,15 @@ LevelRenderer::renderEntity(const EntityRenderData* entityRenderData, Vector2f e
       entityText.setPosition(entityPositionOnScreen.x, entityPositionOnScreen.y);
       entityText.setColor(textColor);
       
+      if(entityPositionOnScreen.x < 0 || entityPositionOnScreen.y < 0 ||
+	 (entityPositionOnScreen.x + localTextBounds.width) > windowDimensions.x ||
+	 (entityPositionOnScreen.y + localTextBounds.height) > windowDimensions.x )
+      {
+	return;
+      }
+      
       window->draw(entityText);
-
+      
       
     } break;
   case ER_BASICSPRITE:

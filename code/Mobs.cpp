@@ -62,7 +62,7 @@ Mob::spawnXp(int xpToSpawn) const
     value = (((rand() % (xpToSpawn/10)) + 1) * 10) % (xpToSpawn + 10);
     if(value > 50) value = 50;
     
-    Entity* entity = new XpOrb(position, Vector2f::directionVector() * (1.0f + 0.25f * ((rand()%12) + 1)), value);
+    Entity* entity = new XpOrb(getCollisionCenter(), Vector2f::directionVector() * (1.0f + 0.25f * ((rand()%12) + 1)), value);
     level->addEntity(EntityPtr(entity));
 
     //std::cout << "Spawning: " << value << " xp \n";
@@ -331,7 +331,7 @@ Rat::Rat(const EntityPosition& position, int level) : Mob(position, level)
 void
 Rat::update(const float lastDelta)
 {
-  
+  bool dying = (health / maxHealth)  < 0.2f;
   Player* player = level->getPlayer();
   if(player && level->canSeeEachOther(this, player, 15.0f))
   {
@@ -340,20 +340,25 @@ Rat::update(const float lastDelta)
     
     Vector2f distanceVector = EntityPosition::calculateDistanceInTiles(followerPosition, playerPosition,
 								       level->getTileMap()->getTileChunkSize());
-    // If There's Player in Radius of given length 
-    if(distanceVector.getLength() < 4.0f)
+    // If There's Player in given Radius 
+    if(distanceVector.getLength() < 4.0f + (mobLevel * 0.5) && !dying)
     {
       distanceVector.normalize();
       Vector2f directionVector = distanceVector;
       acceleration = directionVector;
+    }
+    // If he's dying 
+    else if(dying)
+    {
+      distanceVector.normalize();
+      acceleration = distanceVector * -1.0f;
     }
     else acceleration = currentDirection;
   }
   else acceleration = currentDirection;
   
   localStateTime -= lastDelta;
-  
-  if(localStateTime < 0)
+  if(localStateTime < 0 && !dying)
   {
     switch(ratState)
     {
@@ -366,6 +371,7 @@ Rat::update(const float lastDelta)
 	  ratState = RS_THINKING;
 	  currentDirection = Vector2f();
 	}
+	// Still Sniffing
 	else
 	{
 	  localStateTime = 2.0f + (rand()%5) * 0.5f;
@@ -379,10 +385,7 @@ Rat::update(const float lastDelta)
       } break;
     }
   }
-  
-  {
     
-  }
   
   EntityPosition collisionCenter = getCollisionCenter();
   float friction = level->getFrictionValueAtPosition(collisionCenter);
@@ -465,6 +468,7 @@ Player::onEntityCollision(COLLISION_PLANE collisionPlane, Entity* entity)
   
   velocity = getReflectedVelocity(collisionPlane, speedIncrease);
 }
+
 FloatRect
 Player::getCollisionRect() const
 {
@@ -473,13 +477,12 @@ Player::getCollisionRect() const
   return FloatRect(width / 2.0f, 2.0f - height, width, height);
 }
 
-
 void
 Player::addXp(const float amount)
 {
   xpAmount += amount;
   
-  OverlayTextData overlayTextData = {"", 2.0f, Vector3f(), 3.0f};
+  OverlayTextData overlayTextData = {"", 2.0f, Vector3f(), 1.1f};
   std::stringstream tempText;
   tempText << std::fixed << std::setw(11) << std::setprecision(2);
   tempText << amount << " Xp";
@@ -499,7 +502,7 @@ Player::levelUp()
   maxHealth += 10.0f;
   maxStamina += 20.0f;
 
-  OverlayTextData overlayTextData = {"", 4.0f, Vector3f(), 3.0f};
+  OverlayTextData overlayTextData = {"", 4.0f, Vector3f(), 1.5f};
   overlayTextData.color = Vector3f(0, 200.0f, 0);
   overlayTextData.text = "Leveled Up !";
   Entity* overlayText = new OverlayText(position, overlayTextData);
@@ -631,5 +634,3 @@ Player::upgradeAbility(PLAYER_UPGRADE upgrade)
 
   --skillPointCount;
 }
-
-
