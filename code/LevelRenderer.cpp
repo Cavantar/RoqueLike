@@ -603,6 +603,14 @@ LevelRenderer::renderEntity(const EntityRenderData* entityRenderData, Vector2f e
       mobSprite.setScale(finalScale, finalScale);
       mobSprite.setPosition(entityPositionOnScreen.x, entityPositionOnScreen.y);
       
+      if(mobRenderData.spriteColorAlpha != 1.0f)
+      {
+      	const Vector3f& color = mobRenderData.spriteColor;
+	Vector3f realColor = Vector3f::interpolate(Vector3f(255, 255, 255), color, mobRenderData.spriteColorAlpha);
+	mobSprite.setColor(sf::Color(realColor.x, realColor.y, realColor.z));
+	//mobSprite.setColor(sf::Color(color.x, color.y, color.z, mobRenderData.spriteColorAlpha * 255.0f));
+      }
+      
       window->draw(mobSprite);
       
       entityDimensions = sf::Vector2f(mobSprite.getTextureRect().width / 16.0f,
@@ -729,7 +737,13 @@ LevelRenderer::renderEntity(const EntityRenderData* entityRenderData, Vector2f e
       const BasicSpriteRenderData& basicSpriteRenderData = *((BasicSpriteRenderData*)entityRenderData);
       
       sf::Sprite mobSprite = spriteManager->getSprite(basicSpriteRenderData.basicSpriteName);
+      // if(basicSpriteRenderData.colorAlpha != 1.0f)
+      // {
+      // 	const Vector3f& color = basicSpriteRenderData.color;
+      // 	mobSprite.setColor(sf::Color(color.x, color.y, color.z, basicSpriteRenderData.colorAlpha * 255.0f));
+      // }
       
+	  
       // CONSTANT ALERT !!!
       float finalScale = tileSizeInPixels / 16.0f;
       mobSprite.setScale(finalScale, finalScale);

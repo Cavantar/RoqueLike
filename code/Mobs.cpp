@@ -116,29 +116,36 @@ MobSpawner::MobSpawner(const EntityPosition& position, int level, MOB_TYPE mobTy
   damageValue = (level + 1.0f) / 5.0f;
 
   localTime = (rand()%100000) / 100.0f;
+  
+  renderData.spriteColor = Vector3f(138, 7, 7);
 }
 
 void
 MobSpawner::update(const float lastDelta)
 {
-  float spawnPeriod = 10.0f / mobLevel;
-  localTime += lastDelta;
+  float spawnPeriod = 10.0f - (mobLevel * 0.5f);
+  renderData.spriteColorAlpha = 0.2f + (localTime / spawnPeriod) * 0.8f;
   
-  if(localTime >= spawnPeriod)
-  {
-    localTime = fmodf(localTime, spawnPeriod);
-    Player* player = level->getPlayer();
+  Player* player = level->getPlayer();
+
+  if(localTime < 0) localTime = 0;
     
-    if(player)
+  if(player)
+  {
+    
+    EntityPosition playerPosition = player->getCollisionCenter();
+    Vector2f distanceVector = EntityPosition::calculateDistanceInTiles(position, playerPosition,
+								       level->getTileMap()->getTileChunkSize());
+    // If There's Player in Radius of given length 
+    if(distanceVector.getLength() < 15.0f)
     {
-      EntityPosition playerPosition = player->getCollisionCenter();
-      Vector2f distanceVector = EntityPosition::calculateDistanceInTiles(position, playerPosition,
-									 level->getTileMap()->getTileChunkSize());
-      // If There's Player in Radius of given length 
-      if(distanceVector.getLength() < 8.0f)
-      {
+      localTime += lastDelta;
+      if(localTime >= spawnPeriod)
+      {      
+	localTime = fmodf(localTime, spawnPeriod);
 	distanceVector.normalize();
 	
+	std::cout << " Here \n";
 	Entity* entity;
 	do {
 	  Vector2f directionVector = Vector2f::directionVector();
@@ -170,13 +177,17 @@ MobSpawner::update(const float lastDelta)
 	
       }
     }
-  } 
-}
+    else localTime -= lastDelta;
+    
+  }
+  else localTime -= lastDelta;
+} 
+
 
 void
 MobSpawner::performDeathAction()
 {
-  int xpToSpawn = mobLevel * 100 ;
+  int xpToSpawn = mobLevel * 50;
   spawnXp(xpToSpawn);
 }
 

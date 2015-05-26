@@ -65,11 +65,13 @@ public:
 
 class MobRenderData : public EntityRenderData {
 public:
-  MobRenderData() : EntityRenderData(ER_MOB) {}
-  
-  std::string spriteName;
+  MobRenderData() : EntityRenderData(ER_MOB), spriteColorAlpha(1.0f) {}
   std::string caption;
   float life;
+  
+  std::string spriteName;
+  Vector3f spriteColor;
+  float spriteColorAlpha;
 };
 
 class OverlayTextRenderData : public EntityRenderData {
@@ -87,6 +89,8 @@ public:
   
   BasicSpriteRenderData() : EntityRenderData(ER_BASICSPRITE) {}
   std::string basicSpriteName;
+  // Vector3f color;
+  // float colorAlpha;
 };
 
 class Entity : public EventOperator {
