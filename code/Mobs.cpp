@@ -13,7 +13,7 @@ void
 Mob::addHealth(float amount)
 {
 
-  if(health < 0)
+  if(amount < 0)
   {
     amount += getShieldValue();
     if(amount > 0) amount = 0;
@@ -82,6 +82,102 @@ Mob::getRenderData()
 {
   renderData.life = health / maxHealth;
   return &renderData;
+}
+
+MobSpawner::MobSpawner(const EntityPosition& position, int level, MOB_TYPE mobType) : Mob(position, level), mobType(mobType)
+{
+  dimensions = Vector2f(1.0f, 1.0f);
+  renderData.spriteName = "cannonBase";
+  
+  std::stringstream caption;
+  caption << "MobsSpawner";
+  
+  switch(mobType)
+  {
+  case MT_RAT:
+    caption << "(Rat)";
+    break;
+  case MT_SNAKE:
+    caption << "(Snake)";
+    break;
+  case MT_FOLLOWER:
+    caption << "(Follower)";
+    break;
+  case MT_VARIOUS:
+    caption << "(Various)";
+    break;
+  }
+  
+  caption << " lvl: " << level;  
+  renderData.caption = caption.str();
+
+  maxHealth = 20 + (level - 1) * 10;
+  health = maxHealth;
+  damageValue = (level + 1.0f) / 5.0f;
+
+  localTime = (rand()%100000) / 100.0f;
+}
+
+void
+MobSpawner::update(const float lastDelta)
+{
+  float spawnPeriod = 10.0f / mobLevel;
+  localTime += lastDelta;
+  
+  if(localTime >= spawnPeriod)
+  {
+    localTime = fmodf(localTime, spawnPeriod);
+    Player* player = level->getPlayer();
+    
+    if(player)
+    {
+      EntityPosition playerPosition = player->getCollisionCenter();
+      Vector2f distanceVector = EntityPosition::calculateDistanceInTiles(position, playerPosition,
+									 level->getTileMap()->getTileChunkSize());
+      // If There's Player in Radius of given length 
+      if(distanceVector.getLength() < 8.0f)
+      {
+	distanceVector.normalize();
+	
+	Entity* entity;
+	do {
+	  Vector2f directionVector = Vector2f::directionVector();
+	  switch(mobType)
+	  {
+	  case MT_RAT:
+	    entity = new Rat(position + directionVector * 2.0f,
+			     mobLevel);
+	    break;
+	  case MT_SNAKE:
+	    entity = new Snake(position + directionVector * 2.0f,
+			       mobLevel);
+	    break;
+	  case MT_FOLLOWER:
+	    entity = new Follower(position + directionVector * 2.0f,
+				  mobLevel);
+	    break;
+	  case MT_VARIOUS:
+	    if(rand()%3 == 0)
+	      entity = new Rat(position + directionVector * 2.0f, mobLevel);
+	    else if(rand()%3 == 1)
+	      entity = new Snake(position + directionVector * 2.0f, mobLevel);
+	    else
+	      entity = new Follower(position + directionVector * 2.0f, mobLevel);
+	    break;
+	  }
+	  
+	} while(!level->addEntity(EntityPtr(entity)));
+	
+      }
+    }
+  } 
+}
+
+void
+MobSpawner::performDeathAction()
+{
+  int xpToSpawn = mobLevel * 100 ;
+  spawnXp(xpToSpawn);
 }
 
 Cannon::Cannon(const EntityPosition& position, int level) : Mob(position, level)

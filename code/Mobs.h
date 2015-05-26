@@ -28,6 +28,24 @@ protected:
   MobRenderData renderData;
 };
 
+enum MOB_TYPE{
+  MT_RAT,
+  MT_SNAKE,
+  MT_FOLLOWER,
+  MT_VARIOUS
+};
+
+class MobSpawner : public Mob {
+public:
+  MobSpawner(const EntityPosition& position, int level, MOB_TYPE mobType);
+  void update(const float lastDelta);
+  
+  void performDeathAction();
+private:
+  MOB_TYPE mobType;
+  float localTime = 0;
+};
+
 class Cannon : public Mob {
 public:
   Cannon(const EntityPosition& position, int level);

@@ -137,6 +137,7 @@ public:
   void die();
   
   void spawnDustParticles(const EntityPosition& position, int amount, float speed);
+  void spawnBloodParticles(const EntityPosition& position, int amount, float speed);
   
 protected:
   // Hold pointer to the level it's on
@@ -202,7 +203,9 @@ protected:
 
 class PrimitiveParticle : public Moveable {
 public:
-  PrimitiveParticle(const EntityPosition& position, const Vector2f& initialVelocity, float lifeTime);
+  PrimitiveParticle(const EntityPosition& position, const Vector2f& initialVelocity,
+		    const Vector3f& color, float lifeTime);
+  
   void update(const float lastDelta);
   
   void onWorldCollision(COLLISION_PLANE worldCollisionType);

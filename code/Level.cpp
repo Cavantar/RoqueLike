@@ -546,7 +546,8 @@ Level::isCollidingWithLevel(Entity* entity) const
   TileList affectedTiles = getAffectedTiles(collisionCheckData);
   for(auto tileIt = affectedTiles.begin(); tileIt != affectedTiles.end(); tileIt++)
   {
-    if(tileMap->getTileType(*tileIt) == TILE_TYPE_WALL)
+    TILE_TYPE tileType = tileMap->getTileType(*tileIt);
+    if(tileType == TILE_TYPE_WALL || tileType == TILE_TYPE_VOID)
     {
       return true;
     }

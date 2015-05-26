@@ -27,7 +27,32 @@ Entity::spawnDustParticles(const EntityPosition& position, int amount, float spe
   for(int i = 0; i < amount; i++)
   {
     Entity* particle = new PrimitiveParticle(position, Vector2f::directionVector((rand()%16) * 22.5f) * speed,
-					     1.0f + ((rand()%10) * 0.1f));
+					     Vector3f(102, 102, 102), 1.0f + ((rand()%10) * 0.1f));
+    level->addEntity(EntityPtr(particle));
+  }
+}
+
+void
+Entity::spawnBloodParticles(const EntityPosition& position, int amount, float speed)
+{
+  for(int i = 0; i < amount; i++)
+  {
+    
+    float realSpeed;
+    Vector3f color;
+    if(rand()%6)
+    {
+      color = Vector3f(138, 7, 7);
+      realSpeed = speed / 2.0f; 
+    }
+    else
+    {
+      color =  Vector3f(102, 102, 102);
+      realSpeed = speed; 
+    }
+    
+    Entity* particle = new PrimitiveParticle(position, Vector2f::directionVector((rand()%16) * 22.5f) * realSpeed,
+					     color, 1.0f + ((rand()%10) * 0.1f));
     level->addEntity(EntityPtr(particle));
   }
 }
@@ -166,7 +191,8 @@ Moveable::handleCollisionResult(EntityCollisionResult& collisionResult,
   position += positionDeltaVector * collisionResult.maxAllowedT;
 }
 
-PrimitiveParticle::PrimitiveParticle(const EntityPosition& position, const Vector2f& initialVelocity, float lifeTime) :
+PrimitiveParticle::PrimitiveParticle(const EntityPosition& position, const Vector2f& initialVelocity,
+				     const Vector3f& color, float lifeTime) :
   lifeTime(lifeTime)
 {
   this->position = position;
@@ -177,7 +203,7 @@ PrimitiveParticle::PrimitiveParticle(const EntityPosition& position, const Vecto
   
   renderData.primitiveType = PT_CIRCLE;
   renderData.dimensionsInTiles = Vector2f(radius, radius);
-  renderData.color = Vector3f(102, 102, 102);
+  renderData.color = color;
   
   localTime = (float)(rand()%255) / 255.0f ;
 }
@@ -358,7 +384,7 @@ Bullet::onEntityCollision(COLLISION_PLANE collisionPlane, Entity* entity)
   
   velocity = getReflectedVelocity(collisionPlane, speedIncrease);
   
-  spawnDustParticles(getCollisionCenter(), 10, velocity.getLength() / 4.0f);
+  spawnBloodParticles(entity->getCollisionCenter(), 10, velocity.getLength() / 4.0f);
   die();
 }
 

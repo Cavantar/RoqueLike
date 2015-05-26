@@ -25,12 +25,6 @@ LevelGenerator::create(int seed)
   startSeed = seed;
   
   level = LevelPtr(new Level());
-  
-  Player* player = new Player(EntityPosition(WorldPosition(), Vector2f(2.0f,2.0f)));
-  EntityPtr playerPtr = EntityPtr(player);
-  level->addEntity(playerPtr);
-  level->setPlayer(player);
-  
   return level;
 }
 
@@ -120,8 +114,6 @@ SimpleLevelGenerator::placeRoomEntities(const Room& room, bool immediateMode)
   //std::list<WorldPosition> takenFields;  
   
   WorldPosition entityPosition;
-  Entity* entity;
-
   //static bool placedCannon = false;
   
   if(immediateMode)
@@ -132,7 +124,7 @@ SimpleLevelGenerator::placeRoomEntities(const Room& room, bool immediateMode)
     {
       entityPosition = room.topLeftCorner + Vector2i(1, 1);
       entityPosition += Vector2i(rand()%(room.dimensions.x-2), rand()%(room.dimensions.y-2));
-      entity = new HealthItem(EntityPosition(entityPosition), (float)room.depth / 15);
+      Entity* entity = new HealthItem(EntityPosition(entityPosition), (float)room.depth / 15);
       level->addEntity(EntityPtr(entity));
     }
     
@@ -143,12 +135,13 @@ SimpleLevelGenerator::placeRoomEntities(const Room& room, bool immediateMode)
 
     WorldPosition topLeftFloor = room.topLeftCorner + Vector2i(1, 1);
     Vector2i dimensions = room.dimensions - Vector2i(2, 2);
-
-          
+    
+    
     for(int y = 0; y < dimensions.y; y++)
     {
       for(int x = 0; x < dimensions.x; x++)
       {
+	Entity* entity = NULL;
 	WorldPosition entityPosition = room.topLeftCorner + Vector2i(x, y);
 	
 	if(roomDifficulty < 0.2f)
@@ -168,54 +161,37 @@ SimpleLevelGenerator::placeRoomEntities(const Room& room, bool immediateMode)
 	    {
 	      entity = new Snake(EntityPosition(entityPosition), (roomDifficulty * 20.0f) + 1);
 	    }
-	    
-	    level->addEntity(EntityPtr(entity));
 	  }
-	  
+	  else if(rand()%1000 < 4)
+	  {
+	    entity = new MobSpawner(EntityPosition(entityPosition), (roomDifficulty * 20.0f) + 1, MT_RAT);
+	  }
 	}
+	else if(roomDifficulty < 0.4f)
+	{
+	  if(rand()%100 < 2)
+	  {
+	    if(rand()%4)
+	    {
+	      if(rand()%3)
+		entity = new Follower(EntityPosition(entityPosition), (roomDifficulty * 20.0f) + 1);
+	      else
+		entity = new HealthItem(EntityPosition(entityPosition), roomDifficulty * 20.0f + 0.01f);
+	    }
+	    else
+	    {
+	      if(rand()%3)
+		entity = new Cannon(EntityPosition(entityPosition), (roomDifficulty * 20.0f) + 1);
+	      else
+		entity = new Snake(EntityPosition(entityPosition), (roomDifficulty * 20.0f) + 1);
+	    }
+	
+	  }
+	}
+	
+	if(entity) level->addEntity(EntityPtr(entity));
       }
-      
-      // // Follower
-      // if((rand()%11) < 2)// && !spawnedTest)
-      // {
-      // 	entityPosition = room.topLeftCorner + Vector2i(1, 1);
-      // 	entityPosition += Vector2i(rand()%(room.dimensions.x-2), rand()%(room.dimensions.y-2));
-      // 	entity = EntityPtr(new Rat(EntityPosition(entityPosition), (roomDifficulty * 20.0f) + 1));
-      // 	level->addEntity(entity);
-      // }
-      
     }
-    
-    
-    // if((rand()%11) < 2)
-    // {
-    //   entityPosition = room.topLeftCorner + Vector2i(1, 1);
-    //   entityPosition += Vector2i(rand()%(room.dimensions.x-2), rand()%(room.dimensions.y-2));
-      
-    //   entity = EntityPtr(new Cannon(EntityPosition(entityPosition), (roomDifficulty*10.0f) + 1));
-    //   level->addEntity(entity);
-    // }
-    
-    // // Health Pack
-    // if((rand()%11) < 4)
-    // {
-    //   entityPosition = room.topLeftCorner + Vector2i(1, 1);
-    //   entityPosition += Vector2i(rand()%(room.dimensions.x-2), rand()%(room.dimensions.y-2));
-    //   entity = EntityPtr(new HealthItem(EntityPosition(entityPosition), roomDifficulty * 20.0f));
-    //   level->addEntity(entity);
-    // }
-        
-    // // Follower
-    // if((rand()%11) < 2)
-    // {
-    //   entityPosition = room.topLeftCorner + Vector2i(1, 1);
-    //   entityPosition += Vector2i(rand()%(room.dimensions.x-2), rand()%(room.dimensions.y-2));
-    //   entity = EntityPtr(new Follower(EntityPosition(entityPosition), (roomDifficulty * 20.0f) + 1));
-    //   level->addEntity(entity);
-    // }
-
-    // static bool spawnedTest = false;
-    
   }
 }
 
@@ -375,6 +351,13 @@ SimpleLevelGenerator::generateRoom()
 					(rand() % roomDeltaDimensions.y) + roomMinDimensions.y);
     
     placeRoom(potentialRoom);
+
+      
+    Player* player = new Player(EntityPosition(WorldPosition(), Vector2f(2.0f,2.0f)));
+    EntityPtr playerPtr = EntityPtr(player);
+    level->addEntity(playerPtr);
+    level->setPlayer(player);
+    
     
     currentRoomPath.push_back(potentialRoom);
     rooms.push_back(potentialRoom);
@@ -416,8 +399,8 @@ SimpleLevelGenerator::generateRoom()
 	if(!potentialRoom.isColliding(tileMap))
 	{
 	  
-	  if(potentialRoom.depth > 15) potentialRoom.floorType = TILE_TYPE_STONE_ICE_GROUND;
-	  else if(potentialRoom.depth > 10) potentialRoom.floorType = TILE_TYPE_STONE_SPEED_GROUND;
+	  if(potentialRoom.depth > 25) potentialRoom.floorType = TILE_TYPE_STONE_ICE_GROUND;
+	  else if(potentialRoom.depth > 20) potentialRoom.floorType = TILE_TYPE_STONE_SPEED_GROUND;
 	  else potentialRoom.floorType = TILE_TYPE_STONE_GROUND;
 	  
 	  placeRoom(potentialRoom);
