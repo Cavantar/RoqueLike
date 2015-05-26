@@ -90,7 +90,7 @@ MobSpawner::MobSpawner(const EntityPosition& position, int level, MOB_TYPE mobTy
   renderData.spriteName = "cannonBase";
   
   std::stringstream caption;
-  caption << "MobsSpawner";
+  caption << "MobSpawner";
   
   switch(mobType)
   {
@@ -398,8 +398,9 @@ Snake::onWorldCollision(COLLISION_PLANE collisionPlane)
 void
 Snake::onEntityCollision(COLLISION_PLANE collisionPlane, Entity* entity)
 {
-  
-  entity->addHealth(-damageValue);
+
+  if(entity->isPlayer())
+    entity->addHealth(-damageValue);
   entity->addVelocity(velocity * 2.5f);
   
   //velocity = getReflectedVelocity(collisionPlane, 0.5f);

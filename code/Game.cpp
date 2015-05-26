@@ -68,7 +68,7 @@ Game::start()
   window.create(sf::VideoMode(screenResolution.x, screenResolution.y),
 		"RoqueLike!");
   
-  //window.setVerticalSyncEnabled(true);
+  window.setVerticalSyncEnabled(true);
   //window.setFramerateLimit(120);
   
   //gameState = &playGameState;

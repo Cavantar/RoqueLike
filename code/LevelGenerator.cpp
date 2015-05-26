@@ -147,7 +147,7 @@ SimpleLevelGenerator::placeRoomEntities(const Room& room, bool immediateMode)
 	if(roomDifficulty < 0.2f)
 	{
 	  // Spawn Any Entity
-	  if(rand()%100 < 2)
+	  if(rand()%100 < 1)
 	  {
 	    if(rand()%10 || roomDifficulty < 0.1f)
 	    {
@@ -169,7 +169,7 @@ SimpleLevelGenerator::placeRoomEntities(const Room& room, bool immediateMode)
 	}
 	else if(roomDifficulty < 0.4f)
 	{
-	  if(rand()%100 < 2)
+	  if(rand()%100 < 1)
 	  {
 	    if(rand()%4)
 	    {
