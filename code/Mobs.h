@@ -132,8 +132,8 @@ public:
   float getMaxStamina() const { return maxStamina; }
   
   float getXp() const { return xpAmount; }
-  float getCurrentLevelXp() const { return (mobLevel - 1) * 100; } 
-  float getNextLevelXp() const { return mobLevel * 100; }
+  float getCurrentLevelXp() const { return mobLevel > 1 ? 100 * pow(2,mobLevel - 2) : 0 ; } 
+  float getNextLevelXp() const { return 100 * pow(2,mobLevel - 1); }
   float getBulletVelocity() const { return bulletVelocity; }
   
   int getSkillPoints() const { return skillPointCount; } 

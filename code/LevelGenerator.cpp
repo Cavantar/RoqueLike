@@ -110,12 +110,10 @@ SimpleLevelGenerator::placeRoom(const Room& room)
 void
 SimpleLevelGenerator::placeRoomEntities(const Room& room, bool immediateMode)
 {
-  
-  //std::list<WorldPosition> takenFields;  
+
+  if(room.depth == 0) return;
   
   WorldPosition entityPosition;
-  //static bool placedCannon = false;
-  
   if(immediateMode)
   {
     
@@ -142,7 +140,8 @@ SimpleLevelGenerator::placeRoomEntities(const Room& room, bool immediateMode)
       for(int x = 0; x < dimensions.x; x++)
       {
 	Entity* entity = NULL;
-	WorldPosition entityPosition = room.topLeftCorner + Vector2i(x, y);
+	EntityPosition entityPosition = EntityPosition(room.topLeftCorner + Vector2i(x, y));
+	int mobLevel = (roomDifficulty * 20.0f) + 1;
 	
 	if(roomDifficulty < 0.2f)
 	{
@@ -153,18 +152,18 @@ SimpleLevelGenerator::placeRoomEntities(const Room& room, bool immediateMode)
 	    {
 	      
 	      if(rand()%5)
-		entity = new Rat(EntityPosition(entityPosition), (roomDifficulty * 20.0f) + 1);
+		entity = new Rat(entityPosition, mobLevel);
 	      else
-		entity = new HealthItem(EntityPosition(entityPosition), roomDifficulty * 20.0f + 0.01f);
+		entity = new HealthItem(entityPosition, roomDifficulty * 20.0f + 0.01f);
 	    }
 	    else
 	    {
-	      entity = new Snake(EntityPosition(entityPosition), (roomDifficulty * 20.0f) + 1);
+	      entity = new Snake(entityPosition, mobLevel);
 	    }
 	  }
 	  else if(rand()%1000 < 4)
 	  {
-	    entity = new MobSpawner(EntityPosition(entityPosition), (roomDifficulty * 20.0f) + 1, MT_RAT);
+	    entity = new MobSpawner(entityPosition, mobLevel, MT_RAT);
 	  }
 	}
 	else if(roomDifficulty < 0.4f)
@@ -174,18 +173,18 @@ SimpleLevelGenerator::placeRoomEntities(const Room& room, bool immediateMode)
 	    if(rand()%4)
 	    {
 	      if(rand()%3)
-		entity = new Follower(EntityPosition(entityPosition), (roomDifficulty * 20.0f) + 1);
+		entity = new Follower(entityPosition, mobLevel);
 	      else
-		entity = new HealthItem(EntityPosition(entityPosition), roomDifficulty * 20.0f + 0.01f);
+		entity = new HealthItem(entityPosition, roomDifficulty * 20.0f + 0.01f);
 	    }
 	    else
 	    {
 	      if(rand()%3)
-		entity = new Cannon(EntityPosition(entityPosition), (roomDifficulty * 20.0f) + 1);
+		entity = new Cannon(entityPosition, mobLevel);
 	      else
-		entity = new Snake(EntityPosition(entityPosition), (roomDifficulty * 20.0f) + 1);
+		entity = new Snake(entityPosition, mobLevel);
 	    }
-	
+	    
 	  }
 	}
 	

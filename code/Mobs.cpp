@@ -145,7 +145,6 @@ MobSpawner::update(const float lastDelta)
 	localTime = fmodf(localTime, spawnPeriod);
 	distanceVector.normalize();
 	
-	std::cout << " Here \n";
 	Entity* entity;
 	do {
 	  Vector2f directionVector = Vector2f::directionVector();
@@ -424,9 +423,9 @@ Rat::Rat(const EntityPosition& position, int level) : Mob(position, level)
   caption << "Rat lvl: " << level;  
   renderData.caption = caption.str();
   
-  maxHealth = 5 + (level - 1) * 5;
+  maxHealth = 5 + (mobLevel - 1) * 5;
   health = maxHealth;
-  damageValue = (level + 1.0f) / 5.0f;
+  damageValue = 1.0f + ((mobLevel - 1.0f) * 2.0f);
   
   currentDirection = Vector2f::directionVector();
   
@@ -440,7 +439,10 @@ void
 Rat::update(const float lastDelta)
 {
   bool dying = (health / maxHealth)  < 0.2f;
+  bool shouldUpdateState = true;
+  
   Player* player = level->getPlayer();
+  // If There's player in close Proximity
   if(player && level->canSeeEachOther(this, player, 15.0f))
   {
     EntityPosition playerPosition = player->getCollisionCenter();
@@ -448,52 +450,55 @@ Rat::update(const float lastDelta)
     
     Vector2f distanceVector = EntityPosition::calculateDistanceInTiles(followerPosition, playerPosition,
 								       level->getTileMap()->getTileChunkSize());
-    // If There's Player in given Radius 
-    if(distanceVector.getLength() < 4.0f + (mobLevel * 0.5) && !dying)
+    // I either move towards him
+    if(distanceVector.getLength() < 4.0f + (mobLevel * 0.5f) && !dying)
     {
       distanceVector.normalize();
-      Vector2f directionVector = distanceVector;
-      acceleration = directionVector;
+      currentDirection = distanceVector;
+      shouldUpdateState = false;
     }
-    // If he's dying 
+    // Or go Away from him if I'm dying
     else if(dying)
     {
       distanceVector.normalize();
-      acceleration = distanceVector * -1.0f;
+      currentDirection = distanceVector * -1.0f;
+      shouldUpdateState = false;
     }
-    else acceleration = currentDirection;
   }
-  else acceleration = currentDirection;
   
-  localStateTime -= lastDelta;
-  if(localStateTime < 0 && !dying)
+  if(shouldUpdateState)
   {
-    switch(ratState)
+    localStateTime -= lastDelta;
+    if(localStateTime < 0)
     {
-    case RS_SNIFFING:
+      switch(ratState)
       {
-	// Going into thinking state
-	if(rand()%3 == 0)
+      case RS_SNIFFING:
 	{
-	  localStateTime = 0.5f + (rand()%5) * 0.2f;
-	  ratState = RS_THINKING;
-	  currentDirection = Vector2f();
-	}
-	// Still Sniffing
-	else
+	  // Going into thinking state
+	  if(rand()%3 == 0)
+	  {
+	    localStateTime = 0.5f + (rand()%5) * 0.2f;
+	    ratState = RS_THINKING;
+	    currentDirection = Vector2f();
+	  }
+	  // Still Sniffing
+	  else
+	  {
+	    localStateTime = 2.0f + (rand()%5) * 0.5f;
+	    currentDirection = Vector2f::directionVector();
+	  }
+	} break;
+      case RS_THINKING:
 	{
 	  localStateTime = 2.0f + (rand()%5) * 0.5f;
-	  currentDirection = Vector2f::directionVector();
-	}
-      } break;
-    case RS_THINKING:
-      {
-	localStateTime = 2.0f + (rand()%5) * 0.5f;
-	ratState = RS_SNIFFING;
-      } break;
+	  ratState = RS_SNIFFING;
+	} break;
+      }
     }
   }
-    
+
+  acceleration = currentDirection;
   
   EntityPosition collisionCenter = getCollisionCenter();
   float friction = level->getFrictionValueAtPosition(collisionCenter);
@@ -614,7 +619,7 @@ Player::levelUp()
   mobLevel++;
   skillPointCount++;
   
-  maxHealth += 10.0f;
+  maxHealth += 5.0f;
   health = maxHealth;
   
   maxStamina += 20.0f;
@@ -720,13 +725,14 @@ Player::onEvent(const std::string& eventName, EventArgumentDataMap eventDataMap)
 void
 Player::performDeathAction()
 {
-  int xpToSpawn = mobLevel * 200 + xpAmount;
+  int xpToSpawn = mobLevel * 100 + xpAmount;
   spawnXp(xpToSpawn);
 }
 
 void
 Player::upgradeAbility(PLAYER_UPGRADE upgrade)
 {
+
   switch(upgrade)
   {
   case PU_SHIELD:
