@@ -712,9 +712,10 @@ LevelRenderer::renderEntity(const EntityRenderData* entityRenderData, Vector2f e
       entityText.setPosition(entityPositionOnScreen.x, entityPositionOnScreen.y);
       entityText.setColor(textColor);
       
-      if(entityPositionOnScreen.x < 0 || entityPositionOnScreen.y < 0 ||
-	 (entityPositionOnScreen.x + localTextBounds.width) > windowDimensions.x ||
-	 (entityPositionOnScreen.y + localTextBounds.height) > windowDimensions.x )
+      if(entityPositionOnScreen.x > windowDimensions.x ||
+	 entityPositionOnScreen.y > windowDimensions.y ||
+	 (entityPositionOnScreen.x + localTextBounds.width) < 0 ||
+	 (entityPositionOnScreen.y + localTextBounds.height) < 0)
       {
 	return;
       }

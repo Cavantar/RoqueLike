@@ -341,6 +341,7 @@ Bullet::onWorldCollision(COLLISION_PLANE collisionPlane)
 FloatRect
 Bullet::getCollisionRect() const
 {
+
   static const float bottomPart = 1.0f;
   return FloatRect(0, dimensions.y *(1.0f - bottomPart), dimensions.x, dimensions.y * bottomPart);
 }

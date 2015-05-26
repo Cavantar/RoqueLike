@@ -196,8 +196,11 @@ PlayGameState::update(Game* game)
     
     EventArgumentDataMap eventArgumentDataMap;
     
-    eventArgumentDataMap["text"] = EventArgumentData("Hello World");
-    eventArgumentDataMap["position"] = EventArgumentData(WorldPosition());
+    eventArgumentDataMap["text"] = std::string("Hello World");
+    eventArgumentDataMap["position"] = WorldPosition();
+    eventArgumentDataMap["number"] = 15.0f;
+    
+    std::cout << "From Soruce: " << eventArgumentDataMap["text"].asString() << std::endl;
     
     eventManager.queueEvent("HelloThere", eventArgumentDataMap);
   }

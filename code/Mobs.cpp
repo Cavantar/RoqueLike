@@ -415,9 +415,16 @@ Rat::onWorldCollision(COLLISION_PLANE collisionPlane)
 void
 Rat::onEntityCollision(COLLISION_PLANE collisionPlane, Entity* entity)
 {
-  
-  entity->addHealth(-damageValue);
-  entity->addVelocity(velocity * 2.5f);
+
+  if(entity->isPlayer())
+  {
+    entity->addHealth(-damageValue);
+    entity->addVelocity(velocity * 2.5f);
+  }
+  else
+  {
+    entity->addVelocity(velocity * 1.5f);
+  }
   
   //velocity = getReflectedVelocity(collisionPlane, 0.5f);
   velocity = 0;
@@ -500,6 +507,8 @@ Player::levelUp()
   skillPointCount++;
   
   maxHealth += 10.0f;
+  health = maxHealth;
+  
   maxStamina += 20.0f;
 
   OverlayTextData overlayTextData = {"", 4.0f, Vector3f(), 1.5f};
@@ -592,8 +601,8 @@ Player::onEvent(const std::string& eventName, EventArgumentDataMap eventDataMap)
   if(eventName == "HelloThere")
   {
       
-    std::cout << eventName << ": " << eventDataMap["text"].asString() << " " <<
-      eventDataMap["number"].asInt() << std::endl;
+    std::cout << eventName << ": " << eventDataMap["text"].asString() << " "; 
+    std::cout << eventDataMap["number"].asFloat() << std::endl;
   
     WorldPosition worldPos = eventDataMap["position"].asWorldPosition();
     std::cout << worldPos.tilePosition.x << std::endl;
