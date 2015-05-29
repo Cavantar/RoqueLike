@@ -200,7 +200,7 @@ PlayGameState::update(Game* game)
     eventArgumentDataMap["position"] = WorldPosition();
     eventArgumentDataMap["number"] = 15.0f;
     
-    std::cout << "From Soruce: " << eventArgumentDataMap["text"].asString() << std::endl;
+    std::cout << "From Source: " << eventArgumentDataMap["text"].asString() << std::endl;
     
     eventManager.queueEvent("HelloThere", eventArgumentDataMap);
   }
@@ -266,7 +266,7 @@ PlayGameState::handleInput(Game* game)
     if(input.isKeyDown(sf::Keyboard::LShift) || input.isKeyDown(sf::Keyboard::LAlt))
     {
       int seed = 0;
-      if(input.isKeyDown(sf::Keyboard::LShift)) seed = (int)time(NULL);
+      if(input.isKeyDown(sf::Keyboard::LShift)) seed = game->clock.getElapsedTime().asMicroseconds();
       eventManager.reset();
       
       level = levelGenerator->regenerate(seed);
@@ -279,7 +279,8 @@ PlayGameState::handleInput(Game* game)
     {
       eventManager.reset();
 
-      int seed = time(NULL);
+      int seed = game->clock.getElapsedTime().asMicroseconds();
+      
       if(input.isKeyDown(sf::Keyboard::LControl)) seed = 0;
       level = levelGenerator->regenerate(seed);
       levelRenderer.setTileSize(worldScale * baseTileSizeInPixels);

@@ -14,7 +14,7 @@
 typedef std::list<EntityPtr> EntityList;
 typedef std::list<WorldPosition> TileList;
 
-struct CollisionCheckData{
+struct CollisionCheckData {
   EntityPosition basePosition;
   FloatRect collisionRect;
   Vector2f deltaVector;

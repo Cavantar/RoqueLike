@@ -5,6 +5,7 @@
 
 Level::Level()
 {
+  player = NULL;
   tileMap = TileMapPtr(new TileMap(Vector2i(16, 16)));
   std::cout << "Level Created !\n";
 }
@@ -114,19 +115,19 @@ Level::checkCollisions(const Entity* entity, Vector2f deltaVector) const
       tileDistancePrecision = 0.1f;
       collisionCheckResult = entityCollisionResult;
     }
-    	
+    
     // Have To Decrease It Because Lack Of Precision Causes Clipping Errors
     float deltaVectorLength = deltaVector.getLength();
     
     // In Tiles
     float decreaseValue = tileDistancePrecision / deltaVectorLength;
-	
+    
     if(decreaseValue < 1.0f)
     {
       collisionCheckResult.maxAllowedT -= decreaseValue;
     }
     else collisionCheckResult.maxAllowedT = 0;
-
+    
   }
   
   return collisionCheckResult;
@@ -428,7 +429,7 @@ Level::checkWorldCollision(const CollisionCheckData& collisionCheckData) const
 
 EntityCollisionResult
 Level::checkEntityCollision(const Entity* entity,
-						  const CollisionCheckData& collisionCheckData) const
+			    const CollisionCheckData& collisionCheckData) const
 {
   
   float maxAllowedT = 1.0f;

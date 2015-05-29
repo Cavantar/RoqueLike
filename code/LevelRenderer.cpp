@@ -299,8 +299,9 @@ LevelRenderer::renderTileChunk(const TileChunkPtr& tileChunk, const Vector2f& sc
 				  y + tileChunkPosition.y * tileChunkHeight);
 	  
       float floatHash = Noise::sumPerlin(globalTilePosition, noiseParams);
+      // Normalizing
       floatHash = (floatHash + 1.0f) / 2.0f;
-	  
+      
       int tileHash = (int)(floatHash * 100.0f);
       tileHash = abs(tileHash);
 
@@ -343,22 +344,20 @@ LevelRenderer::renderTileChunk(const TileChunkPtr& tileChunk, const Vector2f& sc
 	  {
 	    std::string spriteName = "wall1_";
 	    
-	    float ordinaryWallPercentage = 70.0f;
+	    static const float commonWallPercentage = 65.0f;
+	    int tileKind;
 	    
-	    int tileKind = ((x ^ y ^ (int)tileChunk.get()));
-	    tileKind = abs(tileKind);
-	    
-	    if(tileHash < ordinaryWallPercentage)
-	    {
-	      // 2, 4, 5
-	      tileKind = 2 + ((tileHash) % 3);
-	      if(tileKind != 2) tileKind ++;
-	    }
-	    else 
+	    if(tileHash > commonWallPercentage && ((x ^ y ^ (int)tileChunk.get()) % 3) == 0)
 	    {
 	      tileKind = 3;
 	      //if(tileKind == 2) tileKind = 6;
 	      //if(tileKind == 3) tileKind = 7;
+	    }
+	    else 
+	    {
+	      // 2, 4, 5
+	      tileKind = 2 + ((tileHash) % 3);
+	      if(tileKind != 2) tileKind ++;
 	    }
 	    
 	    spriteName += std::to_string(tileKind);
@@ -385,16 +384,6 @@ LevelRenderer::renderTileChunk(const TileChunkPtr& tileChunk, const Vector2f& sc
 	  rectangleShape.setSize(sf::Vector2f(tileSizeInPixels, tileSizeInPixels));
 	  rectangleShape.setFillColor(sf::Color(128, 128, 128));
 	  
-	  /*
-	    
-	    static const int p1 = 73856093;
-	    static const int p2 = 19349663;
-	    static const int p3 = 83492791;
-	    
-	    int tileHash = (x * p1) ^ (y * p2) ^ ((int)tileChunk.get() * p3);
-	    
-	  */	  
-	  
 	  std::string spriteName = "floor1_";
 	  WorldPosition tempWorldPosition(tileChunkPosition, Vector2i(x, y));
 	  
@@ -406,16 +395,41 @@ LevelRenderer::renderTileChunk(const TileChunkPtr& tileChunk, const Vector2f& sc
 	  }
 	  else
 	  {
-	    // Common Tile Occurence Chance
-	    static const float commonTileChance = 65.0f;
+	    
+	    // Common Tile Occurence
+	    static const float commonTileChance = 95.0f;
+	    
+#if 0
 	    if(tileHash >  commonTileChance && ((x ^ y ^ (int)tileChunk.get()) % 3) == 0)
 	    {
-	      spriteIndex = 66 + (tileHash % 4);
+	    spriteIndex = 66 + (tileHash % 4);
+	  }
+	    else
+	    {
+	    spriteIndex = 62 + (tileHash % 4);
+	  }
+	    
+#else  
+	    static const int p1 = 73856093;
+	    static const int p2 = 19349663;
+	    static const int p3 = 83492791;
+	    
+	    int tileKind = (x * p1) ^ (y * p2) ^ ((int)tileChunk.get() * p3) ^ p3;
+	    
+	    // srand((x * p1) ^ (y * p2) ^ ((int)tileChunk.get() * p3) ^ p3);
+	    // int tileKind = rand();
+	    
+	    tileKind = abs(tileKind);
+	    
+	    if(tileKind%100  >  commonTileChance)
+	    {
+	      spriteIndex = 66 + (tileKind % 4);
 	    }
 	    else
 	    {
-	      spriteIndex = 62 + (tileHash % 4);
+	      spriteIndex = 62 + (tileKind % 4);
 	    }
+#endif
 	  }
 	  
 	  spriteName += std::to_string(spriteIndex);
@@ -426,7 +440,8 @@ LevelRenderer::renderTileChunk(const TileChunkPtr& tileChunk, const Vector2f& sc
 	  
 	  sf::Color maxColor = sf::Color::Red;
 	  sf::Color minColor = sf::Color::Green;
-	  
+
+	  // Hash visualisation thingy
 	  // if(tileHash > 65) tileSprite.setColor(maxColor);
 	  // else tileSprite.setColor(minColor);
 	  

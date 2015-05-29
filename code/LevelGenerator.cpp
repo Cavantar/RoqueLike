@@ -350,13 +350,11 @@ SimpleLevelGenerator::generateRoom()
 					(rand() % roomDeltaDimensions.y) + roomMinDimensions.y);
     
     placeRoom(potentialRoom);
-
-      
-    Player* player = new Player(EntityPosition(WorldPosition(), Vector2f(2.0f,2.0f)));
+    
+    Player* player = new Player(EntityPosition(WorldPosition(), Vector2f(1.0f,1.0f)));
     EntityPtr playerPtr = EntityPtr(player);
     level->addEntity(playerPtr);
     level->setPlayer(player);
-    
     
     currentRoomPath.push_back(potentialRoom);
     rooms.push_back(potentialRoom);
@@ -394,7 +392,7 @@ SimpleLevelGenerator::generateRoom()
 	if(direction == DIRECTION_UP)
 	  potentialRoom.topLeftCorner += Vector2i(0, -(potentialRoom.dimensions.y - 1));
 
-	// If it's not colliding we place it on the map
+	// If it's not colliding place it on the map
 	if(!potentialRoom.isColliding(tileMap))
 	{
 	  
@@ -405,7 +403,7 @@ SimpleLevelGenerator::generateRoom()
 	  placeRoom(potentialRoom);
 	  placeRoomEntities(potentialRoom);
 	  
-	  // There's 80 chance that wall will be opened
+	  // There's 90 chance that wall will be opened
 	  if(rand()%100 < 10)
 	  {
 	    placeCorridor(currentRoom, potentialRoom, direction);
@@ -430,7 +428,7 @@ SimpleLevelGenerator::generateRoom()
 
 	// 20 % If The Room is last
 
-	int chanceToGoBack = int((float)placedRooms / (float)numbOfRoomsToGenerate) * 40;
+	int chanceToGoBack = int((float)placedRooms / (float)numbOfRoomsToGenerate) * 60;
 	
 	if(rand() % 100 < chanceToGoBack) currentRoomPath.pop_back();
 	break;
