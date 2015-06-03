@@ -30,7 +30,7 @@ EventArgumentData::EventArgumentData(const EventArgumentData& eventArgumentData)
   case EAT_ENTITYPOSITION :
     data = new EntityPosition(*((EntityPosition*)dataSrc ));
     break;
-  defaut:
+  default:
     assert(0);
   }
 }
@@ -72,7 +72,7 @@ EventArgumentData EventArgumentData::operator=(const EventArgumentData& eventArg
   case EAT_ENTITYPOSITION :
     data = new EntityPosition(*((EntityPosition*)dataSrc ));
     break;
-  defaut:
+  default:
     assert(0);
   }
   
@@ -302,7 +302,7 @@ void EventArgumentData::deleteData()
     case EAT_ENTITYPOSITION :
       delete (EntityPosition*)data;
       break;
-    defaut:
+    default:
       assert(0);
     }
   }

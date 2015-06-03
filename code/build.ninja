@@ -15,7 +15,7 @@ jpeg.lib $
 user32.lib $
 Advapi32.lib 
 
-SfmlDirectory = D:/Libs/SFML-2.2-64
+SfmlDirectory = E:/Libs/SFML-2.2-64
 IncludeDirectory = $SfmlDirectory/include
 LibraryDirectory = $SfmlDirectory/lib
 

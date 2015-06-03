@@ -274,6 +274,8 @@ PlayGameState::handleInput(Game* game)
       levelRenderer.setTileSize(worldScale * baseTileSizeInPixels);
       
       eventManager.registerListener(level.get());
+
+      std::cout << "Regenerating !\n";
     }
     else
     {
@@ -286,6 +288,8 @@ PlayGameState::handleInput(Game* game)
       levelRenderer.setTileSize(worldScale * baseTileSizeInPixels);
     
       eventManager.registerListener(level.get());
+
+      std::cout << "Regenerating !\n";
     }
     
   };

@@ -94,7 +94,7 @@ Level::checkCollisions(const Entity* entity, Vector2f deltaVector) const
   
   float tileDistancePrecision;
   
-  if(worldCollisionResult.maxAllowedT == entityCollisionResult.maxAllowedT == 1.0f)
+  if(worldCollisionResult.maxAllowedT == 1.0f && entityCollisionResult.maxAllowedT == 1.0f)
   {
     // No Collision
     return collisionCheckResult;
@@ -460,6 +460,8 @@ Level::checkEntityCollision(const Entity* entity,
     Vector2f localRectPosition = EntityPosition::calculateDistanceInTiles(collisionCheckData.basePosition,
 									  entityPtr2->getPosition(),
 									  tileMap->getTileChunkSize());
+
+    if(localRectPosition.getLength() > 4.0f) continue;
     
     // Minkowsky Addition
     FloatRect collidingRect(localRectPosition.x + collisionRect2.left - halfWidth,
@@ -541,7 +543,6 @@ Level::isCollidingWithLevel(Entity* entity) const
   const FloatRect& collisionRect = entity->getCollisionRect();
   
   // Checking Collisions with Tiles - Cause It's Faster
-  
   CollisionCheckData collisionCheckData = { entityPosition, collisionRect,  Vector2f() };
   
   TileList affectedTiles = getAffectedTiles(collisionCheckData);
@@ -589,7 +590,6 @@ Level::killCollidingEntities()
     Entity* entity = (*entityPtr).get();
     if(isCollidingWithLevel(entity))
     {
-      std::cout << "Entity died a horrible death ! \n";
       entity->die();
     }
   }

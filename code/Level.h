@@ -4,6 +4,7 @@
 #include <vector>
 #include <memory>
 #include <assert.h>
+#include <iostream>
 
 #include "ILevel.h"
 #include "Entity.h"

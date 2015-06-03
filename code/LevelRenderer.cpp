@@ -20,7 +20,7 @@ bool compareEntityRenderThing(const RenderThingPtr& ent1, const RenderThingPtr& 
 
 LevelRenderer::LevelRenderer() : window(NULL), tileSizeInPixels(0)
 {
-  bool loadedFont = font.loadFromFile("chiller.ttf");
+  bool loadedFont = font.loadFromFile("../resources/fonts/chiller.ttf");
   assert(loadedFont);
 }
 
@@ -397,9 +397,9 @@ LevelRenderer::renderTileChunk(const TileChunkPtr& tileChunk, const Vector2f& sc
 	  {
 	    
 	    // Common Tile Occurence
-	    static const float commonTileChance = 95.0f;
+	    static const float commonTileChance = 65.0f;
 	    
-#if 0
+#if 1
 	    if(tileHash >  commonTileChance && ((x ^ y ^ (int)tileChunk.get()) % 3) == 0)
 	    {
 	    spriteIndex = 66 + (tileHash % 4);

@@ -521,8 +521,12 @@ Rat::getCollisionRect() const
 void
 Rat::onWorldCollision(COLLISION_PLANE collisionPlane)
 {
-  velocity = 0;
-  currentDirection = Vector2f::directionVector();
+  velocity = getReflectedVelocity(collisionPlane, 1.0f);
+  if(collisionPlane == COLLISION_PLANE_VERTICAL)
+  {
+    currentDirection.x *= -1.0f;
+  }
+  else currentDirection.y *= -1.0f;
 }
 
 void

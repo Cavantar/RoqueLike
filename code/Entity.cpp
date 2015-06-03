@@ -82,9 +82,21 @@ OverlayText::update(const float lastDelta)
     static const Vector3f colorEnd(255, 222, 0);
     static const float numbOfColorCycles = 5.0f;
     
+#if 1
+    
     float temp = fmodf((localTime / overlayTextData.duration) * numbOfColorCycles, 1.0f);
     if(temp > 0.5f) temp = 1.0f - temp;
     renderData.textColor = Vector3f::interpolate(colorStart, colorEnd, temp * 2.0f);
+    
+#else
+    
+    float temp = sin((localTime / overlayTextData.duration) * M_PI * numbOfColorCycles);
+    temp = abs(temp);
+    //std::cout << "temp: " << temp << std::endl;
+    renderData.textColor = Vector3f::interpolate(colorStart, colorEnd, temp);
+    
+#endif
+    
   }
 
   float halfTime = overlayTextData.duration / 2.0f;
@@ -329,7 +341,7 @@ Bullet::Bullet(const EntityPosition& position, const Vector2f& initialVelocity,
   this->dimensions = dimensions;
   this->position = position;
   velocity = initialVelocity;
-  //numbOfBouncesLeft = 2;
+  numbOfBouncesLeft = 2;
   
   this->damageValue = damageValue; 
   

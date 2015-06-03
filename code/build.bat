@@ -7,8 +7,9 @@ pushd ..\build
 
 set UnityBuild=False
 
-set IncludeDirectory=D:\Libs\SFML-2.2-64\include
-set LibraryDirectory=D:\Libs\SFML-2.2-64\lib
+set LibsDirectory=E:\Libs
+set IncludeDirectory=%LibsDirectory%\SFML-2.2-64\include
+set LibraryDirectory=%LibsDirectory%\SFML-2.2-64\lib
 
 set Libraries= ^
     sfml-graphics-s.lib ^

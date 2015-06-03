@@ -166,7 +166,7 @@ SimpleLevelGenerator::placeRoomEntities(const Room& room, bool immediateMode)
 	    entity = new MobSpawner(entityPosition, mobLevel, MT_RAT);
 	  }
 	}
-	else if(roomDifficulty < 0.4f)
+	else// if(roomDifficulty < 0.4f)
 	{
 	  if(rand()%100 < 1)
 	  {
@@ -471,10 +471,10 @@ SimpleLevelGenerator::regenerate(int seed)
     
   level = LevelPtr(new Level());
   
-  Player* player = new Player(EntityPosition(WorldPosition(), Vector2f(2.0f,2.0f)));
-  EntityPtr playerPtr = EntityPtr(player);
-  level->addEntity(playerPtr);
-  level->setPlayer(player);
+  // Player* player = new Player(EntityPosition(WorldPosition(), Vector2f(2.0f,2.0f)));
+  // EntityPtr playerPtr = EntityPtr(player);
+  // level->addEntity(playerPtr);
+  // level->setPlayer(player);
   
   return level;
 }
