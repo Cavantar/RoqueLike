@@ -23,23 +23,23 @@ Mob::addHealth(float amount)
   if(health > maxHealth) health = maxHealth;
   else if(health < 0) die();
       
-  OverlayTextData overlayTextData = {"", 2.0f, Vector3f(), 1.1f};
+  OverlayTextData overlayTextData = {"", 2.0f, Vec3f(), 1.1f};
   std::stringstream tempText;
   tempText << std::fixed << std::setw(11) << std::setprecision(2);
   
   if(amount != 0) tempText << amount << " Health";
   if(amount > 0)
   {
-    overlayTextData.color = Vector3f(0, 200.0f, 0);
+    overlayTextData.color = Vec3f(0, 200.0f, 0);
   }
   else if(amount < 0)
   {
-    overlayTextData.color = Vector3f(200.0f, 0, 0);
+    overlayTextData.color = Vec3f(200.0f, 0, 0);
   }
   else
   {
     tempText << "Blocked";
-    overlayTextData.color = Vector3f(0, 0, 250);
+    overlayTextData.color = Vec3f(0, 0, 250);
   }
   
   overlayTextData.text = tempText.str();
@@ -62,7 +62,7 @@ Mob::spawnXp(int xpToSpawn) const
     value = (((rand() % (xpToSpawn/10)) + 1) * 10) % (xpToSpawn + 10);
     if(value > 50) value = 50;
     
-    Entity* entity = new XpOrb(getCollisionCenter(), Vector2f::directionVector() * (1.0f + 0.25f * ((rand()%12) + 1)), value);
+    Entity* entity = new XpOrb(getCollisionCenter(), Vec2f::directionVector() * (1.0f + 0.25f * ((rand()%12) + 1)), value);
     level->addEntity(EntityPtr(entity));
 
     //std::cout << "Spawning: " << value << " xp \n";
@@ -86,7 +86,7 @@ Mob::getRenderData()
 
 MobSpawner::MobSpawner(const EntityPosition& position, int level, MOB_TYPE mobType) : Mob(position, level), mobType(mobType)
 {
-  dimensions = Vector2f(1.0f, 1.0f);
+  dimensions = Vec2f(1.0f, 1.0f);
   renderData.spriteName = "cannonBase";
   
   std::stringstream caption;
@@ -117,7 +117,7 @@ MobSpawner::MobSpawner(const EntityPosition& position, int level, MOB_TYPE mobTy
 
   localTime = (rand()%100000) / 100.0f;
   
-  renderData.spriteColor = Vector3f(138, 7, 7);
+  renderData.spriteColor = Vec3f(138, 7, 7);
 }
 
 void
@@ -134,41 +134,41 @@ MobSpawner::update(const float lastDelta)
   {
     
     EntityPosition playerPosition = player->getCollisionCenter();
-    Vector2f distanceVector = EntityPosition::calculateDistanceInTiles(position, playerPosition,
+    Vec2f distanceVec = EntityPosition::calculateDistanceInTiles(position, playerPosition,
 								       level->getTileMap()->getTileChunkSize());
     // If There's Player in Radius of given length 
-    if(distanceVector.getLength() < 15.0f)
+    if(distanceVec.getLength() < 15.0f)
     {
       localTime += lastDelta;
       if(localTime >= spawnPeriod)
       {      
 	localTime = fmodf(localTime, spawnPeriod);
-	distanceVector.normalize();
+	distanceVec.normalize();
 	
 	Entity* entity;
 	do {
-	  Vector2f directionVector = Vector2f::directionVector();
+	  Vec2f directionVec = Vec2f::directionVector();
 	  switch(mobType)
 	  {
 	  case MT_RAT:
-	    entity = new Rat(position + directionVector * 2.0f,
+	    entity = new Rat(position + directionVec * 2.0f,
 			     mobLevel);
 	    break;
 	  case MT_SNAKE:
-	    entity = new Snake(position + directionVector * 2.0f,
+	    entity = new Snake(position + directionVec * 2.0f,
 			       mobLevel);
 	    break;
 	  case MT_FOLLOWER:
-	    entity = new Follower(position + directionVector * 2.0f,
+	    entity = new Follower(position + directionVec * 2.0f,
 				  mobLevel);
 	    break;
 	  case MT_VARIOUS:
 	    if(rand()%3 == 0)
-	      entity = new Rat(position + directionVector * 2.0f, mobLevel);
+	      entity = new Rat(position + directionVec * 2.0f, mobLevel);
 	    else if(rand()%3 == 1)
-	      entity = new Snake(position + directionVector * 2.0f, mobLevel);
+	      entity = new Snake(position + directionVec * 2.0f, mobLevel);
 	    else
-	      entity = new Follower(position + directionVector * 2.0f, mobLevel);
+	      entity = new Follower(position + directionVec * 2.0f, mobLevel);
 	    break;
 	  }
 	  
@@ -192,7 +192,7 @@ MobSpawner::performDeathAction()
 
 Cannon::Cannon(const EntityPosition& position, int level) : Mob(position, level)
 {
-  dimensions = Vector2f(1.0f, 1.0f);
+  dimensions = Vec2f(1.0f, 1.0f);
   renderData.spriteName = "cannonBase";
   
   std::stringstream caption;
@@ -219,22 +219,22 @@ Cannon::update(const float lastDelta)
     {
       
       EntityPosition playerPosition = player->getCollisionCenter();
-      Vector2f distanceVector = EntityPosition::calculateDistanceInTiles(position, playerPosition,
+      Vec2f distanceVec = EntityPosition::calculateDistanceInTiles(position, playerPosition,
 									 level->getTileMap()->getTileChunkSize());
       // If There's Player in Radius of given length 
-      if(distanceVector.getLength() < 15.0f)
+      if(distanceVec.getLength() < 15.0f)
       {
-	distanceVector.normalize();
-	Vector2f directionVector = distanceVector;
+	distanceVec.normalize();
+	Vec2f directionVec = distanceVec;
 	
 	float bulletRadius = 0.7f + mobLevel / 10;
 	
 	float bulletSpeedModifier = (mobLevel / 10.0f) + 1.0f; 
 	
 	Entity* bullet;
-	bullet = new Bullet(position + directionVector * 2.0f,
-			    directionVector * 10.0f * bulletSpeedModifier,
-			    Vector2f(bulletRadius, bulletRadius),
+	bullet = new Bullet(position + directionVec * 2.0f,
+			    directionVec * 10.0f * bulletSpeedModifier,
+			    Vec2f(bulletRadius, bulletRadius),
 			    damageValue);
 	
 	level->addEntity(EntityPtr(bullet));
@@ -246,7 +246,7 @@ Cannon::update(const float lastDelta)
 
 Follower::Follower(const EntityPosition& position, int level) : Mob(position, level)
 {
-  dimensions = Vector2f(1.0f, 2.0f);
+  dimensions = Vec2f(1.0f, 2.0f);
   renderData.spriteName = "followerBase";
   
   std::stringstream caption;
@@ -268,14 +268,14 @@ Follower::update(const float lastDelta)
     EntityPosition playerPosition = player->getCollisionCenter();
     EntityPosition followerPosition = getCollisionCenter();
     
-    Vector2f distanceVector = EntityPosition::calculateDistanceInTiles(followerPosition, playerPosition,
+    Vec2f distanceVec = EntityPosition::calculateDistanceInTiles(followerPosition, playerPosition,
 								       level->getTileMap()->getTileChunkSize());
     // If There's Player in Radius of given length 
-    if(distanceVector.getLength() < 15.0f)
+    if(distanceVec.getLength() < 15.0f)
     {
-      distanceVector.normalize();
-      Vector2f directionVector = distanceVector;
-      acceleration = directionVector;
+      distanceVec.normalize();
+      Vec2f directionVec = distanceVec;
+      acceleration = directionVec;
     }
   }
 
@@ -283,10 +283,10 @@ Follower::update(const float lastDelta)
   float friction = level->getFrictionValueAtPosition(collisionCenter);
   float accelerationModifier  = level->getAccelerationModifierAtPosition(collisionCenter);
   
-  Vector2f positionDeltaVector = getPositionDeltaVector(lastDelta, friction, accelerationModifier);
+  Vec2f positionDeltaVec = getPositionDeltaVec(lastDelta, friction, accelerationModifier);
 
-  EntityCollisionResult collisionResult = level->checkCollisions(this, positionDeltaVector);
-  handleCollisionResult(collisionResult, positionDeltaVector);
+  EntityCollisionResult collisionResult = level->checkCollisions(this, positionDeltaVec);
+  handleCollisionResult(collisionResult, positionDeltaVec);
 }
 
 FloatRect
@@ -318,7 +318,7 @@ Follower::onEntityCollision(COLLISION_PLANE collisionPlane, Entity* entity)
 
 Snake::Snake(const EntityPosition& position, int level) : Mob(position, level)
 {
-  dimensions = Vector2f(1.0f, 1.0f);
+  dimensions = Vec2f(1.0f, 1.0f);
   renderData.spriteName = "snakeBase";
   
   std::stringstream caption;
@@ -329,7 +329,7 @@ Snake::Snake(const EntityPosition& position, int level) : Mob(position, level)
   health = maxHealth;
   damageValue = (level + 1.0f) / 5.0f;
   
-  currentDirection = Vector2f::cardinalDirection((CARDINAL_DIRECTION)(rand()%4));
+  currentDirection = Vec2f::cardinalDirection((CARDINAL_DIRECTION)(rand()%4));
   metersPerSecondSquared = idleSpeedValue;
   localAttackingTime = 0;
 }
@@ -341,8 +341,8 @@ Snake::update(const float lastDelta)
   Player* player = level->getPlayer();
   if(player && metersPerSecondSquared != attackSpeedValue)
   {
-    Vector2f checkResult = level->canSeeEachOtherCardinal(this, player, 15.0f);
-    if(checkResult != Vector2f())
+    Vec2f checkResult = level->canSeeEachOtherCardinal(this, player, 15.0f);
+    if(checkResult != Vec2f())
     {
       velocity = 0;
       currentDirection = checkResult;
@@ -368,10 +368,10 @@ Snake::update(const float lastDelta)
   float friction = level->getFrictionValueAtPosition(collisionCenter);
   float accelerationModifier  = level->getAccelerationModifierAtPosition(collisionCenter);
   
-  Vector2f positionDeltaVector = getPositionDeltaVector(lastDelta, friction, accelerationModifier);
+  Vec2f positionDeltaVec = getPositionDeltaVec(lastDelta, friction, accelerationModifier);
 
-  EntityCollisionResult collisionResult = level->checkCollisions(this, positionDeltaVector);
-  handleCollisionResult(collisionResult, positionDeltaVector);
+  EntityCollisionResult collisionResult = level->checkCollisions(this, positionDeltaVec);
+  handleCollisionResult(collisionResult, positionDeltaVec);
 }
 
 FloatRect
@@ -387,9 +387,9 @@ Snake::onWorldCollision(COLLISION_PLANE collisionPlane)
 {
   velocity = 0;
   if(currentDirection.x != 0)
-    currentDirection = Vector2f::cardinalDirection(rand()%2 ? CD_UP : CD_DOWN);
+    currentDirection = Vec2f::cardinalDirection(rand()%2 ? CD_UP : CD_DOWN);
   else
-    currentDirection = Vector2f::cardinalDirection(rand()%2 ? CD_LEFT : CD_RIGHT);
+    currentDirection = Vec2f::cardinalDirection(rand()%2 ? CD_LEFT : CD_RIGHT);
   
   metersPerSecondSquared = idleSpeedValue;
 }
@@ -406,9 +406,9 @@ Snake::onEntityCollision(COLLISION_PLANE collisionPlane, Entity* entity)
   velocity = 0;
   
   if(currentDirection.x != 0)
-    currentDirection = Vector2f::cardinalDirection(rand()%2 ? CD_UP : CD_DOWN);
+    currentDirection = Vec2f::cardinalDirection(rand()%2 ? CD_UP : CD_DOWN);
   else
-    currentDirection = Vector2f::cardinalDirection(rand()%2 ? CD_LEFT : CD_RIGHT);
+    currentDirection = Vec2f::cardinalDirection(rand()%2 ? CD_LEFT : CD_RIGHT);
 
   metersPerSecondSquared = idleSpeedValue;
 }
@@ -416,7 +416,7 @@ Snake::onEntityCollision(COLLISION_PLANE collisionPlane, Entity* entity)
 
 Rat::Rat(const EntityPosition& position, int level) : Mob(position, level)
 {
-  dimensions = Vector2f(1.0f, 1.0f);
+  dimensions = Vec2f(1.0f, 1.0f);
   renderData.spriteName = "ratBase";
   
   std::stringstream caption;
@@ -427,7 +427,7 @@ Rat::Rat(const EntityPosition& position, int level) : Mob(position, level)
   health = maxHealth;
   damageValue = 1.0f + ((mobLevel - 1.0f) * 2.0f);
   
-  currentDirection = Vector2f::directionVector();
+  currentDirection = Vec2f::directionVector();
   
   metersPerSecondSquared = 10.0f;
   ratState = RS_SNIFFING;
@@ -448,20 +448,20 @@ Rat::update(const float lastDelta)
     EntityPosition playerPosition = player->getCollisionCenter();
     EntityPosition followerPosition = getCollisionCenter();
     
-    Vector2f distanceVector = EntityPosition::calculateDistanceInTiles(followerPosition, playerPosition,
+    Vec2f distanceVec = EntityPosition::calculateDistanceInTiles(followerPosition, playerPosition,
 								       level->getTileMap()->getTileChunkSize());
     // I either move towards him
-    if(distanceVector.getLength() < 4.0f + (mobLevel * 0.5f) && !dying)
+    if(distanceVec.getLength() < 4.0f + (mobLevel * 0.5f) && !dying)
     {
-      distanceVector.normalize();
-      currentDirection = distanceVector;
+      distanceVec.normalize();
+      currentDirection = distanceVec;
       shouldUpdateState = false;
     }
     // Or go Away from him if I'm dying
     else if(dying)
     {
-      distanceVector.normalize();
-      currentDirection = distanceVector * -1.0f;
+      distanceVec.normalize();
+      currentDirection = distanceVec * -1.0f;
       shouldUpdateState = false;
     }
   }
@@ -480,13 +480,13 @@ Rat::update(const float lastDelta)
 	  {
 	    localStateTime = 0.5f + (rand()%5) * 0.2f;
 	    ratState = RS_THINKING;
-	    currentDirection = Vector2f();
+	    currentDirection = Vec2f();
 	  }
 	  // Still Sniffing
 	  else
 	  {
 	    localStateTime = 2.0f + (rand()%5) * 0.5f;
-	    currentDirection = Vector2f::directionVector();
+	    currentDirection = Vec2f::directionVector();
 	  }
 	} break;
       case RS_THINKING:
@@ -504,10 +504,10 @@ Rat::update(const float lastDelta)
   float friction = level->getFrictionValueAtPosition(collisionCenter);
   float accelerationModifier  = level->getAccelerationModifierAtPosition(collisionCenter);
   
-  Vector2f positionDeltaVector = getPositionDeltaVector(lastDelta, friction, accelerationModifier);
+  Vec2f positionDeltaVec = getPositionDeltaVec(lastDelta, friction, accelerationModifier);
 
-  EntityCollisionResult collisionResult = level->checkCollisions(this, positionDeltaVector);
-  handleCollisionResult(collisionResult, positionDeltaVector);
+  EntityCollisionResult collisionResult = level->checkCollisions(this, positionDeltaVec);
+  handleCollisionResult(collisionResult, positionDeltaVec);
 }
 
 FloatRect
@@ -550,7 +550,7 @@ Rat::onEntityCollision(COLLISION_PLANE collisionPlane, Entity* entity)
 
 Player::Player(const EntityPosition& position) : Mob(position, 1, 1.0f)
 {
-  dimensions = Vector2f(1.0f, 2.0f);
+  dimensions = Vec2f(1.0f, 2.0f);
   renderData.spriteName = "playerBase";
   renderData.caption = "Player";
   
@@ -564,10 +564,10 @@ Player::update(const float lastDelta)
   float friction = level->getFrictionValueAtPosition(collisionCenter);
   float accelerationModifier  = level->getAccelerationModifierAtPosition(collisionCenter);
   
-  Vector2f positionDeltaVector = getPositionDeltaVector(lastDelta, friction, accelerationModifier);
+  Vec2f positionDeltaVec = getPositionDeltaVec(lastDelta, friction, accelerationModifier);
   
-  EntityCollisionResult collisionResult = level->checkCollisions(this, positionDeltaVector);
-  handleCollisionResult(collisionResult, positionDeltaVector);
+  EntityCollisionResult collisionResult = level->checkCollisions(this, positionDeltaVec);
+  handleCollisionResult(collisionResult, positionDeltaVec);
   
   if(xpAmount >= getNextLevelXp()) levelUp();
   
@@ -606,11 +606,11 @@ Player::addXp(const float amount)
 {
   xpAmount += amount;
   
-  OverlayTextData overlayTextData = {"", 2.0f, Vector3f(), 1.1f};
+  OverlayTextData overlayTextData = {"", 2.0f, Vec3f(), 1.1f};
   std::stringstream tempText;
   tempText << std::fixed << std::setw(11) << std::setprecision(2);
   tempText << amount << " Xp";
-  overlayTextData.color = Vector3f(0, 200.0f, 0);
+  overlayTextData.color = Vec3f(0, 200.0f, 0);
   overlayTextData.text = tempText.str();
   
   Entity* overlayText = new OverlayText(position, overlayTextData);
@@ -628,8 +628,8 @@ Player::levelUp()
   
   maxStamina += 20.0f;
 
-  OverlayTextData overlayTextData = {"", 4.0f, Vector3f(), 1.5f};
-  overlayTextData.color = Vector3f(0, 200.0f, 0);
+  OverlayTextData overlayTextData = {"", 4.0f, Vec3f(), 1.5f};
+  overlayTextData.color = Vec3f(0, 200.0f, 0);
   overlayTextData.text = "Leveled Up !";
   Entity* overlayText = new OverlayText(position, overlayTextData);
   level->addOverlayEntity(EntityPtr(overlayText));
@@ -651,22 +651,22 @@ Player::handlePlayerInput(const PlayerInput& playerInput)
   if(playerInput.up)
   {
     direction = MOB_FACING_UP;
-    acceleration += Vector2f(0, -1.0f);
+    acceleration += Vec2f(0, -1.0f);
   }
   if(playerInput.right)
   {
     direction = MOB_FACING_RIGHT;
-    acceleration += Vector2f(1.0f, 0);
+    acceleration += Vec2f(1.0f, 0);
   }
   if(playerInput.down)
   {
     direction = MOB_FACING_DOWN;
-    acceleration += Vector2f(0, 1.0f);
+    acceleration += Vec2f(0, 1.0f);
   }
   if(playerInput.left)
   {
     direction = MOB_FACING_LEFT;
-    acceleration += Vector2f(-1.0f, 0);
+    acceleration += Vec2f(-1.0f, 0);
   }
 
   if(playerInput.actionUp || playerInput.actionRight ||
@@ -675,24 +675,24 @@ Player::handlePlayerInput(const PlayerInput& playerInput)
     float bulletRadius = 0.5f;
     
     static const float bulletDistance = 1.5f;
-    Vector2f tempDirectionVector;
+    Vec2f tempDirectionVec;
     
-    if(playerInput.actionUp) tempDirectionVector = Vector2f(0, -1.0f);
-    if(playerInput.actionRight) tempDirectionVector = Vector2f(1.0f, 0);
-    if(playerInput.actionDown) tempDirectionVector = Vector2f(0, 1.0f);
-    if(playerInput.actionLeft) tempDirectionVector = Vector2f(-1.0f, 0);
+    if(playerInput.actionUp) tempDirectionVec = Vec2f(0, -1.0f);
+    if(playerInput.actionRight) tempDirectionVec = Vec2f(1.0f, 0);
+    if(playerInput.actionDown) tempDirectionVec = Vec2f(0, 1.0f);
+    if(playerInput.actionLeft) tempDirectionVec = Vec2f(-1.0f, 0);
     
     EntityPosition bulletPosition = position + getLocalCollisionCenter() +
-      tempDirectionVector * bulletDistance;
+      tempDirectionVec * bulletDistance;
     
-    bulletPosition -=Vector2f(0, bulletRadius);
+    bulletPosition -=Vec2f(0, bulletRadius);
     
     if(playerInput.actionRight || playerInput.actionLeft)
-      bulletPosition -= Vector2f(0, 1.0f);
+      bulletPosition -= Vec2f(0, 1.0f);
     
     Entity* bullet = new Bullet(bulletPosition,
-				velocity + tempDirectionVector * bulletVelocity,
-				Vector2f(bulletRadius, bulletRadius),
+				velocity + tempDirectionVec * bulletVelocity,
+				Vec2f(bulletRadius, bulletRadius),
 				damageValue);
       
     if(stamina > 20 && level->addEntity(EntityPtr(bullet))) stamina -= 20;

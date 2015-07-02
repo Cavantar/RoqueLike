@@ -16,13 +16,13 @@ user32.lib $
 Advapi32.lib 
 
 SfmlDirectory = E:/Libs/SFML-2.2-64
-IncludeDirectory = $SfmlDirectory/include
-LibraryDirectory = $SfmlDirectory/lib
+IncludeDirectories = -I$SfmlDirectory/include -IE:/Projekty/jpb/
+LibraryDirectories = -LIBPATH:$SfmlDirectory/lib
 
 Defines = -DSFML_STATIC
 
-CompilerOptions = $Defines -FC -O2x -EHsc -MD -MP -wd4503 -Fe$TARGET -I$IncludeDirectory -c
-LinkerOptions = -LIBPATH:$LibraryDirectory
+CompilerOptions = $Defines -FC -O2x -EHsc -MD -MP -wd4503 -Fe$TARGET $IncludeDirectories -c
+LinkerOptions = $LibraryDirectories
 
 CodeDirectory = ../code/
 BuildDirectory = ../build/

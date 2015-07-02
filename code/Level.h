@@ -18,7 +18,7 @@ typedef std::list<WorldPosition> TileList;
 struct CollisionCheckData {
   EntityPosition basePosition;
   FloatRect collisionRect;
-  Vector2f deltaVector;
+  Vec2f deltaVec;
 };
 
 const int numbOfEntityLayers = 2;
@@ -46,9 +46,9 @@ public:
   void removeDeadEntities();
 
   // Checks collision between two entities and returns collision results 
-  EntityCollisionResult checkCollisions(const Entity* entity, Vector2f deltaVector) const ;
+  EntityCollisionResult checkCollisions(const Entity* entity, Vec2f deltaVec) const ;
   bool canSeeEachOther(const Entity* entity1, const Entity* entity2, float maxRange) const ;
-  Vector2f canSeeEachOtherCardinal(const Entity* entity1, const Entity* entity2, float maxRange) const ; 
+  Vec2f canSeeEachOtherCardinal(const Entity* entity1, const Entity* entity2, float maxRange) const ; 
 
   float getFrictionValueAtPosition(EntityPosition& entityPosition) const; 
   float getAccelerationModifierAtPosition(EntityPosition& entityPosition) const;

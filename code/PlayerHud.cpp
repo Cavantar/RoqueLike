@@ -7,8 +7,8 @@ void PlayerHud::render(const Player* player)
 {
   const sf::Vector2u windowDimensions = window->getSize();
 
-  Vector2f panelDimensions(windowDimensions.x * 0.20f, windowDimensions.y * 0.6f);
-  Vector2f panelPosition(windowDimensions.x - panelDimensions.x - 2.0f, 2.0f);
+  Vec2f panelDimensions(windowDimensions.x * 0.20f, windowDimensions.y * 0.6f);
+  Vec2f panelPosition(windowDimensions.x - panelDimensions.x - 2.0f, 2.0f);
   
   sf::RectangleShape rectangleShape(sf::Vector2f(panelDimensions.x, panelDimensions.y));
   rectangleShape.setPosition(panelPosition.x, panelPosition.y);
@@ -18,7 +18,7 @@ void PlayerHud::render(const Player* player)
   
   window->draw(rectangleShape);
   
-  Vector2f textPos = panelPosition + Vector2f(20.0f, 20.0f);
+  Vec2f textPos = panelPosition + Vec2f(20.0f, 20.0f);
   int skillPoints = player->getSkillPoints();
 
   std::stringstream tempText;
@@ -64,8 +64,8 @@ void PlayerHud::render(const Player* player)
     textPos = renderText(tempText.str(), textPos, sf::Color::Black);
   }
   
-  Vector2f renderBarDimensions(windowDimensions.x * 0.3f, 25.0f);
-  Vector2f renderBarPosition(windowDimensions.x - renderBarDimensions.x - 2.0f,
+  Vec2f renderBarDimensions(windowDimensions.x * 0.3f, 25.0f);
+  Vec2f renderBarPosition(windowDimensions.x - renderBarDimensions.x - 2.0f,
 			     windowDimensions.y - (renderBarDimensions.y * 5));
   
   float fillPercentage = player->getHealth()/player->getMaxHealth();
@@ -90,7 +90,7 @@ void PlayerHud::render(const Player* player)
   
 }
 
-Vector2f PlayerHud::renderText(const std::string& text, const Vector2f& textPos, const sf::Color& color,
+Vec2f PlayerHud::renderText(const std::string& text, const Vec2f& textPos, const sf::Color& color,
 			       bool nextLine)
 {
   
@@ -104,11 +104,11 @@ Vector2f PlayerHud::renderText(const std::string& text, const Vector2f& textPos,
   window->draw(tempText);
 
   sf::FloatRect localTextBounds = tempText.getLocalBounds();
-  return textPos + Vector2f(0, localTextBounds.height * 2);
+  return textPos + Vec2f(0, localTextBounds.height * 2);
 }
 
-Vector2f PlayerHud::renderBar(float fillPercentage, const sf::Color& baseColor, const Vector2f& position,
-			      const Vector2f& dimensions, const std::string& text)
+Vec2f PlayerHud::renderBar(float fillPercentage, const sf::Color& baseColor, const Vec2f& position,
+			      const Vec2f& dimensions, const std::string& text)
 {
     
   sf::RectangleShape rectangleShape(sf::Vector2f(dimensions.x, dimensions.y));
@@ -135,7 +135,7 @@ Vector2f PlayerHud::renderBar(float fillPercentage, const sf::Color& baseColor, 
   tempText.setCharacterSize(20.0f);
   
   sf::FloatRect localTextBounds = tempText.getLocalBounds();
-  Vector2f textPos = position + Vector2f(1, 1);
+  Vec2f textPos = position + Vec2f(1, 1);
   textPos.x += ((dimensions.x - 2) / 2.0f) - (localTextBounds.width / 2.0f) ;
   
   tempText.setPosition(textPos.x, textPos.y);
@@ -143,7 +143,7 @@ Vector2f PlayerHud::renderBar(float fillPercentage, const sf::Color& baseColor, 
   
   window->draw(tempText);
   
-  Vector2f nextPosition = position;
+  Vec2f nextPosition = position;
   nextPosition.y += dimensions.y * 1.5f ;
   
   return nextPosition;

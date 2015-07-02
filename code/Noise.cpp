@@ -29,16 +29,16 @@ Noise::gradients1D[] = { 1.0f, -1.0f };
 int
 Noise::gradients1DMask = 1;
 
-Vector2f
+Vec2f
 Noise::gradients2D[] = { 
-  Vector2f(1.0f, 0), 
-  Vector2f(-1.0f, 0),
-  Vector2f(0, 1.0f),
-  Vector2f(0, -1.0f),
-  normalize(Vector2f(-1.0f,1.0f)),
-  normalize(Vector2f(1.0f, 1.0f)),
-  normalize(Vector2f(1.0f, -1.0f)),
-  normalize(Vector2f(-1.0f, -1.0f))
+  Vec2f(1.0f, 0), 
+  Vec2f(-1.0f, 0),
+  Vec2f(0, 1.0f),
+  Vec2f(0, -1.0f),
+  normalize(Vec2f(-1.0f,1.0f)),
+  normalize(Vec2f(1.0f, 1.0f)),
+  normalize(Vec2f(1.0f, -1.0f)),
+  normalize(Vec2f(-1.0f, -1.0f))
 };
 
 int
@@ -48,7 +48,7 @@ float
 Noise::sqr2 = pow(2.0f, 0.5f);
 
 float
-Noise::value(Vector2f point, float frequency) {
+Noise::value(Vec2f point, float frequency) {
   point *= frequency;
   
   int ix0 = (int)floor(point.x);
@@ -112,7 +112,7 @@ float Noise::perlin(float value, float frequency) {
   return interp(v0, v1, t) * 2;
 }
 
-float Noise::perlin(Vector2f point, float frequency) {
+float Noise::perlin(Vec2f point, float frequency) {
   point *= frequency;
   
   int ix0 = (int)floor(point.x);
@@ -134,10 +134,10 @@ float Noise::perlin(Vector2f point, float frequency) {
   int h0 = hash[ix0];
   int h1 = hash[ix1];
   
-  Vector2f g00 = gradients2D[hash[(h0 + iy0)&hashMask] & gradients2DMask];
-  Vector2f g10 = gradients2D[hash[(h1 + iy0)&hashMask] & gradients2DMask];
-  Vector2f g01 = gradients2D[hash[(h0 + iy1)&hashMask] & gradients2DMask];
-  Vector2f g11 = gradients2D[hash[(h1 + iy1)&hashMask] & gradients2DMask];
+  Vec2f g00 = gradients2D[hash[(h0 + iy0)&hashMask] & gradients2DMask];
+  Vec2f g10 = gradients2D[hash[(h1 + iy0)&hashMask] & gradients2DMask];
+  Vec2f g01 = gradients2D[hash[(h0 + iy1)&hashMask] & gradients2DMask];
+  Vec2f g11 = gradients2D[hash[(h1 + iy1)&hashMask] & gradients2DMask];
   
   float v00 = dotProduct(g00, tx0, ty0);
   float v10 = dotProduct(g10, tx1, ty0);
@@ -158,7 +158,7 @@ float Noise::perlin(Vector2f point, float frequency) {
   return interp(upX, downX, ty) * sqr2;
 }
 
-float Noise::sumPerlin(Vector2f point, NoiseParams& noiseParams) {
+float Noise::sumPerlin(Vec2f point, NoiseParams& noiseParams) {
   float sum = perlin(point, noiseParams.frequency);
   
   float amplitude = 1.0f;
@@ -177,7 +177,7 @@ float Noise::sumPerlin(Vector2f point, NoiseParams& noiseParams) {
     norm1 = 1.0f - norm1 * 2.0f;
     norm2 = 1.0f - norm2 * 2.0f;
     
-    Vector2f offsetVec = Vector2f(norm1, norm2);
+    Vec2f offsetVec = Vec2f(norm1, norm2);
     // ---------------------------
     
     frequency *= noiseParams.lacunarity;
@@ -189,7 +189,7 @@ float Noise::sumPerlin(Vector2f point, NoiseParams& noiseParams) {
   return sum/range;
 }
 
-float Noise::sumValue(Vector2f point, NoiseParams& noiseParams) {
+float Noise::sumValue(Vec2f point, NoiseParams& noiseParams) {
   float sum = value(point, noiseParams.frequency);
   
   float amplitude = 1.0f;
@@ -208,7 +208,7 @@ float Noise::sumValue(Vector2f point, NoiseParams& noiseParams) {
     norm1 = 1.0f - norm1 * 2.0f;
     norm2 = 1.0f - norm2 * 2.0f;
     
-    Vector2f offsetVec = Vector2f(norm1, norm2);
+    Vec2f offsetVec = Vec2f(norm1, norm2);
     // ---------------------------
     
     frequency *= noiseParams.lacunarity;
@@ -222,7 +222,7 @@ float Noise::sumValue(Vector2f point, NoiseParams& noiseParams) {
 
 /*
 vector<glm::vec4>
-Noise::getMap(Vector2f offset, int sideLength, list<GenData>& genDatas) {
+Noise::getMap(Vec2f offset, int sideLength, list<GenData>& genDatas) {
   int numbOfVertices = sideLength * sideLength;
   vector<glm::vec4> vertices;
   vertices.resize(numbOfVertices);
@@ -230,19 +230,19 @@ Noise::getMap(Vector2f offset, int sideLength, list<GenData>& genDatas) {
   float stepSize = 1.0f / (sideLength - 1);
   float greyValue;
   
-  Vector2f point00 = Vector2f(-0.5f, 0.5f);
-  Vector2f point10 = Vector2f(0.5f, 0.5f);
-  Vector2f point01 = Vector2f(-0.5f, -0.5f);
-  Vector2f point11 = Vector2f(0.5f, -0.5f);
+  Vec2f point00 = Vec2f(-0.5f, 0.5f);
+  Vec2f point10 = Vec2f(0.5f, 0.5f);
+  Vec2f point01 = Vec2f(-0.5f, -0.5f);
+  Vec2f point11 = Vec2f(0.5f, -0.5f);
   
   vector<float> values;
   values.resize(genDatas.size());
   
   for(int y = 0; y < sideLength; y++) {
-    Vector2f point0 = glm::lerp(point00, point01, ((float)y ) * stepSize);
-    Vector2f point1 = glm::lerp(point10, point11, ((float)y ) * stepSize);
+    Vec2f point0 = glm::lerp(point00, point01, ((float)y ) * stepSize);
+    Vec2f point1 = glm::lerp(point10, point11, ((float)y ) * stepSize);
     for(int x = 0; x < sideLength; x++) {
-      Vector2f point = glm::lerp(point0, point1, ((float)x) * stepSize);
+      Vec2f point = glm::lerp(point0, point1, ((float)x) * stepSize);
       greyValue = 0;
       for(auto it = genDatas.begin(); it != genDatas.end(); it++) {
 	if(it->noiseType == NT_PERLIN) {	

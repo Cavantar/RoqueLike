@@ -2,9 +2,9 @@
 #include <SFML/Graphics.hpp>
 #include <unordered_map>
 #include <vector>
-#include "Vector.h"
 
-//#include <iostream>
+#include <jpb\Vector.h>
+#include <jpb\Rect.h>
 
 typedef std::unordered_map<std::string, sf::Sprite> SpriteMap;
 

@@ -16,13 +16,13 @@ EventArgumentData::EventArgumentData(const EventArgumentData& eventArgumentData)
     data = new std::string(*((std::string*)dataSrc ));
     break;
   case EAT_VECTOR2I :
-    data = new Vector2i(*((Vector2i*)dataSrc ));
+    data = new Vec2i(*((Vec2i*)dataSrc ));
     break;
   case EAT_VECTOR2F :
-    data = new Vector2f(*((Vector2f*)dataSrc ));
+    data = new Vec2f(*((Vec2f*)dataSrc ));
     break;
   case EAT_VECTOR3I :
-    data = new Vector3f(*((Vector3f*)dataSrc ));
+    data = new Vec3f(*((Vec3f*)dataSrc ));
     break;
   case EAT_WORLDPOSITION :
     data = new WorldPosition(*((WorldPosition*)dataSrc));
@@ -58,13 +58,13 @@ EventArgumentData EventArgumentData::operator=(const EventArgumentData& eventArg
     data = new std::string(*((std::string*)dataSrc ));
     break;
   case EAT_VECTOR2I :
-    data = new Vector2i(*((Vector2i*)dataSrc ));
+    data = new Vec2i(*((Vec2i*)dataSrc ));
     break;
   case EAT_VECTOR2F :
-    data = new Vector2f(*((Vector2f*)dataSrc ));
+    data = new Vec2f(*((Vec2f*)dataSrc ));
     break;
   case EAT_VECTOR3I :
-    data = new Vector3f(*((Vector3f*)dataSrc ));
+    data = new Vec3f(*((Vec3f*)dataSrc ));
     break;
   case EAT_WORLDPOSITION :
     data = new WorldPosition(*((WorldPosition*)dataSrc));
@@ -119,31 +119,31 @@ EventArgumentData EventArgumentData::operator=(const std::string value)
   return *this;
 }
   
-EventArgumentData EventArgumentData::operator=(const Vector2i value)
+EventArgumentData EventArgumentData::operator=(const Vec2i value)
 {
   deleteData();
   
   eventArgumentType = EAT_VECTOR2I;
-  data = new Vector2i(value);
+  data = new Vec2i(value);
   
   return *this;
 }
-EventArgumentData EventArgumentData::operator=(const Vector2f value)
+EventArgumentData EventArgumentData::operator=(const Vec2f value)
 {
   deleteData();
   
   eventArgumentType = EAT_VECTOR2F;
-  data = new Vector2f(value);
+  data = new Vec2f(value);
   
   return *this;
 }
 
-EventArgumentData EventArgumentData::operator=(const Vector3i value)
+EventArgumentData EventArgumentData::operator=(const Vec3i value)
 {
   deleteData();
   
   eventArgumentType = EAT_VECTOR3I;
-  data = new Vector3i(value);
+  data = new Vec3i(value);
   
   return *this;
 }
@@ -192,22 +192,22 @@ EventArgumentData::EventArgumentData(const std::string value)
   data = new std::string(value);
 }
 
-EventArgumentData::EventArgumentData(const Vector2i value)
+EventArgumentData::EventArgumentData(const Vec2i value)
 {
   eventArgumentType = EAT_VECTOR2I;
-  data = new Vector2i(value);
+  data = new Vec2i(value);
 }
 
-EventArgumentData::EventArgumentData(const Vector2f value)
+EventArgumentData::EventArgumentData(const Vec2f value)
 {
   eventArgumentType = EAT_VECTOR2F;
-  data = new Vector2f(value);
+  data = new Vec2f(value);
 }
 
-EventArgumentData::EventArgumentData(const Vector3i value)
+EventArgumentData::EventArgumentData(const Vec3i value)
 {
   eventArgumentType = EAT_VECTOR3I;
-  data = new Vector3i(value);
+  data = new Vec3i(value);
 }
 
 EventArgumentData::EventArgumentData(const WorldPosition value)
@@ -246,22 +246,22 @@ std::string EventArgumentData::asString() const
   return *(std::string *)data;
 }
 
-const Vector2i& EventArgumentData::asVector2i() const
+const Vec2i& EventArgumentData::asVec2i() const
 {
   assert(eventArgumentType == EAT_VECTOR2I);
-  return *(Vector2i*)data;
+  return *(Vec2i*)data;
 }
 
-const Vector2f& EventArgumentData::asVector2f() const
+const Vec2f& EventArgumentData::asVec2f() const
 {
   assert(eventArgumentType == EAT_VECTOR2F);
-  return *(Vector2f*)data;
+  return *(Vec2f*)data;
 }
 
-const Vector3i& EventArgumentData::asVector3i() const
+const Vec3i& EventArgumentData::asVec3i() const
 {
   assert(eventArgumentType == EAT_VECTOR3I);
-  return *(Vector3i*)data;
+  return *(Vec3i*)data;
 }
 
 const WorldPosition& EventArgumentData::asWorldPosition() const
@@ -288,13 +288,13 @@ void EventArgumentData::deleteData()
       delete (std::string*)data;
       break;
     case EAT_VECTOR2I :
-      delete (Vector2i*)data;
+      delete (Vec2i*)data;
       break;
     case EAT_VECTOR2F :
-      delete (Vector2f*)data;
+      delete (Vec2f*)data;
       break;
     case EAT_VECTOR3I :
-      delete (Vector3i*)data;
+      delete (Vec3i*)data;
       break;
     case EAT_WORLDPOSITION :
       delete (WorldPosition*)data;

@@ -28,11 +28,11 @@ typedef std::shared_ptr<RenderThing> RenderThingPtr;
 class EntityRenderThing : public RenderThing {
 public:
   const EntityRenderData* entityRenderData;
-  Vector2f entityPositionOnScreen;
-  Vector2f dimensions;
+  Vec2f entityPositionOnScreen;
+  Vec2f dimensions;
   
   EntityRenderThing(float bottomY, const EntityRenderData* entityRenderData,
-		    Vector2f entityPositionOnScreen, Vector2f dimensions) :
+		    Vec2f entityPositionOnScreen, Vec2f dimensions) :
     RenderThing(true, bottomY), entityRenderData(entityRenderData),
     entityPositionOnScreen(entityPositionOnScreen), dimensions(dimensions) {}
   
@@ -81,27 +81,27 @@ private:
   Level* level;
 
   // Gets the position of an entity in the world 
-  Vector2f getEntityPositionOnScreen(const EntityPtr& entity, EntityPosition& cameraPosition,
-				     const Vector2i& tileChunkSize) const;
+  Vec2f getEntityPositionOnScreen(const EntityPtr& entity, EntityPosition& cameraPosition,
+				     const Vec2i& tileChunkSize) const;
   
   // Getting the list of entities containing all the information to render them as well
   // as sort by their bottomY value
   EntityListForRendering getEntityListForRendering(const EntityList& entityList,
 						   EntityPosition& cameraPosition,
-						   const Vector2i& tileChunkSize);
+						   const Vec2i& tileChunkSize);
   
   // Renders Entities that are in bounds of a chunk that is rendered
   void renderSortedEntities(EntityListForRendering& entityListForRendering);
 
   // Returns List Of RenderObjects For Tiles that have to be sorted for rendering and renders those who don't
-  EntityListForRendering renderTileChunk(const TileChunkPtr& tileChunk, const Vector2f& screenChunkPosition,
-					 const Vector3i& tileChunkPosition);
+  EntityListForRendering renderTileChunk(const TileChunkPtr& tileChunk, const Vec2f& screenChunkPosition,
+					 const Vec3i& tileChunkPosition);
   
   EntityListForRendering renderTileMap(const TileMapPtr& tileMap, EntityPosition& cameraPosition);
   
-  void renderEntity(const EntityRenderData* entityRenderData, Vector2f entityPositionOnScreen);
+  void renderEntity(const EntityRenderData* entityRenderData, Vec2f entityPositionOnScreen);
   void renderEntities(const EntityList& entityList, EntityPosition& cameraPosition,
-		      const Vector2i& tileChunkSize);
+		      const Vec2i& tileChunkSize);
 
   // Render list of previously filled spriteObjects
   void renderSprites(const SpriteList& spriteList);

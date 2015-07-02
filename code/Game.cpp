@@ -1,8 +1,6 @@
 #include <sstream>
 #include "Game.h"
 
-//PlayGameState Game::playGameState;
-
 void
 Game::updateGameState()
 {
@@ -63,12 +61,12 @@ Game::setWindowTitleToFps()
 void
 Game::start()
 {
-  Vector2i screenResolution(1280, 720);
+  Vec2i screenResolution(1280, 720);
   
   window.create(sf::VideoMode(screenResolution.x, screenResolution.y),
 		"RoqueLike!");
   
-  window.setVerticalSyncEnabled(true);
+  //window.setVerticalSyncEnabled(true);
   //window.setFramerateLimit(120);
   
   //gameState = &playGameState;
@@ -213,7 +211,7 @@ PlayGameState::update(Game* game)
   Player* player = level->getPlayer();
   if(player && cameraBoundToPlayer)
   {
-    cameraPosition = player->getPosition() + Vector2f(0.5f, 0.5f);
+    cameraPosition = player->getPosition() + Vec2f(0.5f, 0.5f);
   }
   
   eventManager.collectEvents();

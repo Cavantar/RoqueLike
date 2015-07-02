@@ -9,11 +9,11 @@ public:
   void setFont(sf::Font* font) { this->font = font; }
   
   void render(const Player* player);
-  Vector2f renderText(const std::string& text, const Vector2f& textPos, const sf::Color& color,
+  Vec2f renderText(const std::string& text, const Vec2f& textPos, const sf::Color& color,
 		      bool nextLine = true);
   
-  Vector2f renderBar(float fillPercentage, const sf::Color& baseColor, const Vector2f& position,
-		     const Vector2f& dimensions, const std::string& text); 
+  Vec2f renderBar(float fillPercentage, const sf::Color& baseColor, const Vec2f& position,
+		     const Vec2f& dimensions, const std::string& text); 
 		     
 private:
   sf::RenderWindow* window;

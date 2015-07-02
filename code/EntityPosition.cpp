@@ -1,7 +1,7 @@
 #include "EntityPosition.h"
 
 void
-WorldPosition::recanonicalize(const Vector2i tileChunkSize )
+WorldPosition::recanonicalize(const Vec2i tileChunkSize )
 {
   while(tilePosition.x >= tileChunkSize.x)
   {
@@ -28,29 +28,29 @@ WorldPosition::recanonicalize(const Vector2i tileChunkSize )
   }
 }
 
-Vector2i
+Vec2i
 WorldPosition::calculateDistanceInTilesInclusive(const WorldPosition& srcPosition,
 							  const WorldPosition& dstPosition,
-							  const Vector2i& tileChunkDimensions)
+							  const Vec2i& tileChunkDimensions)
 {
-  Vector2i deltaVector;
+  Vec2i deltaVec;
   
   // Adding Chunk Tiles
-  deltaVector.x = (dstPosition.tileChunkPosition.x -
+  deltaVec.x = (dstPosition.tileChunkPosition.x -
 		   srcPosition.tileChunkPosition.x) * tileChunkDimensions.x;
   
-  deltaVector.y = (dstPosition.tileChunkPosition.y -
+  deltaVec.y = (dstPosition.tileChunkPosition.y -
 		   srcPosition.tileChunkPosition.y) * tileChunkDimensions.y;
   
   // Adding Tiles Inside Of The Chunk
-  deltaVector.x += dstPosition.tilePosition.x - srcPosition.tilePosition.x;
-  deltaVector.y += dstPosition.tilePosition.y - srcPosition.tilePosition.y;
+  deltaVec.x += dstPosition.tilePosition.x - srcPosition.tilePosition.x;
+  deltaVec.y += dstPosition.tilePosition.y - srcPosition.tilePosition.y;
   
-  return deltaVector;
+  return deltaVec;
 }
 
 WorldPosition
-WorldPosition::operator+(Vector2i vector) const
+WorldPosition::operator+(Vec2i vector) const
 {
   WorldPosition result = *this;
   result.tilePosition += vector;
@@ -59,7 +59,7 @@ WorldPosition::operator+(Vector2i vector) const
 }
 
 WorldPosition
-WorldPosition::operator-(Vector2i vector) const
+WorldPosition::operator-(Vec2i vector) const
 {
   WorldPosition result = *this;
   result.tilePosition -= vector;
@@ -68,13 +68,13 @@ WorldPosition::operator-(Vector2i vector) const
 }
 
 void
-WorldPosition::operator+=(Vector2i vector)
+WorldPosition::operator+=(Vec2i vector)
 {
   tilePosition += vector;
 }
 
 void
-WorldPosition::operator-=(Vector2i vector)
+WorldPosition::operator-=(Vec2i vector)
 {
   tilePosition -= vector;
 }
@@ -88,7 +88,7 @@ WorldPosition::operator==(const WorldPosition& worldPosition) const
 }
 
 void
-EntityPosition::recanonicalize(const Vector2i tileChunkSize)
+EntityPosition::recanonicalize(const Vec2i tileChunkSize)
 {
   while(tileOffset.x >= 1.0f)
   {
@@ -117,45 +117,45 @@ EntityPosition::recanonicalize(const Vector2i tileChunkSize)
   worldPosition.recanonicalize(tileChunkSize);
 }
 
-Vector2f
+Vec2f
 EntityPosition::calculateDistanceInTiles(const EntityPosition& srcPosition,
 						  const EntityPosition& dstPosition,
-						  const Vector2i& tileChunkDimensions)
+						  const Vec2i& tileChunkDimensions)
 {
-  Vector2f deltaVector;
+  Vec2f deltaVec;
 
   // Adding Chunk Tiles
-  deltaVector.x = (dstPosition.worldPosition.tileChunkPosition.x -
+  deltaVec.x = (dstPosition.worldPosition.tileChunkPosition.x -
 		   srcPosition.worldPosition.tileChunkPosition.x) * tileChunkDimensions.x;
   
-  deltaVector.y = (dstPosition.worldPosition.tileChunkPosition.y -
+  deltaVec.y = (dstPosition.worldPosition.tileChunkPosition.y -
 		   srcPosition.worldPosition.tileChunkPosition.y) * tileChunkDimensions.y;
   
   // Adding Tiles Inside Of The Chunk
-  deltaVector.x += dstPosition.worldPosition.tilePosition.x - srcPosition.worldPosition.tilePosition.x;
-  deltaVector.y += dstPosition.worldPosition.tilePosition.y - srcPosition.worldPosition.tilePosition.y;
+  deltaVec.x += dstPosition.worldPosition.tilePosition.x - srcPosition.worldPosition.tilePosition.x;
+  deltaVec.y += dstPosition.worldPosition.tilePosition.y - srcPosition.worldPosition.tilePosition.y;
 
   // Adding Tile Offsets
-  deltaVector.x += dstPosition.tileOffset.x - srcPosition.tileOffset.x;
-  deltaVector.y += dstPosition.tileOffset.y - srcPosition.tileOffset.y;
+  deltaVec.x += dstPosition.tileOffset.x - srcPosition.tileOffset.x;
+  deltaVec.y += dstPosition.tileOffset.y - srcPosition.tileOffset.y;
   
-  return deltaVector;
+  return deltaVec;
 }
 
 void
-EntityPosition::operator+=(const Vector2f& vector)
+EntityPosition::operator+=(const Vec2f& vector)
 {
   tileOffset += vector;
 }
 
 void
-EntityPosition::operator-=(const Vector2f& vector)
+EntityPosition::operator-=(const Vec2f& vector)
 {
   tileOffset -= vector;
 }
 
 EntityPosition
-EntityPosition::operator+(const Vector2f& vector) const 
+EntityPosition::operator+(const Vec2f& vector) const 
 {
   EntityPosition result = *this;
   result += vector;

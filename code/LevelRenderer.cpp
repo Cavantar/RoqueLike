@@ -167,9 +167,9 @@ int LevelRenderer::getSpriteIndex(TILE_STATE tileState, int tileHash)
   
 }
 
-Vector2f
+Vec2f
 LevelRenderer::getEntityPositionOnScreen(const EntityPtr& entity, EntityPosition& cameraPosition,
-					 const Vector2i& tileChunkSize) const
+					 const Vec2i& tileChunkSize) const
 {
   const sf::Vector2u windowDimensions = window->getSize();
   
@@ -188,11 +188,11 @@ LevelRenderer::getEntityPositionOnScreen(const EntityPtr& entity, EntityPosition
   topLeftViewport.recanonicalize(tileChunkSize);
   
   // CameraPosition in Pixels Inside The Chunk
-  Vector2f cameraOffset((float) topLeftViewport.worldPosition.tilePosition.x * tileSizeInPixels,
+  Vec2f cameraOffset((float) topLeftViewport.worldPosition.tilePosition.x * tileSizeInPixels,
 			(float) topLeftViewport.worldPosition.tilePosition.y * tileSizeInPixels);
   
   const EntityPosition& position = entity->getPosition();
-  Vector2f entityPositionOnScreen = EntityPosition::calculateDistanceInTiles(topLeftViewport,
+  Vec2f entityPositionOnScreen = EntityPosition::calculateDistanceInTiles(topLeftViewport,
 									     position,
 									     tileChunkSize);
   // Converting Position To Pixels
@@ -204,7 +204,7 @@ LevelRenderer::getEntityPositionOnScreen(const EntityPtr& entity, EntityPosition
 EntityListForRendering
 LevelRenderer::getEntityListForRendering(const EntityList& entityList,
 					 EntityPosition& cameraPosition,
-					 const Vector2i& tileChunkSize)
+					 const Vec2i& tileChunkSize)
 {
   EntityListForRendering resultEntityList;
   
@@ -213,8 +213,8 @@ LevelRenderer::getEntityListForRendering(const EntityList& entityList,
   for(auto entityIt = entityList.begin() ; entityIt != entityList.end() ; entityIt++)
   {
     const EntityRenderData* entityRenderData = (*entityIt)->getRenderData();
-    Vector2f entityPositionOnScreen = getEntityPositionOnScreen(*entityIt, cameraPosition, tileChunkSize);
-    Vector2f dimensions = (*entityIt)->getDimensions() * tileSizeInPixels;
+    Vec2f entityPositionOnScreen = getEntityPositionOnScreen(*entityIt, cameraPosition, tileChunkSize);
+    Vec2f dimensions = (*entityIt)->getDimensions() * tileSizeInPixels;
     
     if(entityPositionOnScreen.y > windowDimensions.y || entityPositionOnScreen.x > windowDimensions.x ||
        entityPositionOnScreen.y + (dimensions.y * tileSizeInPixels) < 0 ||
@@ -244,8 +244,8 @@ LevelRenderer::renderSortedEntities(EntityListForRendering& entityListForRenderi
 }
 
 EntityListForRendering
-LevelRenderer::renderTileChunk(const TileChunkPtr& tileChunk, const Vector2f& screenChunkPosition,
-			       const Vector3i& tileChunkPosition)
+LevelRenderer::renderTileChunk(const TileChunkPtr& tileChunk, const Vec2f& screenChunkPosition,
+			       const Vec3i& tileChunkPosition)
 {
   EntityListForRendering tilesForSortedInChunk;
   
@@ -295,7 +295,7 @@ LevelRenderer::renderTileChunk(const TileChunkPtr& tileChunk, const Vector2f& sc
 
       	  
       NoiseParams noiseParams = {0.05, 3, 2.0f, 0.5f};
-      Vector2f globalTilePosition(x + tileChunkPosition.x * tileChunkWidth,
+      Vec2f globalTilePosition(x + tileChunkPosition.x * tileChunkWidth,
 				  y + tileChunkPosition.y * tileChunkHeight);
 	  
       float floatHash = Noise::sumPerlin(globalTilePosition, noiseParams);
@@ -317,7 +317,7 @@ LevelRenderer::renderTileChunk(const TileChunkPtr& tileChunk, const Vector2f& sc
 	  sf::Sprite tileSprite;
 	  float finalScale = tileSizeInPixels / 16.0f;
 	  
-	  WorldPosition tempWorldPosition(tileChunkPosition, Vector2i(x, y));
+	  WorldPosition tempWorldPosition(tileChunkPosition, Vec2i(x, y));
 	  std::string spriteName = "wallTop1_";
 	  
 	  TILE_STATE tileState = (TILE_STATE)level->getSurroundingTileData(tempWorldPosition, TILE_TYPE_WALL);
@@ -385,7 +385,7 @@ LevelRenderer::renderTileChunk(const TileChunkPtr& tileChunk, const Vector2f& sc
 	  rectangleShape.setFillColor(sf::Color(128, 128, 128));
 	  
 	  std::string spriteName = "floor1_";
-	  WorldPosition tempWorldPosition(tileChunkPosition, Vector2i(x, y));
+	  WorldPosition tempWorldPosition(tileChunkPosition, Vec2i(x, y));
 	  
 	  TILE_STATE tileState = (TILE_STATE)level->getSurroundingTileData(tempWorldPosition, tileType);
 	  int spriteIndex = -1;
@@ -470,8 +470,8 @@ LevelRenderer::renderTileMap(const TileMapPtr& tileMap, EntityPosition& cameraPo
   const TileChunkMap& tileChunkMap = tileMap->getTileChunkMap();
   
   // To Determine How many Chunks I have to render, I have to know their width in pixels
-  Vector2i tileChunkSize = tileMap->getTileChunkSize();
-  Vector2f tileChunkSizeInPixels(tileChunkSize.x, tileChunkSize.y);
+  Vec2i tileChunkSize = tileMap->getTileChunkSize();
+  Vec2f tileChunkSizeInPixels(tileChunkSize.x, tileChunkSize.y);
   tileChunkSizeInPixels *= tileSizeInPixels;
   
   // How many Chunks I have to render
@@ -491,15 +491,15 @@ LevelRenderer::renderTileMap(const TileMapPtr& tileMap, EntityPosition& cameraPo
   topLeftViewport.recanonicalize(tileChunkSize);
   
   // CameraPosition in Pixels Inside The Chunk - determines how much i have to translate chunks 
-  Vector2f cameraOffset((float) topLeftViewport.worldPosition.tilePosition.x * tileSizeInPixels,
+  Vec2f cameraOffset((float) topLeftViewport.worldPosition.tilePosition.x * tileSizeInPixels,
 			(float) topLeftViewport.worldPosition.tilePosition.y * tileSizeInPixels);
   
   // Determining UpperLeftCorner and LowerRightCorner Chunks
-  Vector3i topLeftChunkPosition = topLeftViewport.worldPosition.tileChunkPosition;
-  Vector3i bottomRightChunkPosition = topLeftChunkPosition +
-    Vector3i(ceil(chunksPerScreenWidth) + 1, ceil(chunksPerScreenHeight) + 1, 0);
+  Vec3i topLeftChunkPosition = topLeftViewport.worldPosition.tileChunkPosition;
+  Vec3i bottomRightChunkPosition = topLeftChunkPosition +
+    Vec3i(ceil(chunksPerScreenWidth) + 1, ceil(chunksPerScreenHeight) + 1, 0);
 
-  //Vector2f cameraPositionInPixels = 
+  //Vec2f cameraPositionInPixels = 
   
   for(int y = topLeftChunkPosition.y; y < bottomRightChunkPosition.y; y++)
   {
@@ -511,7 +511,7 @@ LevelRenderer::renderTileMap(const TileMapPtr& tileMap, EntityPosition& cameraPo
       shape.setScale(1.0f, (float)tileChunkSize.y / (float)tileChunkSize.x);
       shape.setFillColor(sf::Color(128 - ((abs(y)%8) * 16), 0 , 128 - ((abs(x)%8) * 16)));
       
-      Vector2f screenChunkPosition;
+      Vec2f screenChunkPosition;
       
       // screenChunkPosition is composed of numbOfChunk that should be rendered multiplied by pixel width
       // subtracted by how much chunk is out of screen(offset) in Pixels
@@ -526,7 +526,7 @@ LevelRenderer::renderTileMap(const TileMapPtr& tileMap, EntityPosition& cameraPo
       shape.setPosition(screenChunkPosition.x, screenChunkPosition.y);
       window->draw(shape);
 
-      Vector3i tileChunkPosition(x, y, cameraPosition.worldPosition.tileChunkPosition.z);
+      Vec3i tileChunkPosition(x, y, cameraPosition.worldPosition.tileChunkPosition.z);
       
       // If The Chunk Doesn't Exist We don't render anything
       if(tileChunkMap.count(tileChunkPosition))
@@ -544,7 +544,7 @@ LevelRenderer::renderTileMap(const TileMapPtr& tileMap, EntityPosition& cameraPo
 }
 
 void
-LevelRenderer::renderEntity(const EntityRenderData* entityRenderData, Vector2f entityPositionOnScreen)
+LevelRenderer::renderEntity(const EntityRenderData* entityRenderData, Vec2f entityPositionOnScreen)
 {
   const sf::Vector2u windowDimensions = window->getSize();
   
@@ -553,7 +553,7 @@ LevelRenderer::renderEntity(const EntityRenderData* entityRenderData, Vector2f e
     {
       const PrimitiveRenderData& primitiveRenderData = *((PrimitiveRenderData*)entityRenderData);
       
-      const Vector2f& entityDimensions = primitiveRenderData.dimensionsInTiles;
+      const Vec2f& entityDimensions = primitiveRenderData.dimensionsInTiles;
       const sf::Color entityColor(primitiveRenderData.color.x, primitiveRenderData.color.y, primitiveRenderData.color.z,
 				  primitiveRenderData.colorAlpha * 255.0f);
 
@@ -620,8 +620,8 @@ LevelRenderer::renderEntity(const EntityRenderData* entityRenderData, Vector2f e
       
       if(mobRenderData.spriteColorAlpha != 1.0f)
       {
-      	const Vector3f& color = mobRenderData.spriteColor;
-	Vector3f realColor = Vector3f::interpolate(Vector3f(255, 255, 255), color, mobRenderData.spriteColorAlpha);
+      	const Vec3f& color = mobRenderData.spriteColor;
+	Vec3f realColor = Vec3f::lerp(Vec3f(255, 255, 255), color, mobRenderData.spriteColorAlpha);
 	mobSprite.setColor(sf::Color(realColor.x, realColor.y, realColor.z));
 	//mobSprite.setColor(sf::Color(color.x, color.y, color.z, mobRenderData.spriteColorAlpha * 255.0f));
       }
@@ -773,11 +773,11 @@ LevelRenderer::renderEntity(const EntityRenderData* entityRenderData, Vector2f e
 
 void
 LevelRenderer::renderEntities(const EntityList& entityList, EntityPosition& cameraPosition,
-			      const Vector2i& tileChunkSize)
+			      const Vec2i& tileChunkSize)
 {
   for(auto entityIt = entityList.begin(); entityIt != entityList.end(); entityIt++)
   {
-    Vector2f entityPositionOnScreen = getEntityPositionOnScreen(*entityIt, cameraPosition, tileChunkSize);
+    Vec2f entityPositionOnScreen = getEntityPositionOnScreen(*entityIt, cameraPosition, tileChunkSize);
     const EntityRenderData* entityRenderData = (*entityIt)->getRenderData();
     renderEntity(entityRenderData, entityPositionOnScreen);
   }

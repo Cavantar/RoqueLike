@@ -7,13 +7,13 @@
 class Room{
  public:
   WorldPosition topLeftCorner;
-  Vector2i dimensions;
+  Vec2i dimensions;
   int depth;
   TILE_TYPE floorType;
   
   bool isColliding(TileMapPtr tileMap);
   
-  Room(const WorldPosition& topLeftCorner=WorldPosition(), const Vector2i& dimensions=Vector2i(),
+  Room(const WorldPosition& topLeftCorner=WorldPosition(), const Vec2i& dimensions=Vec2i(),
        int32 depth=0, TILE_TYPE floorType = TILE_TYPE_STONE_GROUND) :
     topLeftCorner(topLeftCorner), dimensions(dimensions), depth(depth), floorType(floorType) {}
 };
@@ -57,8 +57,8 @@ protected:
   int seed;
   bool finishedGenerating;
   
-  void placeLine(WorldPosition startPosition, Vector2i deltaVector, TILE_TYPE tileType);
-  void fillRectangle(WorldPosition startPosition, Vector2i dimensions, TILE_TYPE tileType);
+  void placeLine(WorldPosition startPosition, Vec2i deltaVec, TILE_TYPE tileType);
+  void fillRectangle(WorldPosition startPosition, Vec2i dimensions, TILE_TYPE tileType);
 };
 
 class SimpleLevelGenerator : public LevelGenerator{

@@ -1,6 +1,7 @@
 #pragma once
 
-#include "Vector.h"
+#include <jpb/Vector.h>
+#include <jpb/Rect.h>
 #include "EntityPosition.h"
 #include "ILevel.h"
 
@@ -57,8 +58,8 @@ public:
   PrimitiveRenderData() : EntityRenderData(ER_PRIMITIVE), colorAlpha(1.0f), outlineThickness(0) {}
   
   PRIMITIVE_TYPE primitiveType;
-  Vector2f dimensionsInTiles;
-  Vector3f color;
+  Vec2f dimensionsInTiles;
+  Vec3f color;
   float colorAlpha;
   float outlineThickness; 
 };
@@ -70,7 +71,7 @@ public:
   float life;
   
   std::string spriteName;
-  Vector3f spriteColor;
+  Vec3f spriteColor;
   float spriteColorAlpha;
 };
 
@@ -80,7 +81,7 @@ public:
   
   std::string text;
   float fontSize;
-  Vector3f textColor;
+  Vec3f textColor;
   float textFadeValue;
 };
 
@@ -89,7 +90,7 @@ public:
   
   BasicSpriteRenderData() : EntityRenderData(ER_BASICSPRITE) {}
   std::string basicSpriteName;
-  // Vector3f color;
+  // Vec3f color;
   // float colorAlpha;
 };
 
@@ -108,12 +109,12 @@ public:
   const EntityPosition& getPosition() const { return position; }
   void setPosition(const EntityPosition& position) { this->position = position; }
 
-  virtual Vector2f getVelocity() const  { return Vector2f(); }
+  virtual Vec2f getVelocity() const  { return Vec2f(); }
   // Applies given velocity to an entity (Useful when pushing)
-  virtual void addVelocity(Vector2f velocity) {}
+  virtual void addVelocity(Vec2f velocity) {}
 
   // For Ordering During Rendering 
-  virtual Vector2f getDimensions() const { return Vector2f(1.0f, 1.0f);}
+  virtual Vec2f getDimensions() const { return Vec2f(1.0f, 1.0f);}
   
   // Collision Stuff
   virtual FloatRect getCollisionRect() const { return FloatRect();}
@@ -154,7 +155,7 @@ typedef std::shared_ptr<Entity> EntityPtr;
 struct OverlayTextData{
   std::string text;
   float fontSize;
-  Vector3f color;
+  Vec3f color;
   float duration;
 };
 
@@ -172,43 +173,43 @@ private:
 
 class Moveable : public Entity {
  public:
-  Vector2f getDimensions() const { return dimensions; }
+  Vec2f getDimensions() const { return dimensions; }
   virtual FloatRect getCollisionRect() const ;
   
-  Vector2f getVelocity() const { return velocity; }
-  void addVelocity(Vector2f velocity) { this->velocity += velocity; }
+  Vec2f getVelocity() const { return velocity; }
+  void addVelocity(Vec2f velocity) { this->velocity += velocity; }
 
   // Returns vector indicating center of collision region starting in reference to EntityPosition(top Left)  
-  Vector2f getLocalCollisionCenter() const ;
+  Vec2f getLocalCollisionCenter() const ;
   EntityPosition getCollisionCenter() const ;
 
   // Returns reflected velocity depending on collisionPlane
-  Vector2f getReflectedVelocity(COLLISION_PLANE collisionPlane, float speedIncrease) const ;
+  Vec2f getReflectedVelocity(COLLISION_PLANE collisionPlane, float speedIncrease) const ;
   float getMovementSpeed() const { return metersPerSecondSquared; }
 
   float getBottomY() const { return dimensions.y; }
   
 protected:
-  Vector2f dimensions;
+  Vec2f dimensions;
   
-  Vector2f velocity;
-  Vector2f acceleration;
+  Vec2f velocity;
+  Vec2f acceleration;
   
   float metersPerSecondSquared = 25;
 
-  // Calculates deltaVector based on the velocity acceleration and passed fakeFrictionValue
-  Vector2f getPositionDeltaVector(const float lastDelta, const float fakeFrictionValue,
+  // Calculates deltaVec based on the velocity acceleration and passed fakeFrictionValue
+  Vec2f getPositionDeltaVec(const float lastDelta, const float fakeFrictionValue,
 				  const float accelerationModifier = 1.0f);
 
   // Handles Collision Result calls onEntityCollision, onWorldCollision.
   void handleCollisionResult(EntityCollisionResult& collisionResult,
-			     const Vector2f& positionDeltaVector);
+			     const Vec2f& positionDeltaVec);
 };
 
 class PrimitiveParticle : public Moveable {
 public:
-  PrimitiveParticle(const EntityPosition& position, const Vector2f& initialVelocity,
-		    const Vector3f& color, float lifeTime);
+  PrimitiveParticle(const EntityPosition& position, const Vec2f& initialVelocity,
+		    const Vec3f& color, float lifeTime);
   
   void update(const float lastDelta);
   
@@ -226,7 +227,7 @@ private:
 
 class XpOrb : public Moveable {
 public:
-  XpOrb(const EntityPosition& position, const Vector2f& initialVelocity, float xpAmount);
+  XpOrb(const EntityPosition& position, const Vec2f& initialVelocity, float xpAmount);
   void update(const float lastDelta);
   
   bool isPlayerItem() const { return true; }
@@ -244,8 +245,8 @@ private:
 
 class Bullet : public Moveable {
 public:
-  Bullet(const EntityPosition& position, const Vector2f& initialVelocity,
-	 const Vector2f& dimensions, float damageValue);
+  Bullet(const EntityPosition& position, const Vec2f& initialVelocity,
+	 const Vec2f& dimensions, float damageValue);
   
   void update(const float lastDelta);
   void onWorldCollision(COLLISION_PLANE worldCollisionType);

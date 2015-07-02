@@ -12,13 +12,13 @@ TileChunk::TileChunk(const uint32 width, const uint32 height)
 }
 
 TILE_TYPE
-TileChunk::getTileType(const Vector2i& tilePosition) const
+TileChunk::getTileType(const Vec2i& tilePosition) const
 {
   return tileChunkData[tilePosition.y][tilePosition.x];
 }
 
 void
-TileChunk::setTileType(const Vector2i& tilePosition,
+TileChunk::setTileType(const Vec2i& tilePosition,
 			    const TILE_TYPE tileValue)
 {
   tileChunkData[tilePosition.y][tilePosition.x] = tileValue;
@@ -64,13 +64,13 @@ TileMap::recanonicalize(EntityPosition& entityPosition) const
 
 bool
 TileMap::isRectangleOfTileType(WorldPosition startPosition,
-				    Vector2i dimensions, TILE_TYPE tileType)
+				    Vec2i dimensions, TILE_TYPE tileType)
 {
   for(int y = 0; y < dimensions.y; y++)
   {
     for(int x = 0; x < dimensions.x; x++)
     {
-      if(getTileType(startPosition + Vector2i(x, y)) != tileType )
+      if(getTileType(startPosition + Vec2i(x, y)) != tileType )
       {
 	return false;
       }

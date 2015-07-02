@@ -1,34 +1,34 @@
 #pragma once
 
-#include "Vector.h"
+#include <jpb/Vector.h>
 
 class WorldPosition{
  public:
   
   // Position of a TileChunk
-  Vector3i tileChunkPosition;
+  Vec3i tileChunkPosition;
 
   // Position of a Tile in a TileChunk 
-  Vector2i tilePosition;
+  Vec2i tilePosition;
   
- WorldPosition(const Vector3i& tileChunkPosition, const Vector2i& tilePosition)
+ WorldPosition(const Vec3i& tileChunkPosition, const Vec2i& tilePosition)
    : tileChunkPosition(tileChunkPosition), tilePosition(tilePosition) {}
   
   WorldPosition() {}
 
   // Changes both tileChunkPosition as well as tilePosition when tilePosition bounds are left
-  void recanonicalize(const Vector2i tileChunkSize);
+  void recanonicalize(const Vec2i tileChunkSize);
 
   // Calculates tile distance including those at both ends
-  static Vector2i calculateDistanceInTilesInclusive(const WorldPosition& srcPosition,
+  static Vec2i calculateDistanceInTilesInclusive(const WorldPosition& srcPosition,
 						    const WorldPosition& dstPosition,
-						    const Vector2i& tileChunkDimensions);
+						    const Vec2i& tileChunkDimensions);
   
-  WorldPosition operator+(Vector2i vector) const;
-  WorldPosition operator-(Vector2i vector) const;
+  WorldPosition operator+(Vec2i vector) const;
+  WorldPosition operator-(Vec2i vector) const;
   
-  void operator+=(Vector2i vector);
-  void operator-=(Vector2i vector);
+  void operator+=(Vec2i vector);
+  void operator-=(Vec2i vector);
   
   bool operator==(const WorldPosition& worldPosition) const;
 };
@@ -39,19 +39,19 @@ class EntityPosition{
   WorldPosition worldPosition;
   
   // Offset From A Current Tile
-  Vector2f tileOffset;
+  Vec2f tileOffset;
   
  EntityPosition(WorldPosition& worldPosition = WorldPosition(),
-		Vector2f& tileOffset = Vector2f()) : worldPosition(worldPosition), tileOffset(tileOffset) {}
+		Vec2f& tileOffset = Vec2f()) : worldPosition(worldPosition), tileOffset(tileOffset) {}
   
   // Changes both tileChunkPosition as well as tilePosition when tilePosition bounds are left
   // Based on tileOffset
-  void recanonicalize(const Vector2i tileChunkSize);
-  static Vector2f calculateDistanceInTiles(const EntityPosition& srcPosition,
+  void recanonicalize(const Vec2i tileChunkSize);
+  static Vec2f calculateDistanceInTiles(const EntityPosition& srcPosition,
 					   const EntityPosition& dstPosition,
-					   const Vector2i& tileChunkDimensions);
+					   const Vec2i& tileChunkDimensions);
   
-  void operator+=(const Vector2f& vector);
-  void operator-=(const Vector2f& vector);
-  EntityPosition operator+(const Vector2f& vector) const ;
+  void operator+=(const Vec2f& vector);
+  void operator-=(const Vec2f& vector);
+  EntityPosition operator+(const Vec2f& vector) const ;
 };

@@ -1,5 +1,5 @@
 #pragma once
-#include "Vector.h"
+#include <jpb\Vector.h>
 
 enum NOISE_TYPE{
 	NT_PERLIN,
@@ -22,14 +22,14 @@ struct GenData{
 class Noise {
 public:
   static float random() { return (rand() % 255) * (1.0f / 255); }
-  static float value(Vector2f point, float frequency);
+  static float value(Vec2f point, float frequency);
   static float perlin(float value, float frequency);
-  static float perlin(Vector2f point, float frequency);
+  static float perlin(Vec2f point, float frequency);
   
-  static float sumPerlin(Vector2f point, NoiseParams& noiseParams);
-  static float sumValue(Vector2f point, NoiseParams& noiseParams);
+  static float sumPerlin(Vec2f point, NoiseParams& noiseParams);
+  static float sumValue(Vec2f point, NoiseParams& noiseParams);
   
-  //static vector<glm::vec4> getMap(Vector2f offset, int sideLength, list<GenData>& genDatas);
+  //static vector<glm::vec4> getMap(Vec2f offset, int sideLength, list<GenData>& genDatas);
 private:
   
   static int hash[];
@@ -38,7 +38,7 @@ private:
   static float gradients1D[];
   static int gradients1DMask;
   
-  static Vector2f gradients2D[];
+  static Vec2f gradients2D[];
   static int gradients2DMask;
   
   static float sqr2;

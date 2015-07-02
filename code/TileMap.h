@@ -24,25 +24,25 @@ class TileChunk{
 public:
   TileChunk(const uint32 width, const uint32 height);
   
-  TILE_TYPE getTileType(const Vector2i& tilePosition) const;
-  void setTileType(const Vector2i& tilePosition, const TILE_TYPE tileType);
+  TILE_TYPE getTileType(const Vec2i& tilePosition) const;
+  void setTileType(const Vec2i& tilePosition, const TILE_TYPE tileType);
   
   const TileChunkData& getTileChunkData() const { return tileChunkData; } 
 };
 
 typedef std::shared_ptr<TileChunk> TileChunkPtr;
-typedef std::unordered_map<Vector3i, TileChunkPtr> TileChunkMap;
+typedef std::unordered_map<Vec3i, TileChunkPtr> TileChunkMap;
 
 class TileMap{
   friend class LevelGenerator;
   friend class SimpleLevelGenerator;
   
 public:
-  TileMap(const Vector2i tileChunkSize) :
+  TileMap(const Vec2i tileChunkSize) :
     tileChunkSize(tileChunkSize) {}
   
   void setTileType(WorldPosition& tileWorldPosition, const TILE_TYPE tileType);
-  bool isRectangleOfTileType(WorldPosition startPosition, Vector2i dimensions, TILE_TYPE tileType); 
+  bool isRectangleOfTileType(WorldPosition startPosition, Vec2i dimensions, TILE_TYPE tileType); 
   
   // Can't Be const because of hashmap,
   TILE_TYPE getTileType(WorldPosition& tileWorldPosition);
@@ -50,10 +50,10 @@ public:
   
   void recanonicalize(EntityPosition& entityPosition) const;
   
-  const Vector2i& getTileChunkSize() const { return tileChunkSize; }
+  const Vec2i& getTileChunkSize() const { return tileChunkSize; }
   
 private:
-  Vector2i tileChunkSize;
+  Vec2i tileChunkSize;
   TileChunkMap tileChunkMap;
 };
 

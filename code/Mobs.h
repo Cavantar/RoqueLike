@@ -74,7 +74,7 @@ public:
   void onWorldCollision(COLLISION_PLANE worldCollisionType);
   void onEntityCollision(COLLISION_PLANE worldCollisionType, Entity* entity);
 private:
-  Vector2f currentDirection;
+  Vec2f currentDirection;
   const float attackSpeedValue = 50.0f;
   const float idleSpeedValue = 10.0f;
   float localAttackingTime;
@@ -96,7 +96,7 @@ public:
   void onEntityCollision(COLLISION_PLANE worldCollisionType, Entity* entity);
 private:
   RAT_STATE ratState; 
-  Vector2f currentDirection;
+  Vec2f currentDirection;
   float localStateTime;
 };
 

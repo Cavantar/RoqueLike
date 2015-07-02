@@ -1,7 +1,7 @@
 #pragma once
 
 #include "Types.h"
-#include "Vector.h"
+#include <jpb\Vector.h>
 #include "EntityPosition.h"
 
 #include <assert.h>
@@ -35,9 +35,9 @@ class EventArgumentData{
   EventArgumentData operator=(void * value);
   
   EventArgumentData operator=(const std::string value);
-  EventArgumentData operator=(const Vector2i value);
-  EventArgumentData operator=(const Vector2f value);
-  EventArgumentData operator=(const Vector3i value);
+  EventArgumentData operator=(const Vec2i value);
+  EventArgumentData operator=(const Vec2f value);
+  EventArgumentData operator=(const Vec3i value);
   
   EventArgumentData operator=(const WorldPosition value);
   EventArgumentData operator=(const EntityPosition value);
@@ -47,9 +47,9 @@ class EventArgumentData{
   EventArgumentData(void* value);
   
   EventArgumentData(const std::string value);
-  EventArgumentData(const Vector2i value);
-  EventArgumentData(const Vector2f value);
-  EventArgumentData(const Vector3i value);
+  EventArgumentData(const Vec2i value);
+  EventArgumentData(const Vec2f value);
+  EventArgumentData(const Vec3i value);
   
   EventArgumentData(const WorldPosition value);
   EventArgumentData(const EntityPosition value);
@@ -59,9 +59,9 @@ class EventArgumentData{
   void* asPointer() const;
   
   std::string asString() const;
-  const Vector2i& asVector2i() const;
-  const Vector2f& asVector2f() const;
-  const Vector3i& asVector3i() const;
+  const Vec2i& asVec2i() const;
+  const Vec2f& asVec2f() const;
+  const Vec3i& asVec3i() const;
   
   const WorldPosition& asWorldPosition() const;
   const EntityPosition& asEntityPosition() const;

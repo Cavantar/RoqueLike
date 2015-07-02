@@ -1,13 +1,11 @@
 
 #pragma once
 
-
 #include <SFML/Graphics.hpp>
 
 #include <unordered_map>
 #include <iostream>
 #include <string>
-
 
 template <typename T>
 class Singleton {
@@ -45,7 +43,6 @@ public:
 class Profiler {
 public:
   virtual void startFrame() = 0;
-  //virtual void end() = 0;
   
   void start(std::string region);
   void end(std::string region);
