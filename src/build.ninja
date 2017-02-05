@@ -1,0 +1,77 @@
+TARGET = "RoqueLike.exe"
+SrcDir = ../src/
+CC=C:\Program Files (x86)\Microsoft Visual Studio 14.0\VC\bin\amd64\cl.exe
+
+LIBS = $
+sfml-graphics-s.lib $
+sfml-window-s.lib $
+sfml-system-s.lib $
+opengl32.lib $
+winmm.lib $
+gdi32.lib $
+freetype.lib $
+jpeg.lib $
+user32.lib $
+jpb.lib $
+Advapi32.lib
+
+SfmlDirectory = ../libs/SFML-2.4.1
+IncludeDirectories = -I$SfmlDirectory/include -I../libs/jpb/
+LibraryDirectories = -LIBPATH:$SfmlDirectory/lib -LIBPATH:../libs/jpb/lib/
+
+Defines = -DSFML_STATIC
+
+CompilerOptions = $Defines -FC -O2x -EHsc -MD -MP -wd4503 -Fe$TARGET $IncludeDirectories -c
+LinkerOptions = $LibraryDirectories
+
+CodeDirectory = ../code/
+BuildDirectory = ../build/
+
+#default RoqueLike
+
+msvc_deps_prefix = Note: including file:
+
+rule cc
+     deps = msvc
+     command = $CC $CompilerOptions /showIncludes /nologo /Fd../build/RoqueLike.pdb ../src/$in /Fo../build/$out
+
+rule ll
+     command = link $LinkerOptions $LIBS /nologo /out:../build/RoqueLike.exe $in
+
+build ../build/main.obj : cc main.cpp
+build ../build/Game.obj : cc Game.cpp
+build ../build/EntityPosition.obj : cc EntityPosition.cpp
+build ../build/Event.obj : cc Event.cpp
+build ../build/EventManager.obj : cc EventManager.cpp
+build ../build/PlayerHud.obj : cc PlayerHud.cpp
+build ../build/TileMap.obj : cc TileMap.cpp
+build ../build/LevelGenerator.obj : cc LevelGenerator.cpp
+build ../build/Level.obj : cc Level.cpp
+build ../build/Input.obj : cc Input.cpp
+build ../build/Entity.obj : cc Entity.cpp
+build ../build/LevelRenderer.obj : cc LevelRenderer.cpp
+build ../build/SpriteManager.obj : cc SpriteManager.cpp
+#build ../build/Profiler.obj : cc Profiler.cpp
+#build ../build/Noise.obj : cc Noise.cpp
+build ../build/MiscFunctions.obj : cc MiscFunctions.cpp
+build ../build/Mobs.obj : cc Mobs.cpp
+
+build RoqueLike : ll $
+../build/main.obj $
+../build/Game.obj $
+../build/EntityPosition.obj $
+../build/Event.obj $
+../build/EventManager.obj $
+../build/PlayerHud.obj $
+../build/TileMap.obj $
+../build/LevelGenerator.obj $
+../build/Level.obj $
+../build/Input.obj $
+../build/Entity.obj $
+../build/LevelRenderer.obj $
+../build/SpriteManager.obj $
+../build/MiscFunctions.obj $
+../build/Mobs.obj
+
+#../build/Profiler.obj $
+#../build/Noise.obj $
